@@ -215,11 +215,13 @@ const ZONE_DATA = [
         bgDawn: 'assets/ocean_dawn.png', 
         bgNight: 'assets/ocean_night.png',
         library: {
-            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png','Liche.png','Pagre.png','Tacaud.png'],
-            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png','SaintPierre.png','Napoleon.png'], 
-            'rare': ['Baracuda.png', 'Thon.png','Turbot.png','Papillon.png'], 
-            'epique': ['Espadon.png', 'MahiMahi.png','Poulpi.png','PoissonGlobe.png'], 
-            'legendaire': ['Raiemanta.png'], 'mythique': ['Krakenor.png', 'Chronos.png'], 'divin': ['Abysellion.png']
+            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png', 'Liche.png', 'Pagre.png', 'Tacaud.png', 'Aglefin.png', 'Atherine.png', 'Cabillaud.png', 'Chapon.png', 'Girelle.png', 'Perca.png', 'Sprat.png', 'Vielle.png'],
+            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png', 'SaintPierre.png', 'Napoleon.png', 'Albacore.png', 'Baliste.png', 'Carangue.png', 'Denti.png', 'Orphie.png', 'PoissonHache.png', 'Sar.png', 'Seriole.png', 'Trachinote.png'],
+            'rare': ['Baracuda.png', 'Thon.png', 'Turbot.png', 'Papillon.png'],
+            'epique': ['Espadon.png', 'MahiMahi.png', 'Poulpi.png', 'PoissonGlobe.png'],
+            'legendaire': ['Raiemanta.png', 'Mako.png', 'Voilier.png'],
+            'mythique': ['Krakenor.png', 'Chronos.png', 'Hippocampe.png'],
+            'divin': ['Abysellion.png']
         }
     }
 ];
