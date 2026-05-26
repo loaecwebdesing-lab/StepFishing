@@ -49,7 +49,10 @@ const CRATE_MONEY_LOOT = [
 const CRATE_ROD_POOL_WEIGHT = 22;
 const CRATE_ROD_WEIGHTS = { 'Rare': 45, 'Épique': 28, 'Légendaire': 15, 'Mythique': 8, 'Divin': 4 };
 
-const AUDIO_VOLUME = 0.35;
+const AUDIO_BASE = 0.35;
+const MUSIC_VOLUME = AUDIO_BASE * 0.85;
+const BUTTON_VOLUME = Math.min(1, AUDIO_BASE * 1.5);
+const SFX_VOLUME = AUDIO_BASE;
 const AUDIO_FILES = {
     ambi: 'assets/Ambi.mp3',
     splash: 'assets/Splash.mp3',
@@ -96,19 +99,19 @@ function decodeAudioFile(src) {
     });
 }
 
-function initSfxPool(key, src, size) {
+function initSfxPool(key, src, size, volume = SFX_VOLUME) {
     if (sfxPools[key]?.length) return;
     sfxPools[key] = [];
     for (let i = 0; i < size; i++) {
         const audio = new Audio(src);
         audio.preload = 'auto';
-        audio.volume = AUDIO_VOLUME;
+        audio.volume = volume;
         audio.load();
         sfxPools[key].push(audio);
     }
 }
 
-function playBufferSrc(src) {
+function playBufferSrc(src, volume = SFX_VOLUME) {
     const buffer = audioBuffers[src];
     if (!buffer) return false;
     const ctx = getAudioContext();
@@ -116,24 +119,24 @@ function playBufferSrc(src) {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const gain = ctx.createGain();
-    gain.gain.value = AUDIO_VOLUME;
+    gain.gain.value = volume;
     source.connect(gain);
     gain.connect(ctx.destination);
     source.start(0);
     return true;
 }
 
-function playSfxHtml(key) {
+function playSfxHtml(key, volume = SFX_VOLUME) {
     const pool = sfxPools[key];
     if (!pool?.length) return;
     const sound = pool.find(a => a.paused || a.ended) || pool[0];
     sound.currentTime = 0;
-    sound.volume = AUDIO_VOLUME;
+    sound.volume = volume;
     sound.play().catch(() => {});
 }
 
 function playButtonSound() {
-    if (!playBufferSrc(AUDIO_FILES.button)) playSfxHtml('button');
+    if (!playBufferSrc(AUDIO_FILES.button, BUTTON_VOLUME)) playSfxHtml('button', BUTTON_VOLUME);
 }
 
 function playSplashSound() {
@@ -148,7 +151,7 @@ function startBackgroundMusic() {
     const music = getBgMusic();
     if (!music) return;
     music.muted = false;
-    music.volume = AUDIO_VOLUME;
+    music.volume = MUSIC_VOLUME;
     music.play().catch(() => {});
 }
 
@@ -166,7 +169,7 @@ function setupAudio() {
 
 function preloadAllAudio() {
     getAudioContext();
-    initSfxPool('button', AUDIO_FILES.button, 4);
+    initSfxPool('button', AUDIO_FILES.button, 4, BUTTON_VOLUME);
     initSfxPool('splash', AUDIO_FILES.splash, 2);
     initSfxPool('chest', AUDIO_FILES.chest, 2);
     startBackgroundMusic();

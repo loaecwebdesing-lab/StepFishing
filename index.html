@@ -12,13 +12,13 @@
     (function () {
         var m = new Audio('assets/Ambi.mp3');
         m.loop = true;
-        m.volume = 0.35;
+        m.volume = 0.2975;
         m.preload = 'auto';
         m.playsInline = true;
         window.__stepfishBgMusic = m;
         function playBg() {
             m.muted = false;
-            m.volume = 0.35;
+            m.volume = 0.2975;
             m.play().catch(function () {});
         }
         playBg();
