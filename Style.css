@@ -373,6 +373,50 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #aquarium-viewport { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; }
 #fish-layer { position: absolute; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
 .aq-fish { position: absolute; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 8px 8px rgba(0,0,0,0.4)); pointer-events: auto; max-width: 35%; }
+
+.aq-fish-locked {
+    filter: drop-shadow(0 0 10px rgba(255, 202, 40, 0.75)) drop-shadow(0 8px 8px rgba(0,0,0,0.4));
+}
+
+.aq-fish-lock-badge {
+    position: absolute;
+    top: -6px;
+    right: -4px;
+    font-size: 0.85rem;
+    line-height: 1;
+    z-index: 3;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+}
+
+.modal-fish-lock-hint {
+    margin: 10px 0 0;
+    font-size: 0.88rem !important;
+    opacity: 0.85;
+    text-align: center;
+    line-height: 1.35;
+    color: var(--wood-gold);
+}
+
+.fish-modal-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.fish-modal-btn {
+    width: 100% !important;
+    height: 48px !important;
+    font-size: 0.95rem !important;
+}
+
+#btn-lock-fish.fish-lock-active {
+    border-color: #ffca28 !important;
+    color: #ffca28 !important;
+    box-shadow: 0 0 12px rgba(255, 202, 40, 0.45);
+}
 .aq-fish-img, .fish-mut-img { display: block; height: auto; object-fit: contain; }
 .fish-visual-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; overflow: visible; padding: 30px 24px; }
 #modal-fish-visual, #catch-visual { display: flex; justify-content: center; align-items: center; min-height: 190px; margin: 0 auto; overflow: visible; }

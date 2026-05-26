@@ -854,7 +854,7 @@ function placeFishInAquarium(fish) {
         if (!unlocked.includes(i)) continue;
         const aqId = `aq${i}`;
         if (state.inventory[aqId].length < 15) {
-            state.inventory[aqId].push({ ...fish });
+            state.inventory[aqId].push({ ...fish, locked: Boolean(fish.locked) });
             return { placed: true, aqIndex: i, aqId };
         }
     }
@@ -980,14 +980,30 @@ function renderAquarium() {
         fDiv.style.setProperty('--mut-color', mutation.color);
         const weightKg = getFishWeightKg(fish);
         const finalWidth = aquariumFishWidthPx(weightKg);
-        fDiv.title = `${fish.name} · ${formatFishWeight(weightKg)}`;
-        fDiv.innerHTML = `<img src="${fish.img}" class="aq-fish-img" style="width:${finalWidth}px">`;
+        const locked = Boolean(fish.locked);
+        if (locked) fDiv.classList.add('aq-fish-locked');
+        fDiv.title = `${fish.name} · ${formatFishWeight(weightKg)}${locked ? ' · 🔒 protégé' : ''}`;
+        fDiv.innerHTML = `${locked ? '<span class="aq-fish-lock-badge" aria-hidden="true">🔒</span>' : ''}<img src="${fish.img}" class="aq-fish-img" style="width:${finalWidth}px">`;
         fDiv.style.left = Math.random() * 80 + 5 + '%';
         fDiv.style.top = Math.random() * 75 + 5 + '%';
         fDiv.dataset.fishData = JSON.stringify({ target: null, speed: 0 });
         fDiv.addEventListener('click', (e) => { e.stopPropagation(); openFishModal(index, aqId); });
         elements.fishLayer.appendChild(fDiv);
     });
+}
+
+function isFishLocked(fish) {
+    return Boolean(fish?.locked);
+}
+
+function toggleFishLock(index, aqId) {
+    const fish = state.inventory[aqId]?.[index];
+    if (!fish) return;
+    fish.locked = !fish.locked;
+    persistGame();
+    renderAquarium();
+    openFishModal(index, aqId);
+    addLog(fish.locked ? `🔒 ${fish.name} protégé du « Tout vendre ».` : `🔓 ${fish.name} peut être vendu en masse.`, 'system');
 }
 
 function sellAllFromAq() {
@@ -997,14 +1013,28 @@ function sellAllFromAq() {
         addLog("Le bac est déjà vide !", "system");
         return;
     }
+    const kept = [];
     let totalGain = 0;
-    fishes.forEach(fish => { totalGain += fish.value; });
+    let soldCount = 0;
+    fishes.forEach(fish => {
+        if (isFishLocked(fish)) {
+            kept.push(fish);
+        } else {
+            totalGain += fish.value || 0;
+            soldCount++;
+        }
+    });
+    if (soldCount === 0) {
+        addLog('Aucun poisson vendu : tous sont verrouillés 🔒', 'system');
+        return;
+    }
     state.money += totalGain;
-    state.inventory[aqId] = [];
+    state.inventory[aqId] = kept;
     persistGame();
     updateMoneyDisplay();
     renderAquarium();
-    addLog(`Vendu tout le bac ! Gain : ${totalGain.toLocaleString('en-US', {minimumFractionDigits: 2})} $`, 'epic');
+    const lockedNote = kept.length ? ` · ${kept.length} verrouillé(s) conservé(s)` : '';
+    addLog(`Vendu ${soldCount} poisson(s) : ${totalGain.toLocaleString('en-US', { minimumFractionDigits: 2 })} $${lockedNote}`, 'epic');
 }
 
 function renderMap() {
@@ -1079,6 +1109,7 @@ function openFishModal(index, aqId) {
     const fish = state.inventory[aqId][index];
     if(!fish) return;
     const weightKg = getFishWeightKg(fish);
+    const locked = isFishLocked(fish);
     elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, aquariumFishWidthPx(weightKg) + 37);
     elements.modalFishName.innerText = fish.name;
     elements.modalFishName.className = `rarity-text ${fish.class}`;
@@ -1086,8 +1117,20 @@ function openFishModal(index, aqId) {
     const mutation = getMutationData(fish.mutation);
     elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'} · ${formatFishWeight(weightKg)} · Mutation : ${mutation.name}`;
     elements.modalFishPrice.innerText = fish.value + " $";
+    const lockHint = document.getElementById('modal-fish-lock-hint');
+    if (lockHint) {
+        lockHint.textContent = locked
+            ? '🔒 Protégé : ce poisson ne sera pas vendu avec « Tout vendre ».'
+            : 'Tu peux le verrouiller pour le protéger du « Tout vendre ».';
+    }
+    const btnLock = document.getElementById('btn-lock-fish');
     const btnSell = document.getElementById('btn-sell-fish');
     const btnMove = document.getElementById('btn-move-fish');
+    if (btnLock) {
+        btnLock.textContent = locked ? '🔓 Déverrouiller' : '🔒 Verrouiller';
+        btnLock.classList.toggle('fish-lock-active', locked);
+        btnLock.onclick = () => toggleFishLock(index, aqId);
+    }
     if(btnSell) btnSell.onclick = () => { sellFishFromAq(index, aqId); showScreen('inventory'); };
     if(btnMove) btnMove.onclick = () => { moveFishFromAq(index, aqId); };
     showScreen('fish-modal');
