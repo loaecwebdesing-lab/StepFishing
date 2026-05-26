@@ -39,17 +39,30 @@
         el.className = 'trade-status' + (isError ? ' trade-status-error' : text ? ' trade-status-ok' : '');
     }
 
+    function normalizeTradeFish(fish) {
+        if (!fish) return null;
+        if (typeof fish === 'string') {
+            try { return JSON.parse(fish); } catch { return null; }
+        }
+        return fish;
+    }
+
     function fishCardHTML(fish, compact) {
         const game = G();
-        if (!fish || !game) return '';
+        fish = normalizeTradeFish(fish);
+        if (!fish || !game || fish.isKey) return '<p class="trade-fish-invalid">Poisson invalide</p>';
         const w = game.getFishWeightKg(fish);
-        const visual = game.buildFishVisualHTML(fish, compact ? 56 : 72);
         const mut = game.getMutationData(fish.mutation);
-        return `<div class="trade-fish-card ${fish.class || ''}">
-            <div class="trade-fish-visual">${visual}</div>
+        const imgPx = compact ? 52 : 68;
+        const img = fish.img
+            ? `<img src="${escapeHtml(fish.img)}" class="trade-fish-img" width="${imgPx}" alt="${escapeHtml(fish.name || 'Poisson')}">`
+            : '<span class="trade-fish-missing">?</span>';
+        const mutName = mut?.name || 'Normal';
+        return `<div class="trade-fish-card ${escapeHtml(fish.class || '')}">
+            <div class="trade-fish-visual" data-mutation="${escapeHtml(mutName)}">${img}</div>
             <div class="trade-fish-meta">
-                <strong class="trade-fish-name">${escapeHtml(fish.name)}</strong>
-                <span>${escapeHtml(mut.name)} · ${escapeHtml(game.formatFishWeight(w))}</span>
+                <strong class="trade-fish-name">${escapeHtml(fish.name || 'Poisson')}</strong>
+                <span class="trade-fish-detail">${escapeHtml(mutName)} · ${escapeHtml(game.formatFishWeight(w))}</span>
                 <span class="trade-fish-value">${Number(fish.value || 0).toFixed(2)} $</span>
             </div>
         </div>`;

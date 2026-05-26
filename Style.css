@@ -2645,46 +2645,112 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .trade-fish-row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
 }
 
 .trade-arrow {
     font-size: 1.4rem;
     color: var(--wood-gold);
+    text-align: center;
+    line-height: 1;
 }
 
 .trade-fish-card {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    padding: 10px 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.trade-fish-visual {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
     border-radius: 10px;
-    padding: 8px;
-    flex: 1;
-    min-width: 140px;
+    overflow: hidden;
+    line-height: 0;
 }
 
 .trade-fish-visual .fish-visual-wrap {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 64px !important;
+    max-height: 64px !important;
+}
+
+.trade-fish-img {
+    display: block;
+    width: 52px !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 58px;
+    object-fit: contain;
     margin: 0 auto;
+}
+
+#trade-accept-offered .trade-fish-img {
+    width: 68px !important;
+    max-height: 72px;
+}
+
+.trade-fish-missing,
+.trade-fish-invalid {
+    font-size: 1.5rem;
+    opacity: 0.5;
 }
 
 .trade-fish-meta {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    font-size: 0.78rem;
-    opacity: 0.9;
+    gap: 4px;
+    font-size: 0.8rem;
+    opacity: 0.92;
+    min-width: 0;
+    flex: 1;
 }
 
 .trade-fish-name {
     color: var(--wood-gold);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.trade-fish-detail {
+    display: block;
+    line-height: 1.25;
+    opacity: 0.85;
+    word-break: break-word;
 }
 
 .trade-fish-value {
+    display: block;
     color: #81c784;
+    font-weight: 600;
+}
+
+#screen-trades .trade-fish-visual[data-mutation="Doré"] .trade-fish-img {
+    filter: drop-shadow(0 0 6px rgba(255, 202, 40, 0.9));
+}
+#screen-trades .trade-fish-visual[data-mutation="Néon"] .trade-fish-img {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 200, 0.85));
+}
+#screen-trades .trade-fish-visual[data-mutation="Albinos"] .trade-fish-img {
+    filter: brightness(1.15) drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
 }
 
 .trade-item-actions {
@@ -2756,12 +2822,19 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: block;
     width: 100%;
     text-align: left;
-    padding: 6px;
-    border-radius: 10px;
+    padding: 4px;
+    border-radius: 12px;
     border: 2px solid transparent;
     background: rgba(0, 0, 0, 0.25);
     cursor: pointer;
     color: inherit;
+    box-sizing: border-box;
+}
+
+.trade-pick-fish .trade-fish-card {
+    margin: 0;
+    background: transparent;
+    padding: 6px 8px;
 }
 
 .trade-pick-fish.selected {
