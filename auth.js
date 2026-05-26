@@ -115,7 +115,7 @@
             return 'Compte non confirmé — dans Supabase : Authentication → Users → supprime cet utilisateur et réinscris-toi.';
         }
         if (code === 'invalid_credentials' || msg.includes('invalid login credentials')) {
-            return 'Mot de passe ou email incorrect. Utilise le même mot de passe qu\'à l\'inscription (bouton 👁 pour vérifier).';
+            return 'Email ou mot de passe incorrect. Pas encore de compte ? Utilise l\'onglet Inscription (pas Connexion).';
         }
         if (code === 'weak_password' || msg.includes('weak password')) {
             return 'Mot de passe trop faible — minimum 6 caractères (8+ recommandé).';
@@ -278,8 +278,12 @@
         }
 
         pseudo = cleanPseudo;
-        await applySession(json.user, true);
-        setAuthMessage('');
+        let user = json.user;
+        if (!json.access_token) {
+            user = await authSignIn(normalizedEmail, password);
+        }
+        await applySession(user, true);
+        setAuthMessage(`Compte créé — bienvenue ${pseudo} !`, false);
     }
 
     async function logout() {
@@ -308,8 +312,8 @@
         document.querySelectorAll('.auth-tab').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tab);
         });
-        document.getElementById('auth-panel-login')?.classList.toggle('hidden', tab !== 'login');
-        document.getElementById('auth-panel-register')?.classList.toggle('hidden', tab !== 'register');
+        document.getElementById('auth-form-login')?.classList.toggle('hidden', tab !== 'login');
+        document.getElementById('auth-form-register')?.classList.toggle('hidden', tab !== 'register');
         setAuthMessage('');
     }
 
@@ -329,7 +333,7 @@
         document.getElementById('auth-form-login')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
+            const password = document.getElementById('login-password').value.trim();
             try {
                 await login(email, password);
                 if (readyResolve) { readyResolve(); readyResolve = null; }
@@ -343,8 +347,8 @@
             e.preventDefault();
             const pseudoInput = document.getElementById('register-pseudo').value;
             const email = document.getElementById('register-email').value.trim().toLowerCase();
-            const password = document.getElementById('register-password').value;
-            const confirm = document.getElementById('register-password-confirm').value;
+            const password = document.getElementById('register-password').value.trim();
+            const confirm = document.getElementById('register-password-confirm').value.trim();
             if (password !== confirm) {
                 setAuthMessage('Les mots de passe ne correspondent pas', true);
                 return;
