@@ -29,19 +29,32 @@
 
     function isConfigured() {
         const cfg = getConfig();
+        const key = cfg.supabaseAnonKey || '';
         return Boolean(
             cfg.supabaseUrl &&
-            cfg.supabaseAnonKey &&
+            key &&
             !cfg.supabaseUrl.includes('YOUR_PROJECT') &&
-            !cfg.supabaseAnonKey.includes('YOUR_ANON')
+            !key.includes('YOUR_ANON') &&
+            !key.includes('COLLE_ICI') &&
+            key.length > 80
         );
+    }
+
+    async function validateApiKey() {
+        const cfg = getConfig();
+        const res = await fetch(`${cfg.supabaseUrl}/auth/v1/health`, {
+            headers: { apikey: cfg.supabaseAnonKey }
+        });
+        if (!res.ok) {
+            throw new Error('Clé Supabase invalide — recopie la clé anon (eyJ...) depuis le dashboard.');
+        }
     }
 
     async function loadSupabase() {
         if (window.supabase?.createClient) return;
         await new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.min.js';
             script.onload = resolve;
             script.onerror = () => reject(new Error('Impossible de charger Supabase'));
             document.head.appendChild(script);
@@ -82,6 +95,38 @@
         }
         const logoutBtn = document.getElementById('btn-logout');
         if (logoutBtn) logoutBtn.classList.toggle('hidden', !session);
+    }
+
+    function getUserId() {
+        return session?.id || session?.user?.id || null;
+    }
+
+    function formatAuthError(err) {
+        const msg = (err?.message || '').toLowerCase();
+        const code = err?.code || '';
+        if (code === 'email_not_confirmed' || msg.includes('email not confirmed')) {
+            return 'Confirme ton email (lien reçu par mail) ou désactive la confirmation dans Supabase.';
+        }
+        if (code === 'invalid_credentials' || msg.includes('invalid login credentials')) {
+            return 'Email ou mot de passe incorrect. Si tu viens de t\'inscrire, confirme d\'abord ton email.';
+        }
+        if (code === 'weak_password' || msg.includes('weak password')) {
+            return 'Mot de passe trop faible — minimum 6 caractères (8+ recommandé).';
+        }
+        if (code === 'signup_disabled' || msg.includes('signup disabled')) {
+            return 'Les inscriptions sont désactivées dans Supabase (Authentication → Providers).';
+        }
+        if (code === 'user_already_registered' || msg.includes('already registered') || msg.includes('already been registered')) {
+            return 'Cet email est déjà utilisé — connecte-toi ou utilise un autre email.';
+        }
+        if (msg.includes('apikey') || msg.includes('invalid api key') || msg.includes('jwt')) {
+            return 'Clé Supabase invalide — utilise la clé anon (eyJ...) dans config.js, pas la clé secret.';
+        }
+        if (code === '42501' || msg.includes('row-level security')) {
+            return 'Erreur base de données — exécute supabase-setup.sql (trigger inclus) dans Supabase.';
+        }
+        console.error('StepFish Auth:', err);
+        return err?.message || 'Erreur de connexion';
     }
 
     function mergeLocalIntoSave(saveData) {
@@ -145,10 +190,10 @@
     }
 
     async function saveToCloud(saveData) {
-        if (!supabase || !session) return;
+        if (!supabase || !getUserId()) return;
         const payload = saveData || (typeof window.getSavePayload === 'function' ? window.getSavePayload() : DEFAULT_SAVE);
         const { error } = await supabase.from('player_saves').upsert({
-            id: session.user.id,
+            id: getUserId(),
             pseudo,
             save_data: payload,
             updated_at: new Date().toISOString()
@@ -182,14 +227,22 @@
         if (!data.user) throw new Error('Inscription impossible');
 
         pseudo = cleanPseudo;
-        session = data.user;
         guestMode = false;
 
+        if (!data.session) {
+            session = null;
+            setAuthMessage('Compte créé ! Confirme ton email puis connecte-toi — ou désactive "Confirm email" dans Supabase.', false);
+            switchAuthTab('login');
+            return;
+        }
+
+        session = data.user;
         const initialSave = mergeLocalIntoSave(null);
-        const { error: saveError } = await supabase.from('player_saves').insert({
+        const { error: saveError } = await supabase.from('player_saves').upsert({
             id: data.user.id,
             pseudo: cleanPseudo,
-            save_data: initialSave
+            save_data: initialSave,
+            updated_at: new Date().toISOString()
         });
         if (saveError) {
             if (saveError.code === '23505') throw new Error('Ce pseudo est déjà pris');
@@ -198,15 +251,8 @@
 
         if (typeof window.applySaveData === 'function') window.applySaveData(initialSave);
         updatePseudoDisplay();
-
-        if (data.session) {
-            hideAuthScreen();
-            setAuthMessage('');
-        } else {
-            setAuthMessage('Compte créé ! Vérifie ton email pour confirmer, puis connecte-toi.', false);
-            switchAuthTab('login');
-            session = null;
-        }
+        hideAuthScreen();
+        setAuthMessage('');
     }
 
     async function logout() {
@@ -253,7 +299,7 @@
                 await login(email, password);
                 if (readyResolve) { readyResolve(); readyResolve = null; }
             } catch (err) {
-                setAuthMessage(err.message || 'Connexion impossible', true);
+                setAuthMessage(formatAuthError(err), true);
             }
         });
 
@@ -275,7 +321,7 @@
                 await register(pseudoInput, email, password);
                 if (readyResolve) { readyResolve(); readyResolve = null; }
             } catch (err) {
-                setAuthMessage(err.message || 'Inscription impossible', true);
+                setAuthMessage(formatAuthError(err), true);
             }
         });
 
@@ -294,7 +340,14 @@
         try {
             await loadSupabase();
             const cfg = getConfig();
-            supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+            await validateApiKey();
+            supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
 
             const { data } = await supabase.auth.getSession();
             if (data.session?.user) {
@@ -303,7 +356,7 @@
             }
         } catch (e) {
             console.warn('Auth indisponible', e);
-            setAuthMessage('Serveur indisponible — mode invité possible', true);
+            setAuthMessage(formatAuthError(e) || 'Serveur indisponible — mode invité possible', true);
         }
 
         showAuthScreen();
