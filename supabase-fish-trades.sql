@@ -1,234 +1,15 @@
 -- ============================================================
--- StepFishing — Installation complète Supabase
--- Supabase → SQL Editor → coller tout → Run
--- Réexécutable : ne plante pas si déjà installé
+-- StepFishing — ÉCHANGES : ÉTAPE 2 (fonctions + Realtime)
+--
+-- 1) D'abord exécute supabase-fish-trades-step1-table.sql
+-- 2) Vérifie : select 1 from public.fish_trades limit 1;
+-- 3) Puis exécute TOUT ce fichier (étape 2)
+--
+-- Prérequis : player_saves (comptes) déjà installés
 -- ============================================================
 
--- --- Sauvegardes joueurs ---
-create table if not exists public.player_saves (
-    id uuid primary key references auth.users (id) on delete cascade,
-    pseudo text not null,
-    save_data jsonb not null default '{}'::jsonb,
-    updated_at timestamptz not null default now()
-);
+-- (Table créée à l'étape 1 — supabase-fish-trades-step1-table.sql)
 
-create unique index if not exists player_saves_pseudo_key on public.player_saves (lower(pseudo));
-
-alter table public.player_saves enable row level security;
-
-drop policy if exists "Lecture propre sauvegarde" on public.player_saves;
-create policy "Lecture propre sauvegarde"
-    on public.player_saves for select
-    using (auth.uid() = id);
-
-drop policy if exists "Insertion propre sauvegarde" on public.player_saves;
-create policy "Insertion propre sauvegarde"
-    on public.player_saves for insert
-    with check (auth.uid() = id);
-
-drop policy if exists "Mise à jour propre sauvegarde" on public.player_saves;
-create policy "Mise à jour propre sauvegarde"
-    on public.player_saves for update
-    using (auth.uid() = id);
-
--- Profil auto à l'inscription
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-    insert into public.player_saves (id, pseudo, save_data)
-    values (
-        new.id,
-        coalesce(new.raw_user_meta_data->>'pseudo', split_part(new.email, '@', 1)),
-        '{}'::jsonb
-    )
-    on conflict (id) do nothing;
-    return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute function public.handle_new_user();
-
--- --- Classement (leaderboard) ---
-create table if not exists public.leaderboard_stats (
-    id uuid primary key references auth.users (id) on delete cascade,
-    pseudo text not null,
-    money numeric not null default 0,
-    total_score numeric not null default 0,
-    level integer not null default 1,
-    prestige integer not null default 0,
-    fishes_caught integer not null default 0,
-    best_fish_value numeric not null default 0,
-    best_fish_name text not null default '',
-    best_fish_rarity text not null default '',
-    cosmetic_id text not null default 'default',
-    updated_at timestamptz not null default now()
-);
-
-alter table public.leaderboard_stats add column if not exists cosmetic_id text not null default 'default';
-
-create index if not exists leaderboard_money_idx on public.leaderboard_stats (money desc);
-create index if not exists leaderboard_level_idx on public.leaderboard_stats (prestige desc, level desc, total_score desc);
-create index if not exists leaderboard_fishes_idx on public.leaderboard_stats (fishes_caught desc);
-create index if not exists leaderboard_best_fish_idx on public.leaderboard_stats (best_fish_value desc);
-
-alter table public.leaderboard_stats enable row level security;
-
-drop policy if exists "Lecture classement publique" on public.leaderboard_stats;
-create policy "Lecture classement publique"
-    on public.leaderboard_stats for select
-    using (true);
-
-drop policy if exists "Insertion stats classement" on public.leaderboard_stats;
-create policy "Insertion stats classement"
-    on public.leaderboard_stats for insert
-    with check (auth.uid() = id);
-
-drop policy if exists "Mise à jour stats classement" on public.leaderboard_stats;
-create policy "Mise à jour stats classement"
-    on public.leaderboard_stats for update
-    using (auth.uid() = id);
-
--- Sync classement à chaque sauvegarde
-create or replace function public.sync_leaderboard_from_save()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    sd jsonb;
-    ts numeric;
-    lvl integer;
-    pr integer;
-    bf jsonb;
-begin
-    sd := coalesce(new.save_data, '{}'::jsonb);
-    ts := coalesce((sd->>'totalScore')::numeric, 0);
-    lvl := floor(power(ts / 10.0, 0.7))::integer + 1;
-    pr := floor(lvl / 100)::integer;
-    bf := sd->'bestFish';
-
-    insert into public.leaderboard_stats (
-        id, pseudo, money, total_score, level, prestige,
-        fishes_caught, best_fish_value, best_fish_name, best_fish_rarity,
-        cosmetic_id, updated_at
-    ) values (
-        new.id,
-        new.pseudo,
-        coalesce((sd->>'money')::numeric, 0),
-        ts,
-        lvl,
-        pr,
-        coalesce((sd->>'totalFishesCaught')::integer, 0),
-        coalesce((bf->>'value')::numeric, 0),
-        coalesce(bf->>'name', ''),
-        coalesce(bf->>'rarity', ''),
-        coalesce(sd->>'equippedCosmetic', 'default'),
-        now()
-    )
-    on conflict (id) do update set
-        pseudo = excluded.pseudo,
-        money = excluded.money,
-        total_score = excluded.total_score,
-        level = excluded.level,
-        prestige = excluded.prestige,
-        fishes_caught = excluded.fishes_caught,
-        best_fish_value = excluded.best_fish_value,
-        best_fish_name = excluded.best_fish_name,
-        best_fish_rarity = excluded.best_fish_rarity,
-        cosmetic_id = excluded.cosmetic_id,
-        updated_at = now();
-
-    return new;
-end;
-$$;
-
-drop trigger if exists sync_leaderboard_on_save on public.player_saves;
-create trigger sync_leaderboard_on_save
-    after insert or update on public.player_saves
-    for each row execute function public.sync_leaderboard_from_save();
-
--- Remplir / mettre à jour le classement pour tous les comptes existants
-update public.player_saves set updated_at = now();
-
--- --- Chat global ---
-create table if not exists public.global_chat (
-    id bigint generated always as identity primary key,
-    user_id uuid not null references auth.users (id) on delete cascade,
-    pseudo text not null,
-    cosmetic_id text not null default 'default',
-    message text not null check (char_length(message) between 1 and 200),
-    created_at timestamptz not null default now()
-);
-
-create index if not exists global_chat_created_idx on public.global_chat (created_at desc);
-
-alter table public.global_chat enable row level security;
-
-drop policy if exists "Lecture chat publique" on public.global_chat;
-create policy "Lecture chat publique"
-    on public.global_chat for select
-    using (true);
-
-drop policy if exists "Envoi chat authentifié" on public.global_chat;
-create policy "Envoi chat authentifié"
-    on public.global_chat for insert
-    with check (auth.uid() = user_id);
-
--- Realtime chat (ignore si déjà activé — sinon le script s'arrêtait avant les échanges)
-do $$
-begin
-    alter publication supabase_realtime add table public.global_chat;
-exception
-    when duplicate_object then null;
-end $$;
-
--- --- Échanges de poissons entre joueurs ---
-create table if not exists public.fish_trades (
-    id uuid primary key default gen_random_uuid(),
-    from_user_id uuid not null references auth.users (id) on delete cascade,
-    to_user_id uuid not null references auth.users (id) on delete cascade,
-    from_pseudo text not null,
-    to_pseudo text not null,
-    status text not null default 'pending'
-        check (status in ('pending', 'accepted', 'declined', 'cancelled')),
-    offered_fish jsonb not null,
-    offered_fish_uid text not null,
-    offered_aq_id text not null default 'aq0',
-    counter_fish jsonb,
-    counter_fish_uid text,
-    counter_aq_id text,
-    message text check (message is null or char_length(message) <= 120),
-    created_at timestamptz not null default now(),
-    resolved_at timestamptz,
-    constraint fish_trades_no_self check (from_user_id <> to_user_id)
-);
-
-create index if not exists fish_trades_to_pending_idx
-    on public.fish_trades (to_user_id, status, created_at desc);
-create index if not exists fish_trades_from_idx
-    on public.fish_trades (from_user_id, created_at desc);
-
-alter table public.fish_trades enable row level security;
-
-drop policy if exists "Lecture échanges participants" on public.fish_trades;
-create policy "Lecture échanges participants"
-    on public.fish_trades for select
-    using (auth.uid() in (from_user_id, to_user_id));
-
-drop policy if exists "Insertion échange expéditeur" on public.fish_trades;
-create policy "Insertion échange expéditeur"
-    on public.fish_trades for insert
-    with check (auth.uid() = from_user_id);
-
--- Recherche pseudo (id uniquement, pas la sauvegarde)
 create or replace function public.lookup_player_for_trade(p_pseudo text)
 returns table (player_id uuid, pseudo text)
 language sql
@@ -245,7 +26,6 @@ $$;
 revoke all on function public.lookup_player_for_trade(text) from public;
 grant execute on function public.lookup_player_for_trade(text) to authenticated;
 
--- Helpers inventaire JSONB (save_data.inventory)
 create or replace function public.sf_get_fish_by_uid(p_inventory jsonb, p_uid text)
 returns jsonb
 language plpgsql
@@ -336,7 +116,6 @@ declare
     arr jsonb;
     new_inv jsonb := coalesce(p_inventory, '{}'::jsonb);
     unlocked int[];
-    u int;
 begin
     if p_fish is null then
         return jsonb_build_object('inventory', new_inv, 'placed', false);
@@ -396,7 +175,6 @@ begin
 end;
 $$;
 
--- Créer une offre (le poisson reste dans l'aquarium jusqu'à acceptation)
 create or replace function public.create_fish_trade(
     p_to_pseudo text,
     p_offered_fish_uid text,
@@ -480,7 +258,6 @@ $$;
 revoke all on function public.create_fish_trade(text, text, text, text) from public;
 grant execute on function public.create_fish_trade(text, text, text, text) to authenticated;
 
--- Accepter : échange 1 pour 1 (contre-poisson du destinataire)
 create or replace function public.accept_fish_trade(
     p_trade_id uuid,
     p_counter_fish_uid text,
@@ -616,11 +393,10 @@ $$;
 revoke all on function public.cancel_fish_trade(uuid) from public;
 grant execute on function public.cancel_fish_trade(uuid) to authenticated;
 
--- Realtime échanges (après création de fish_trades — ou utiliser supabase-fish-trades.sql)
+-- Realtime (uniquement APRÈS création de la table ci-dessus)
 do $$
 begin
     alter publication supabase_realtime add table public.fish_trades;
 exception
     when duplicate_object then null;
 end $$;
-

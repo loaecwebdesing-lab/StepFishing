@@ -103,6 +103,7 @@
             if (el) el.textContent = pseudo;
         }
         if (window.StepFishChat?.refreshAuthState) window.StepFishChat.refreshAuthState();
+        if (window.StepFishTrade?.refreshAuthState) window.StepFishTrade.refreshAuthState();
         const rank = document.getElementById('user-rank');
         if (rank) {
             if (session) rank.textContent = 'Compte en ligne';
@@ -429,6 +430,7 @@
         logout,
         updatePseudoDisplay,
         getSupabaseClient: () => supabaseClient,
-        getUserId
+        getUserId,
+        fetchCloudSave
     };
 })();

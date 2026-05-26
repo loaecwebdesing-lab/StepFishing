@@ -352,6 +352,7 @@ function applySaveData(data) {
         const derived = findBestFishInInventory(state.inventory);
         if (derived) state.bestFish = derived;
     }
+    ensureFishUidsInInventory();
     persistGameLocal();
     updateMoneyDisplay();
     updateKeysDisplay();
@@ -823,6 +824,58 @@ const AQ_CONFIGS = [
     { name: "Nébuleuse", cost: 25000, bg: "assets/aquariums/aq4.png" }
 ];
 
+function newFishUid() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'f-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+function ensureFishUid(fish) {
+    if (!fish || fish.isKey) return fish;
+    if (!fish.uid) fish.uid = newFishUid();
+    return fish;
+}
+
+function ensureFishUidsInInventory() {
+    if (!state.inventory || typeof state.inventory !== 'object') return;
+    for (let i = 0; i < AQ_CONFIGS.length; i++) {
+        const fishes = state.inventory[`aq${i}`];
+        if (!Array.isArray(fishes)) continue;
+        fishes.forEach(f => ensureFishUid(f));
+    }
+}
+
+function canTradeFish(fish) {
+    return Boolean(fish && !fish.isKey && !isFishLocked(fish) && fish.uid);
+}
+
+function findFishByUid(uid) {
+    if (!uid) return null;
+    normalizeInventory();
+    for (let i = 0; i < AQ_CONFIGS.length; i++) {
+        const aqId = `aq${i}`;
+        const fishes = state.inventory[aqId] || [];
+        const index = fishes.findIndex(f => f.uid === uid);
+        if (index >= 0) return { fish: fishes[index], index, aqId, aqIndex: i };
+    }
+    return null;
+}
+
+function listTradeableFish() {
+    ensureFishUidsInInventory();
+    const list = [];
+    normalizeInventory();
+    for (let i = 0; i < AQ_CONFIGS.length; i++) {
+        const aqId = `aq${i}`;
+        if (!isAquariumUnlocked(i)) continue;
+        (state.inventory[aqId] || []).forEach((fish, index) => {
+            if (canTradeFish(fish)) {
+                list.push({ fish, index, aqId, aqIndex: i, tankName: AQ_CONFIGS[i].name });
+            }
+        });
+    }
+    return list;
+}
+
 function normalizeInventory() {
     const inv = state.inventory && typeof state.inventory === 'object' ? state.inventory : {};
     AQ_CONFIGS.forEach((_, i) => {
@@ -830,7 +883,17 @@ function normalizeInventory() {
         if (!Array.isArray(inv[key])) inv[key] = [];
     });
     state.inventory = inv;
+    ensureFishUidsInInventory();
     return inv;
+}
+
+function refreshInventoryAfterCloudSync() {
+    normalizeInventory();
+    updateMoneyDisplay();
+    if (state.currentPhase === 'INVENTORY') {
+        renderAquarium();
+        animateFish();
+    }
 }
 
 function normalizeUnlockedAquariums() {
@@ -854,7 +917,7 @@ function placeFishInAquarium(fish) {
         if (!unlocked.includes(i)) continue;
         const aqId = `aq${i}`;
         if (state.inventory[aqId].length < 15) {
-            state.inventory[aqId].push({ ...fish, locked: Boolean(fish.locked) });
+            state.inventory[aqId].push(ensureFishUid({ ...fish, locked: Boolean(fish.locked) }));
             return { placed: true, aqIndex: i, aqId };
         }
     }
@@ -1133,6 +1196,18 @@ function openFishModal(index, aqId) {
     }
     if(btnSell) btnSell.onclick = () => { sellFishFromAq(index, aqId); showScreen('inventory'); };
     if(btnMove) btnMove.onclick = () => { moveFishFromAq(index, aqId); };
+    const btnTrade = document.getElementById('btn-trade-fish');
+    const tradeable = canTradeFish(fish);
+    if (btnTrade) {
+        btnTrade.classList.toggle('hidden', !window.StepFishAuth?.isLoggedIn?.());
+        btnTrade.disabled = !tradeable;
+        btnTrade.onclick = () => {
+            if (!tradeable) return;
+            if (window.StepFishTrade?.openWithFish) {
+                window.StepFishTrade.openWithFish(fish.uid, aqId);
+            }
+        };
+    }
     showScreen('fish-modal');
 }
 
@@ -1291,7 +1366,7 @@ function triggerCatch() {
 
     const mutation = rollMutation();
     const weight = rollFishWeight(rIdx);
-    state.currentFish = {
+    state.currentFish = ensureFishUid({
         ...rData,
         id: rIdx,
         name: generateProceduralName(rData.name, fishSpecies),
@@ -1299,7 +1374,7 @@ function triggerCatch() {
         weight,
         value: calculateFishValue(rIdx) * mutation.multiplier,
         mutation: mutation.name
-    };
+    });
     setPhase('REELING');
 }
 
@@ -1585,7 +1660,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
     const fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
     const mutation = rollRandomMutation();
     const weight = rollFishWeight(rIdx);
-    return {
+    return ensureFishUid({
         ...rData,
         id: rIdx,
         name: generateProceduralName(rData.name, fishSpecies),
@@ -1593,7 +1668,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
         weight,
         value: parseFloat((calculateFishValue(rIdx) * mutation.multiplier).toFixed(2)),
         mutation: mutation.name
-    };
+    });
 }
 
 /** Console : giveRandomMutatedFish(5) */
@@ -1808,6 +1883,10 @@ function init() {
     bind('btn-cosmetics', () => {
         if (window.StepFishCosmetics) StepFishCosmetics.open();
     });
+    bind('btn-trades', () => {
+        if (window.StepFishTrade) StepFishTrade.open();
+        else addLog('Échanges indisponibles.', 'system');
+    });
     bind('btn-crate', () => {
         updateKeysDisplay();
         renderCrateLootInfo();
@@ -1822,6 +1901,7 @@ function init() {
     bind('btn-back-menu-map', goToMenu);
     bind('btn-back-menu-lb', goToMenu);
     bind('btn-back-menu-cosmetics', goToMenu);
+    bind('btn-back-menu-trades', goToMenu);
     bind('btn-close-fish', () => showScreen('inventory'));
     bind('btn-close-profile', goToMenu);
     bind('btn-logout', () => {
@@ -1958,6 +2038,22 @@ async function boot() {
     if (window.StepFishLeaderboard) StepFishLeaderboard.init();
     if (window.StepFishCosmetics) StepFishCosmetics.init();
     if (window.StepFishChat) StepFishChat.start();
+    if (window.StepFishTrade) StepFishTrade.start();
 }
+
+window.StepFishGameTrade = {
+    listTradeableFish,
+    findFishByUid,
+    canTradeFish,
+    buildFishVisualHTML,
+    getFishWeightKg,
+    formatFishWeight,
+    getMutationData,
+    applySaveData,
+    refreshInventoryAfterCloudSync,
+    addLog,
+    renderAquarium,
+    showScreen
+};
 
 boot();

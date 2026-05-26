@@ -186,6 +186,7 @@
     <button id="btn-index" class="btn-secondary">📖 FishIndex</button>
     <button id="btn-map" class="btn-secondary">🗺️ Carte</button>
     <button id="btn-leaderboard" class="btn-secondary">🏆 Classement</button>
+    <button id="btn-trades" class="btn-secondary">🔄 Échanges</button>
     <button id="btn-cosmetics" class="btn-secondary">✨ Cosmétiques</button>
     <button id="btn-crate" class="btn-primary">🔑 Caisse Mystère</button>
 </div>
@@ -336,6 +337,7 @@
                     <p id="modal-fish-lock-hint" class="modal-fish-lock-hint"></p>
                     <div class="fish-modal-actions">
                         <button id="btn-lock-fish" type="button" class="btn-secondary fish-modal-btn">🔒 Verrouiller</button>
+                        <button id="btn-trade-fish" type="button" class="btn-secondary fish-modal-btn hidden">🔄 Proposer échange</button>
                         <button id="btn-move-fish" type="button" class="btn-secondary fish-modal-btn">🔄 Déplacer</button>
                         <button id="btn-sell-fish" type="button" class="btn-primary btn-danger fish-modal-btn">Vendre</button>
                         <button id="btn-close-fish" type="button" class="btn-secondary fish-modal-btn">Fermer</button>
@@ -368,6 +370,50 @@
                     <footer class="cosmetics-footer">
                         <button id="btn-back-menu-cosmetics" class="btn-secondary cosmetics-back-btn">Retour au menu</button>
                     </footer>
+                </div>
+            </div>
+
+            <div id="screen-trades" class="screen">
+                <div class="glass-card trade-card full-width">
+                    <h1 class="trade-title">🔄 Échanges</h1>
+                    <p class="trade-subtitle">Échange tes poissons 1 pour 1 avec d'autres joueurs en ligne</p>
+                    <div id="trade-guest-block" class="trade-guest-block hidden">
+                        <p>Connecte-toi avec un compte pour envoyer et recevoir des offres.</p>
+                    </div>
+                    <div id="trade-main-content">
+                        <div class="trade-toolbar">
+                            <p id="trade-status" class="trade-status"></p>
+                            <button type="button" id="btn-trade-refresh" class="trade-refresh-btn" title="Actualiser">↻</button>
+                        </div>
+                        <div class="trade-tabs" role="tablist">
+                            <button type="button" class="trade-tab active" data-tab="incoming">📥 Reçues</button>
+                            <button type="button" class="trade-tab" data-tab="outgoing">📤 Envoyées</button>
+                            <button type="button" class="trade-tab" data-tab="history">📜 Historique</button>
+                        </div>
+                        <div id="trade-list" class="trade-list"></div>
+                        <div id="trade-accept-panel" class="trade-accept-panel hidden">
+                            <h2 id="trade-accept-title" class="trade-section-title">Finaliser l'échange</h2>
+                            <p class="trade-accept-label">Tu reçois :</p>
+                            <div id="trade-accept-offered"></div>
+                            <p class="trade-accept-label">Tu donnes :</p>
+                            <div id="trade-accept-picker" class="trade-offer-picker"></div>
+                            <div class="trade-accept-actions">
+                                <button type="button" id="btn-trade-confirm-accept" class="btn-primary">Confirmer l'échange</button>
+                                <button type="button" id="btn-trade-cancel-accept" class="btn-secondary">Annuler</button>
+                            </div>
+                        </div>
+                        <section id="trade-create-section" class="trade-create-section">
+                            <h2 class="trade-section-title">Nouvelle offre</h2>
+                            <label class="trade-label" for="trade-target-pseudo">Pseudo du joueur</label>
+                            <input id="trade-target-pseudo" class="trade-input" type="text" maxlength="20" placeholder="Ex: PêcheurPro" autocomplete="off">
+                            <label class="trade-label" for="trade-offer-message">Message (optionnel)</label>
+                            <input id="trade-offer-message" class="trade-input" type="text" maxlength="120" placeholder="Ex: Échange rare contre rare ?">
+                            <p class="trade-label">Ton poisson à proposer</p>
+                            <div id="trade-offer-picker" class="trade-offer-picker"></div>
+                            <button type="button" id="btn-trade-send-offer" class="btn-primary trade-send-btn">Envoyer l'offre</button>
+                        </section>
+                    </div>
+                    <button id="btn-back-menu-trades" class="btn-secondary trade-back-btn">Retour au menu</button>
                 </div>
             </div>
 
@@ -422,5 +468,6 @@
     <script src="chat.js"></script>
     <script src="leaderboard.js?v=lb-cos"></script>
     <script src="game.js"></script>
+    <script src="trade.js?v=1"></script>
 </body>
 </html>

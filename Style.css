@@ -2516,6 +2516,290 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* --- Échanges joueurs --- */
+#screen-trades .trade-card {
+    max-width: 720px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 20px 20px;
+}
+
+.trade-title {
+    margin: 0 0 6px;
+    text-align: center;
+}
+
+.trade-subtitle {
+    text-align: center;
+    opacity: 0.8;
+    margin: 0 0 16px;
+    font-size: 0.92rem;
+}
+
+.trade-guest-block {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.trade-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.trade-status {
+    flex: 1;
+    font-size: 0.88rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+.trade-status-error { color: #ff8a80; }
+.trade-status-ok { color: #a5d6a7; }
+
+.trade-refresh-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 2px solid var(--wood-medium);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--wood-gold);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.trade-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.trade-tab {
+    flex: 1;
+    min-width: 90px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 2px solid var(--wood-medium);
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.trade-tab.active {
+    border-color: var(--wood-gold);
+    background: rgba(255, 202, 40, 0.15);
+    color: var(--wood-gold);
+}
+
+.trade-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 32vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    padding-right: 4px;
+}
+
+.trade-item {
+    background: rgba(0, 0, 0, 0.28);
+    border: 2px solid var(--wood-medium);
+    border-radius: 14px;
+    padding: 12px;
+}
+
+.trade-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.trade-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(255, 202, 40, 0.2);
+    color: var(--wood-gold);
+}
+
+.trade-status-accepted .trade-badge { background: rgba(129, 199, 132, 0.25); color: #a5d6a7; }
+.trade-status-declined .trade-badge,
+.trade-status-cancelled .trade-badge { background: rgba(255, 138, 128, 0.2); color: #ff8a80; }
+
+.trade-msg {
+    font-style: italic;
+    opacity: 0.85;
+    margin: 0 0 8px;
+    font-size: 0.88rem;
+}
+
+.trade-fish-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.trade-arrow {
+    font-size: 1.4rem;
+    color: var(--wood-gold);
+}
+
+.trade-fish-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    padding: 8px;
+    flex: 1;
+    min-width: 140px;
+}
+
+.trade-fish-visual .fish-visual-wrap {
+    margin: 0 auto;
+}
+
+.trade-fish-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.78rem;
+    opacity: 0.9;
+}
+
+.trade-fish-name {
+    color: var(--wood-gold);
+    font-size: 0.9rem;
+}
+
+.trade-fish-value {
+    color: #81c784;
+}
+
+.trade-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.trade-item-actions button {
+    flex: 1;
+    min-width: 120px;
+    font-size: 0.85rem !important;
+    height: 44px !important;
+}
+
+.trade-empty {
+    text-align: center;
+    opacity: 0.65;
+    padding: 16px;
+}
+
+.trade-await {
+    font-size: 0.82rem;
+    opacity: 0.75;
+    margin: 0;
+}
+
+.trade-create-section {
+    border-top: 2px solid var(--wood-medium);
+    padding-top: 16px;
+    margin-top: 8px;
+}
+
+.trade-section-title {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    color: var(--wood-gold);
+}
+
+.trade-label {
+    display: block;
+    margin: 8px 0 4px;
+    font-size: 0.88rem;
+    opacity: 0.9;
+}
+
+.trade-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid var(--wood-medium);
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.trade-offer-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 8px 0 12px;
+}
+
+.trade-pick-fish {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    color: inherit;
+}
+
+.trade-pick-fish.selected {
+    border-color: var(--wood-gold);
+    box-shadow: 0 0 12px rgba(255, 202, 40, 0.35);
+}
+
+.trade-send-btn {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.trade-accept-panel {
+    background: rgba(255, 202, 40, 0.08);
+    border: 2px solid var(--wood-gold);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.trade-accept-label {
+    margin: 8px 0 4px;
+    font-size: 0.88rem;
+    opacity: 0.85;
+}
+
+.trade-accept-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+#screen-trades .trade-back-btn {
+    width: 100%;
+    margin-top: 16px;
+}
+
 #sidebar-panel-chat .chat-form input:disabled {
     opacity: 0.5;
 }
