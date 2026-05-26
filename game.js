@@ -213,11 +213,11 @@ const ZONE_DATA = [
         bgDawn: 'assets/ocean_dawn.png', 
         bgNight: 'assets/ocean_night.png',
         library: {
-            'commun': [],
-            'peu_commun': [], 
-            'rare': [], 
-            'epique': [], 
-            'legendaire': [], 'mythique': [], 'divin': []
+            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png'],
+            'peu_commun': ['PoissonClown.png', 'PoissonLion.png'], 
+            'rare': ['Baracuda.png', 'Thon.png'], 
+            'epique': ['Espadon.png', 'MahiMahi.png'], 
+            'legendaire': ['Raiemanta.png'], 'mythique': [], 'divin': []
         }
     }
 ];
