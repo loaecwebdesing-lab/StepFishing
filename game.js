@@ -214,10 +214,10 @@ const ZONE_DATA = [
         bgDawn: 'assets/ocean_dawn.png', 
         bgNight: 'assets/ocean_night.png',
         library: {
-            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png'],
-            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png'], 
-            'rare': ['Baracuda.png', 'Thon.png'], 
-            'epique': ['Espadon.png', 'MahiMahi.png','Poulpi.png'], 
+            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png','Liche.png','Pagre.png','Tacaud.png'],
+            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png','SaintPierre.png','Napoleon.png'], 
+            'rare': ['Baracuda.png', 'Thon.png','Turbot.png','Papillon.png'], 
+            'epique': ['Espadon.png', 'MahiMahi.png','Poulpi.png','PoissonGlobe.png'], 
             'legendaire': ['Raiemanta.png'], 'mythique': [], 'divin': []
         }
     }
