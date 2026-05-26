@@ -203,7 +203,7 @@ const ZONE_DATA = [
             'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png', 'Lamproie.png','Tilapia.png'], 
             'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png','Pleco.png','Corydoras.png','Rasboa.png'], 
             'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png','Pangasius.png','FlapJack.png'], 
-            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png','Arowana.png'], 'mythique': ['Esturgeon.png'], 'divin': []
+            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png','Arowana.png'], 'mythique': ['Esturgeon.png'], 'divin': ['Silencius.png']
         }
     },
     { 
@@ -218,7 +218,7 @@ const ZONE_DATA = [
             'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png','SaintPierre.png','Napoleon.png'], 
             'rare': ['Baracuda.png', 'Thon.png','Turbot.png','Papillon.png'], 
             'epique': ['Espadon.png', 'MahiMahi.png','Poulpi.png','PoissonGlobe.png'], 
-            'legendaire': ['Raiemanta.png'], 'mythique': [], 'divin': []
+            'legendaire': ['Raiemanta.png'], 'mythique': ['Krakenor.png', 'Chronos.png'], 'divin': ['Abysellion.png']
         }
     }
 ];
@@ -496,17 +496,33 @@ function getZoneFishImagePaths(zoneId) {
     return paths;
 }
 
+/** Espèces du lac requises pour l'océan (hors Mythique et Divin). */
+const LAC_OCEAN_UNLOCK_SKIP = ['mythique', 'divin'];
+
+function getLacFishImagePathsForOceanUnlock() {
+    const zone = ZONE_DATA.find(z => z.id === 'lac');
+    if (!zone?.library) return [];
+    const paths = [];
+    Object.keys(zone.library).forEach(folder => {
+        if (LAC_OCEAN_UNLOCK_SKIP.includes(folder)) return;
+        (zone.library[folder] || []).forEach(file => {
+            paths.push(`assets/fish/${folder}/${file}`);
+        });
+    });
+    return paths;
+}
+
 function getLacFishCount() {
-    return getZoneFishImagePaths('lac').length;
+    return getLacFishImagePathsForOceanUnlock().length;
 }
 
 function getDiscoveredLacCount() {
-    const required = getZoneFishImagePaths('lac');
+    const required = getLacFishImagePathsForOceanUnlock();
     return required.filter(path => state.discoveredFishes.includes(path)).length;
 }
 
 function hasDiscoveredAllLacFish() {
-    const required = getZoneFishImagePaths('lac');
+    const required = getLacFishImagePathsForOceanUnlock();
     if (!required.length) return true;
     return required.every(path => state.discoveredFishes.includes(path));
 }
@@ -527,7 +543,7 @@ function getZoneLockMessage(zone) {
     if (zone.id === 'ocean' && !hasDiscoveredAllLacFish()) {
         const total = getLacFishCount();
         const found = getDiscoveredLacCount();
-        return `Niveau 10 OK · Lac : ${found}/${total} espèces découvertes (FishIndex)`;
+        return `Niveau 10 OK · Lac : ${found}/${total} espèces (sans Mythique ni Divin)`;
     }
     return '';
 }
@@ -1491,7 +1507,7 @@ function catchFish(success) {
             persistGame();
             showDiscoveryToast(state.currentFish.name, state.currentFish.name, state.currentFish.mutation);
             if (hasDiscoveredAllLacFish() && state.level >= 10) {
-                addLog('🌊 Haute Mer débloquée ! Toutes les espèces du Lac ont été découvertes.', 'epic');
+                addLog('🌊 Haute Mer débloquée ! Toutes les espèces du Lac requises sont dans ton FishIndex.', 'epic');
             }
         }
     } else {
