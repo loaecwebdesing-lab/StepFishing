@@ -192,25 +192,27 @@
             </div>
             <!-- ÉCRAN COFFRE (CSGO STYLE) -->
 <div id="screen-crate" class="screen">
-    <div class="glass-card full-width" style="max-width: 900px; text-align: center;">
-        <img src="assets/chest.png" class="crate-chest-img" alt="Coffre mystère">
-        <h1 class="title">Caisse Mystère</h1>
-        <p class="subtitle">Pêchez des clés (~1/150) et ouvrez le coffre pour tenter votre chance !</p>
-        <p id="crate-keys-count" class="subtitle" style="margin-bottom: 10px;">🔑 Clés : 0</p>
-        
-        <div id="crate-viewport">
-            <div id="crate-selector"></div>
-            <div id="crate-list">
-                <!-- Les cannes défileront ici -->
+    <div class="glass-card crate-card full-width">
+        <header class="crate-card-header">
+            <img src="assets/chest.png" class="crate-chest-img" alt="Coffre mystère">
+            <h1 class="title crate-title">Caisse Mystère</h1>
+            <p class="subtitle crate-sub">Pêchez des clés (~1/150) et ouvrez le coffre !</p>
+            <p id="crate-keys-count" class="crate-keys">🔑 Clés : 0</p>
+        </header>
+        <div class="crate-card-scroll">
+            <div id="crate-viewport">
+                <div id="crate-selector"></div>
+                <div id="crate-list"></div>
             </div>
+            <details class="crate-loot-details">
+                <summary class="crate-loot-summary">📋 Contenu & probabilités</summary>
+                <div id="crate-loot-info" class="crate-loot-info" aria-label="Contenu et probabilités de la caisse"></div>
+            </details>
         </div>
-
-        <div id="crate-loot-info" class="crate-loot-info" aria-label="Contenu et probabilités de la caisse"></div>
-
-        <div class="main-action-container" style="margin-top: 30px;">
-            <button id="btn-open-crate" class="btn-primary btn-start" style="width: 300px; height: 80px;">Ouvrir le Coffre (1 clé)</button>
-            <button id="btn-back-menu-crate" class="btn-secondary" style="width: 200px; height: 60px; margin-top: 20px;">Retour</button>
-        </div>
+        <footer class="crate-card-footer">
+            <button id="btn-open-crate" class="btn-primary btn-start crate-open-btn">Ouvrir le Coffre (1 clé)</button>
+            <button id="btn-back-menu-crate" class="btn-secondary crate-back-btn">Retour</button>
+        </footer>
     </div>
 </div>
 

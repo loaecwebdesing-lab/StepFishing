@@ -541,15 +541,14 @@ function renderCrateLootInfo() {
 
     const rodRows = p.rods.map(({ rod, percent }) => `
         <li class="crate-loot-row crate-loot-row-rod">
-            <img src="${rod.img}" alt="" class="crate-loot-thumb" width="36" height="36">
+            <img src="${rod.img}" alt="" class="crate-loot-thumb" width="28" height="28">
             <span class="crate-loot-name" style="color:${rod.color}">${rod.name}</span>
             <span class="crate-loot-rarity" style="color:${rod.color}">${rod.rarity}</span>
             <span class="crate-loot-pct">${formatCratePercent(percent)}</span>
         </li>`).join('');
 
     el.innerHTML = `
-        <h2 class="crate-loot-title">📋 Contenu & probabilités</h2>
-        <p class="crate-loot-hint">Clé mystère : ${keyChanceLabel} (1 chance sur 150 à chaque poisson pêché)</p>
+        <p class="crate-loot-hint">Clé mystère : ${keyChanceLabel}</p>
         <div class="crate-loot-cols">
             <section class="crate-loot-section">
                 <h3 class="crate-loot-heading">💰 Argent <span class="crate-loot-pool-pct">${formatCratePercent(p.moneyPoolPct)}</span></h3>
@@ -1647,7 +1646,7 @@ function openCrate() {
 
     setTimeout(() => {
         crateList.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.05, 1)';
-        const itemWidth = 160;
+        const itemWidth = 136;
         const centerOffset = (800 / 2) - (itemWidth / 2);
         const finalPosition = (winIndex * itemWidth) - centerOffset;
         crateList.style.transform = `translateX(-${finalPosition}px)`;
