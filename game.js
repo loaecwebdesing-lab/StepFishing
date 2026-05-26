@@ -416,6 +416,52 @@ function calculateFishValue(rarityIdx) {
     return parseFloat((Math.random() * (rarity.maxPrice - rarity.minPrice) + rarity.minPrice).toFixed(2));
 }
 
+/** Poids min/max (kg) par indice de rareté */
+const FISH_WEIGHT_KG_BY_RARITY = [
+    [0.08, 0.50],
+    [0.25, 1.40],
+    [0.60, 3.50],
+    [1.50, 7.00],
+    [4.00, 12.00],
+    [8.00, 18.00],
+    [12.00, 25.00]
+];
+
+const AQ_WEIGHT_MIN_KG = 0.08;
+const AQ_WEIGHT_MAX_KG = 15;
+const AQ_FISH_MIN_PX = 32;
+const AQ_FISH_MAX_PX = 128;
+
+function rollFishWeight(rarityIdx) {
+    const [min, max] = FISH_WEIGHT_KG_BY_RARITY[rarityIdx] || FISH_WEIGHT_KG_BY_RARITY[0];
+    return parseFloat((min + Math.random() * (max - min)).toFixed(2));
+}
+
+function formatFishWeight(kg) {
+    return Number(kg || 0).toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + ' kg';
+}
+
+function getFishRarityIndex(fish) {
+    if (typeof fish?.id === 'number' && fish.id >= 0 && fish.id < RARITIES.length) return fish.id;
+    const idx = RARITIES.findIndex(r => r.class === fish?.class);
+    return idx >= 0 ? idx : 0;
+}
+
+function getFishWeightKg(fish) {
+    if (typeof fish?.weight === 'number' && fish.weight > 0) return fish.weight;
+    const [min, max] = FISH_WEIGHT_KG_BY_RARITY[getFishRarityIndex(fish)] || FISH_WEIGHT_KG_BY_RARITY[0];
+    return parseFloat(((min + max) / 2).toFixed(2));
+}
+
+function aquariumFishWidthPx(kg) {
+    const w = Math.max(AQ_WEIGHT_MIN_KG, Math.min(AQ_WEIGHT_MAX_KG, kg || AQ_WEIGHT_MIN_KG));
+    const t = (Math.log(w) - Math.log(AQ_WEIGHT_MIN_KG)) / (Math.log(AQ_WEIGHT_MAX_KG) - Math.log(AQ_WEIGHT_MIN_KG));
+    return Math.round(AQ_FISH_MIN_PX + Math.max(0, Math.min(1, t)) * (AQ_FISH_MAX_PX - AQ_FISH_MIN_PX));
+}
+
 function getRarityNameFromClass(className) {
     const r = RARITIES.find(x => x.class === className);
     return r ? r.name : 'Inconnu';
@@ -469,6 +515,7 @@ function updateBestFishRecord(fish) {
     const entry = {
         name: fish.name,
         value: fish.value,
+        weight: getFishWeightKg(fish),
         class: fish.class,
         rarity: getRarityNameFromClass(fish.class)
     };
@@ -790,8 +837,6 @@ function renderAquarium() {
     elements.fishLayer.innerHTML = '';
     const fishes = state.inventory[aqId] || [];
     elements.aqSlots.innerText = `Slots: ${fishes.length}/15`;
-    const scaleRanges = [[0.7, 1.0], [0.75, 1.05], [0.8, 1.15], [0.85, 1.25], [0.9, 1.35], [1.0, 1.5], [1.1, 1.65]];
-
     fishes.forEach((fish, index) => {
         const fDiv = document.createElement('div');
         const mutation = getMutationData(fish.mutation);
@@ -799,11 +844,9 @@ function renderAquarium() {
         if (mutation.effect !== 'none') fDiv.classList.add(`mut-${mutation.effect}`);
         fDiv.dataset.mutation = mutation.name;
         fDiv.style.setProperty('--mut-color', mutation.color);
-        let rIdx = typeof fish.id === 'number' ? fish.id : RARITIES.findIndex(r => r.class === fish.class);
-        if (rIdx < 0) rIdx = 0;
-        const range = scaleRanges[rIdx] || [0.8, 1.1];
-        const randomScale = Math.random() * (range[1] - range[0]) + range[0];
-        const finalWidth = Math.min(130, Math.round(65 * randomScale));
+        const weightKg = getFishWeightKg(fish);
+        const finalWidth = aquariumFishWidthPx(weightKg);
+        fDiv.title = `${fish.name} · ${formatFishWeight(weightKg)}`;
         fDiv.innerHTML = `<img src="${fish.img}" class="aq-fish-img" style="width:${finalWidth}px">`;
         fDiv.style.left = Math.random() * 80 + 5 + '%';
         fDiv.style.top = Math.random() * 75 + 5 + '%';
@@ -901,12 +944,13 @@ function animateFish() {
 function openFishModal(index, aqId) {
     const fish = state.inventory[aqId][index];
     if(!fish) return;
-    elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, 165);
+    const weightKg = getFishWeightKg(fish);
+    elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, aquariumFishWidthPx(weightKg) + 37);
     elements.modalFishName.innerText = fish.name;
     elements.modalFishName.className = `rarity-text ${fish.class}`;
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
     const mutation = getMutationData(fish.mutation);
-    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'} · Mutation : ${mutation.name}`;
+    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'} · ${formatFishWeight(weightKg)} · Mutation : ${mutation.name}`;
     elements.modalFishPrice.innerText = fish.value + " $";
     const btnSell = document.getElementById('btn-sell-fish');
     const btnMove = document.getElementById('btn-move-fish');
@@ -1053,11 +1097,13 @@ function triggerCatch() {
     }
 
     const mutation = rollMutation();
+    const weight = rollFishWeight(rIdx);
     state.currentFish = {
         ...rData,
         id: rIdx,
         name: generateProceduralName(rData.name, fishSpecies),
         img: selectedImg,
+        weight,
         value: calculateFishValue(rIdx) * mutation.multiplier,
         mutation: mutation.name
     };
@@ -1071,11 +1117,18 @@ function startReelGame() {
     state.fishTargetY = Math.random() * 250;
 
     if(elements.progressFill) elements.progressFill.style.width = '20%';
-    if(elements.fishName) {
-        elements.fishName.innerText = state.currentFish.name;
+    if (elements.fishName) {
+        if (state.currentFish?.isKey) {
+            elements.fishName.innerText = state.currentFish.name;
+        } else {
+            elements.fishName.innerHTML = `${state.currentFish.name}<br><span class="fish-weight-tag">${formatFishWeight(state.currentFish.weight)}</span>`;
+        }
         elements.fishName.className = `rarity-text ${state.currentFish.class}`;
     }
-    if(elements.fishVisual) elements.fishVisual.innerHTML = buildFishVisualHTML(state.currentFish, 80);
+    if (elements.fishVisual) {
+        const visualSize = state.currentFish?.isKey ? 80 : aquariumFishWidthPx(state.currentFish.weight) + 12;
+        elements.fishVisual.innerHTML = buildFishVisualHTML(state.currentFish, visualSize);
+    }
     if (elements.fishTarget) {
         if (state.currentFish?.isKey) {
             elements.fishTarget.style.backgroundColor = 'transparent';
@@ -1171,8 +1224,8 @@ function catchFish(success) {
         if (state.currentFish.id >= 4) addLog(`🌟 INCROYABLE ! ${state.currentFish.name} capturé !`, 'epic');
         else addLog(`Vous avez pêché un ${state.currentFish.name}.`);
         elements.catchTitle.innerText = "SUCCÈS !";
-        elements.catchText.innerText = `Vous avez capturé un ${state.currentFish.name} !`;
-        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, 150);
+        elements.catchText.innerText = `Vous avez capturé un ${state.currentFish.name} (${formatFishWeight(state.currentFish.weight)}) !`;
+        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, aquariumFishWidthPx(state.currentFish.weight) + 22);
         showScreen('catch-modal');
         if (!state.discoveredFishes.includes(state.currentFish.img)) {
             state.discoveredFishes.push(state.currentFish.img);
@@ -1350,11 +1403,13 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
     const randomFishFile = possibleFishes[Math.floor(Math.random() * possibleFishes.length)];
     const fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
     const mutation = rollRandomMutation();
+    const weight = rollFishWeight(rIdx);
     return {
         ...rData,
         id: rIdx,
         name: generateProceduralName(rData.name, fishSpecies),
         img: `assets/fish/${rData.folder}/${randomFishFile}`,
+        weight,
         value: parseFloat((calculateFishValue(rIdx) * mutation.multiplier).toFixed(2)),
         mutation: mutation.name
     };

@@ -295,7 +295,15 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #progress-bar-container { width: 40px; height: 12px; background: #333; margin-top: 15px; border-radius: 10px; overflow: hidden; }
 #progress-fill { width: 0%; height: 100%; background: #2ecc71; transition: width 0.1s; }
 
-#fish-name-display { font-size: 1.6rem !important; text-align: center; }
+#fish-name-display { font-size: 1.6rem !important; text-align: center; line-height: 1.25; }
+
+.fish-weight-tag {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.95rem !important;
+    opacity: 0.9;
+    color: var(--wood-gold);
+}
 
 #screen-game {
     overflow: visible;
