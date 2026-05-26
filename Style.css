@@ -419,13 +419,30 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 .aq-fish-img, .fish-mut-img { display: block; height: auto; object-fit: contain; }
 .fish-visual-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; overflow: visible; padding: 30px 24px; }
-#modal-fish-visual, #catch-visual { display: flex; justify-content: center; align-items: center; min-height: 190px; margin: 0 auto; overflow: visible; }
+#modal-fish-visual { display: flex; justify-content: center; align-items: center; min-height: 190px; margin: 0 auto; overflow: visible; }
 
 #catch-visual {
-    margin: 16px 0 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 320px;
+    margin: 16px auto 8px;
     padding: 12px;
     border-radius: 20px;
+    overflow: visible;
     filter: drop-shadow(0 0 18px var(--catch-glow, rgba(255, 255, 255, 0.4)));
+}
+
+#catch-visual .fish-visual-wrap {
+    padding: 16px 12px;
+}
+
+#catch-visual .fish-mut-img {
+    max-width: none !important;
+}
+
+#catch-visual .key-catch-img {
+    max-width: none !important;
 }
 
 .catch-fish-name {

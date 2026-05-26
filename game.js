@@ -943,7 +943,8 @@ function renderCatchReveal(fish) {
         if (visual) { visual.innerHTML = ''; visual.style.removeProperty('--catch-glow'); }
         return;
     }
-    const size = fish.isKey ? 150 : aquariumFishWidthPx(fish.weight) + 22;
+    const baseSize = fish.isKey ? 150 : aquariumFishWidthPx(fish.weight) + 22;
+    const size = baseSize * 2;
     if (visual) {
         visual.innerHTML = buildFishVisualHTML(fish, size);
         visual.style.setProperty('--catch-glow', fish.color || '#ffffff');
