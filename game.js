@@ -3,7 +3,8 @@
  * Version: 13.0.3 (Corrected Order)
  */
 
-const RARITY_WEIGHTS = [100, 40, 15, 5, 2, 1, 0.5];
+/** Poids de tirage — Mythique / Divin volontairement très bas */
+const RARITY_WEIGHTS = [100, 42, 16, 5, 1.2, 0.035, 0.007];
 
 const RARITIES = [
     { name: 'Commun', folder: 'commun', color: '#BDBDBD', difficulty: 2, points: 1, speed: 2, class: 'rarity-0', minPrice: 0.1, maxPrice: 1 },
@@ -203,7 +204,7 @@ const ZONE_DATA = [
             'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png', 'Lamproie.png','Tilapia.png'], 
             'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png','Pleco.png','Corydoras.png','Rasboa.png'], 
             'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png','Pangasius.png','FlapJack.png'], 
-            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png','Arowana.png'], 'mythique': ['Esturgeon.png'], 'divin': ['Silencius.png']
+            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png','Arowana.png','ArowanaR.png'], 'mythique': ['Esturgeon.png'], 'divin': ['Silencius.png']
         }
     },
     { 
@@ -267,6 +268,64 @@ function getMutationRollChance() {
 function rollMutation() {
     if (Math.random() >= getMutationRollChance()) return MUTATIONS[0];
     return pickWeightedMutation(MUTATIONS.filter(m => m.name !== 'Normal'));
+}
+
+function getMaxRarityFromCombo() {
+    if (state.combo >= 18) return 6;
+    if (state.combo >= 13) return 5;
+    if (state.combo >= 9) return 4;
+    if (state.combo >= 6) return 3;
+    if (state.combo >= 4) return 2;
+    if (state.combo >= 2) return 1;
+    return 0;
+}
+
+/** La luck aide un peu les hautes raretés, sans ouvrir Divin d'emblée */
+function getMaxRarityBonusFromLuck(luck) {
+    const l = luck || 0;
+    if (l >= 50) return 1;
+    if (l >= 28) return 0;
+    return 0;
+}
+
+/**
+ * Tirage de rareté (pêche). Mythique / Divin : palier combo élevé + second tirage de validation.
+ */
+function rollFishRarityIndex(luck = 0) {
+    const cappedLuck = Math.min(Math.max(0, luck), 60);
+    let maxRarityAllowed = Math.min(6, getMaxRarityFromCombo() + getMaxRarityBonusFromLuck(cappedLuck));
+
+    let totalWeight = 0;
+    const weights = [];
+    for (let i = 0; i < RARITIES.length; i++) {
+        if (i <= maxRarityAllowed) {
+            let w = RARITY_WEIGHTS[i];
+            if (i >= 3 && i <= 4) w *= (1 + cappedLuck * 0.05);
+            weights.push(w);
+            totalWeight += w;
+        } else {
+            weights.push(0);
+        }
+    }
+
+    let roll = Math.random() * totalWeight;
+    let sum = 0;
+    let rIdx = 0;
+    for (let i = 0; i < weights.length; i++) {
+        sum += weights[i];
+        if (roll <= sum) { rIdx = i; break; }
+    }
+
+    if (rIdx === 5) {
+        const keepMyth = 0.09 + cappedLuck * 0.0025;
+        if (Math.random() > keepMyth) rIdx = 4;
+    }
+    if (rIdx === 6) {
+        const keepDivin = 0.025 + cappedLuck * 0.0012;
+        if (Math.random() > keepDivin) rIdx = Math.random() < 0.4 ? 5 : 4;
+    }
+
+    return rIdx;
 }
 
 function safeParse(key, defaultValue) {
@@ -1338,37 +1397,7 @@ function triggerCatch() {
     const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
     const activeZone = zone || ZONE_DATA[0];
-    let maxRarityAllowed = 0;
-    if (state.combo >= 12) maxRarityAllowed = 6;
-    else if (state.combo >= 10) maxRarityAllowed = 5;
-    else if (state.combo >= 8) maxRarityAllowed = 4;
-    else if (state.combo >= 6) maxRarityAllowed = 3;
-    else if (state.combo >= 4) maxRarityAllowed = 2;
-    else if (state.combo >= 2) maxRarityAllowed = 1;
-    maxRarityAllowed += currentRod.luck;
-    if (maxRarityAllowed > 6) maxRarityAllowed = 6;
-
-    let totalWeight = 0;
-    const weights = [];
-    for (let i = 0; i < RARITIES.length; i++) {
-        if (i <= maxRarityAllowed) {
-            let weight = RARITY_WEIGHTS[i];
-            if (i >= 3) weight *= (1 + currentRod.luck * 0.2);
-            weights.push(weight);
-            totalWeight += weight;
-        } else {
-            weights.push(0);
-        }
-    }
-
-    let randomRoll = Math.random() * totalWeight;
-    let rIdx = 0;
-    let currentSum = 0;
-    for (let i = 0; i < weights.length; i++) {
-        currentSum += weights[i];
-        if (randomRoll <= currentSum) { rIdx = i; break; }
-    }
-
+    let rIdx = rollFishRarityIndex(currentRod.luck || 0);
     let rData = RARITIES[rIdx];
     let possibleFishes = activeZone.library[rData.folder];
     let selectedImg = '';
@@ -1660,17 +1689,8 @@ function rollRandomMutation() {
 
 function createRandomMutatedFish(zoneId = state.currentZone) {
     const zone = ZONE_DATA.find(z => z.id === zoneId) || ZONE_DATA[0];
-    const weights = RARITY_WEIGHTS.map((w, i) => {
-        const folder = RARITIES[i].folder;
-        return (zone.library[folder] || []).length > 0 ? w : 0;
-    });
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    let roll = Math.random() * totalWeight;
-    let rIdx = 0;
-    for (let i = 0; i < weights.length; i++) {
-        roll -= weights[i];
-        if (roll <= 0) { rIdx = i; break; }
-    }
+    const rod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
+    let rIdx = rollFishRarityIndex(rod.luck || 0);
     let rData = RARITIES[rIdx];
     let possibleFishes = zone.library[rData.folder];
     if (!possibleFishes || possibleFishes.length === 0) {
