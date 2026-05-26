@@ -17,7 +17,7 @@
         currentZone: 'lac'
     };
 
-    let supabase = null;
+    let supabaseClient = null;
     let session = null;
     let guestMode = false;
     let pseudo = 'Pêcheur Anonyme';
@@ -105,10 +105,10 @@
         const msg = (err?.message || '').toLowerCase();
         const code = err?.code || '';
         if (code === 'email_not_confirmed' || msg.includes('email not confirmed')) {
-            return 'Confirme ton email (lien reçu par mail) ou désactive la confirmation dans Supabase.';
+            return 'Compte non confirmé — dans Supabase : Authentication → Users → supprime cet utilisateur et réinscris-toi.';
         }
         if (code === 'invalid_credentials' || msg.includes('invalid login credentials')) {
-            return 'Email ou mot de passe incorrect. Si tu viens de t\'inscrire, confirme d\'abord ton email.';
+            return 'Email ou mot de passe incorrect. Essaie un nouvel email, ou supprime l\'ancien compte dans Supabase → Users.';
         }
         if (code === 'weak_password' || msg.includes('weak password')) {
             return 'Mot de passe trop faible — minimum 6 caractères (8+ recommandé).';
@@ -144,8 +144,51 @@
         return { ...DEFAULT_SAVE, ...saveData };
     }
 
+    async function authRequest(path, body) {
+        const cfg = getConfig();
+        const res = await fetch(`${cfg.supabaseUrl}/auth/v1${path}`, {
+            method: 'POST',
+            headers: {
+                apikey: cfg.supabaseAnonKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        const json = await res.json();
+        if (!res.ok) {
+            const err = new Error(json.msg || json.message || json.error_description || 'Erreur auth');
+            err.code = json.error_code || json.code;
+            throw err;
+        }
+        return json;
+    }
+
+    async function applyAuthSession(authJson) {
+        if (!supabaseClient || !authJson.access_token) return;
+        await supabaseClient.auth.setSession({
+            access_token: authJson.access_token,
+            refresh_token: authJson.refresh_token
+        });
+    }
+
+    async function authSignIn(email, password) {
+        const json = await authRequest('/token?grant_type=password', { email, password });
+        await applyAuthSession(json);
+        return json.user;
+    }
+
+    async function authSignUp(email, password, pseudoName) {
+        const json = await authRequest('/signup', {
+            email,
+            password,
+            data: { pseudo: pseudoName }
+        });
+        await applyAuthSession(json);
+        return json;
+    }
+
     async function fetchCloudSave(userId) {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('player_saves')
             .select('save_data, pseudo')
             .eq('id', userId)
@@ -190,9 +233,9 @@
     }
 
     async function saveToCloud(saveData) {
-        if (!supabase || !getUserId()) return;
+        if (!supabaseClient || !getUserId()) return;
         const payload = saveData || (typeof window.getSavePayload === 'function' ? window.getSavePayload() : DEFAULT_SAVE);
-        const { error } = await supabase.from('player_saves').upsert({
+        const { error } = await supabaseClient.from('player_saves').upsert({
             id: getUserId(),
             pseudo,
             save_data: payload,
@@ -203,14 +246,15 @@
 
     async function login(email, password) {
         setAuthMessage('Connexion…');
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        await applySession(data.user, true);
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await authSignIn(normalizedEmail, password);
+        await applySession(user, true);
         setAuthMessage('Connecté !');
     }
 
     async function register(pseudoInput, email, password) {
         const cleanPseudo = pseudoInput.trim();
+        const normalizedEmail = email.trim().toLowerCase();
         if (cleanPseudo.length < 3) throw new Error('Pseudo : 3 caractères minimum');
         if (cleanPseudo.length > 20) throw new Error('Pseudo : 20 caractères maximum');
         if (!/^[a-zA-Z0-9_\-\sàâäéèêëïîôùûüçÀÂÄÉÈÊËÏÎÔÙÛÜÇ]+$/u.test(cleanPseudo)) {
@@ -218,45 +262,20 @@
         }
 
         setAuthMessage('Création du compte…');
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { data: { pseudo: cleanPseudo } }
-        });
-        if (error) throw error;
-        if (!data.user) throw new Error('Inscription impossible');
+        const json = await authSignUp(normalizedEmail, password, cleanPseudo);
+        if (!json.user) throw new Error('Inscription impossible');
+
+        if ((json.user.identities || []).length === 0) {
+            throw new Error('Cet email est déjà utilisé — connecte-toi.');
+        }
 
         pseudo = cleanPseudo;
-        guestMode = false;
-
-        if (!data.session) {
-            session = null;
-            setAuthMessage('Compte créé ! Confirme ton email puis connecte-toi — ou désactive "Confirm email" dans Supabase.', false);
-            switchAuthTab('login');
-            return;
-        }
-
-        session = data.user;
-        const initialSave = mergeLocalIntoSave(null);
-        const { error: saveError } = await supabase.from('player_saves').upsert({
-            id: data.user.id,
-            pseudo: cleanPseudo,
-            save_data: initialSave,
-            updated_at: new Date().toISOString()
-        });
-        if (saveError) {
-            if (saveError.code === '23505') throw new Error('Ce pseudo est déjà pris');
-            throw saveError;
-        }
-
-        if (typeof window.applySaveData === 'function') window.applySaveData(initialSave);
-        updatePseudoDisplay();
-        hideAuthScreen();
+        await applySession(json.user, true);
         setAuthMessage('');
     }
 
     async function logout() {
-        if (supabase) await supabase.auth.signOut();
+        if (supabaseClient) await supabaseClient.auth.signOut();
         session = null;
         guestMode = false;
         pseudo = 'Pêcheur Anonyme';
@@ -341,7 +360,7 @@
             await loadSupabase();
             const cfg = getConfig();
             await validateApiKey();
-            supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+            supabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
                 auth: {
                     persistSession: true,
                     autoRefreshToken: true,
@@ -349,7 +368,7 @@
                 }
             });
 
-            const { data } = await supabase.auth.getSession();
+            const { data } = await supabaseClient.auth.getSession();
             if (data.session?.user) {
                 await applySession(data.session.user);
                 return;
