@@ -1291,14 +1291,14 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 #screen-leaderboard .lb-card {
     width: min(720px, 96vw);
-    max-height: 92vh;
+    max-height: none;
     padding: 22px 24px 20px;
     text-align: center;
     animation: menuFloat 4s infinite ease-in-out;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    overflow: hidden;
+    overflow: visible;
 }
 
 #screen-leaderboard .lb-title {
@@ -1400,12 +1400,11 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .lb-list {
     list-style: none;
     margin: 0;
-    padding: 14px 10px;
+    padding: 16px 12px;
     flex: 1;
     min-height: 200px;
-    max-height: min(52vh, 420px);
-    overflow-x: hidden;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
     text-align: left;
     background: rgba(0, 0, 0, 0.28);
     border-radius: 14px;

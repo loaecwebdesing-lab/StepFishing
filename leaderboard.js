@@ -111,6 +111,17 @@
         return id && valid.has(id) ? id : 'default';
     }
 
+    /** DB parfois en retard : pour ta ligne, utilise le style équipé en local. */
+    function cosmeticIdForRow(row, myPseudo) {
+        let id = row.cosmetic_id;
+        if (myPseudo && row.pseudo === myPseudo) {
+            const local = window.StepFishCosmetics?.getEquippedId?.()
+                || window.__stepfishGetState?.()?.equippedCosmetic;
+            if (local && local !== 'default') id = local;
+        }
+        return resolveCosmeticId(id);
+    }
+
     function renderPseudoCell(pseudo, cosmeticId) {
         if (window.StepFishCosmetics?.renderPseudoHTML) {
             return window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId));
@@ -131,7 +142,7 @@
         list.innerHTML = rows.map((row, index) => {
             const rank = index + 1;
             const isMe = myPseudo && row.pseudo === myPseudo;
-            const cosId = resolveCosmeticId(row.cosmetic_id);
+            const cosId = cosmeticIdForRow(row, myPseudo);
             const hasFx = cosId !== 'default';
             return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
