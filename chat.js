@@ -1,5 +1,5 @@
 /**
- * StepFishing — Chat global (Supabase Realtime)
+ * StepFishing — Chat global (sidebar + Supabase Realtime)
  */
 (function () {
     const MAX_MESSAGES = 80;
@@ -29,6 +29,11 @@
         return escapeHtml(pseudo);
     }
 
+    function scrollChatToBottom() {
+        const box = document.getElementById('chat-messages');
+        if (box) box.scrollTop = box.scrollHeight;
+    }
+
     function renderMessages() {
         const box = document.getElementById('chat-messages');
         if (!box) return;
@@ -44,7 +49,30 @@
                 <span class="chat-text">${escapeHtml(m.message)}</span>
             </div>`;
         }).join('');
-        box.scrollTop = box.scrollHeight;
+        scrollChatToBottom();
+    }
+
+    function switchSidebarPanel(panelId) {
+        document.querySelectorAll('.sidebar-feed-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.panel === panelId);
+        });
+        const logPanel = document.getElementById('sidebar-panel-log');
+        const chatPanel = document.getElementById('sidebar-panel-chat');
+        if (logPanel) {
+            logPanel.classList.toggle('hidden', panelId !== 'log');
+            logPanel.classList.toggle('active', panelId === 'log');
+        }
+        if (chatPanel) {
+            chatPanel.classList.toggle('hidden', panelId !== 'chat');
+            chatPanel.classList.toggle('active', panelId === 'chat');
+        }
+        if (panelId === 'chat') scrollChatToBottom();
+    }
+
+    function bindSidebarTabs() {
+        document.querySelectorAll('.sidebar-feed-tab').forEach(btn => {
+            btn.addEventListener('click', () => switchSidebarPanel(btn.dataset.panel));
+        });
     }
 
     async function loadHistory() {
@@ -118,18 +146,10 @@
     }
 
     function bindUI() {
+        bindSidebarTabs();
         const form = document.getElementById('chat-form');
         const input = document.getElementById('chat-input');
-        const toggle = document.getElementById('chat-toggle');
-        const panel = document.getElementById('global-chat');
         const status = document.getElementById('chat-status');
-
-        if (toggle && panel) {
-            toggle.addEventListener('click', () => {
-                panel.classList.toggle('collapsed');
-                toggle.textContent = panel.classList.contains('collapsed') ? '💬' : '▼';
-            });
-        }
 
         if (form && input) {
             form.addEventListener('submit', async (e) => {
@@ -142,6 +162,7 @@
                 if (r.ok) {
                     input.value = '';
                     if (status) status.textContent = '';
+                    switchSidebarPanel('chat');
                 } else if (status) {
                     status.textContent = r.msg;
                 }
@@ -150,17 +171,11 @@
     }
 
     async function start() {
-        if (!canUse()) return;
         bindUI();
+        if (!canUse()) return;
         await loadHistory();
         subscribeRealtime();
-        const input = document.getElementById('chat-input');
-        if (input) {
-            input.placeholder = window.StepFishAuth?.isLoggedIn?.()
-                ? 'Écrire un message…'
-                : 'Connecte-toi pour parler';
-            input.disabled = !window.StepFishAuth?.isLoggedIn?.();
-        }
+        refreshAuthState();
     }
 
     function refreshAuthState() {
@@ -173,5 +188,5 @@
         }
     }
 
-    window.StepFishChat = { start, refreshAuthState, sendMessage };
+    window.StepFishChat = { start, refreshAuthState, sendMessage, switchSidebarPanel };
 })();

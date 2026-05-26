@@ -3,15 +3,21 @@
  */
 (function () {
     const COSMETIC_CATALOG = [
-        { id: 'default', name: 'Classique', desc: 'Style par défaut', price: 0 },
-        { id: 'ember', name: 'Flammes rouges', desc: 'Rouge ardent avec effet flammes', price: 10000 },
-        { id: 'ocean', name: 'Bleu océan', desc: 'Bleu profond ondulant', price: 35000 },
-        { id: 'violet', name: 'Violet royal', desc: 'Violet lumineux', price: 80000 },
-        { id: 'shadow', name: 'Ombre noire', desc: 'Noir avec lueur violette', price: 200000 },
-        { id: 'astral', name: 'Astral', desc: 'Violet & noir clignotant', price: 500000 },
-        { id: 'neon', name: 'Néon cyan', desc: 'Cyan électrique pulsant', price: 1000000 },
-        { id: 'gold', name: 'Or divin', desc: 'Or brillant animé', price: 1500000 },
-        { id: 'cosmic', name: 'Cosmique', desc: 'Arc-en-ciel cosmique ultime', price: 2000000 }
+        { id: 'default', name: 'Classique', desc: 'Style par défaut', price: 0, tier: '' },
+        { id: 'ember', name: 'Flammes rouges', desc: 'Particules de feu rouges', price: 10000, tier: '' },
+        { id: 'ocean', name: 'Bleu océan', desc: 'Bulles et reflets bleus', price: 35000, tier: '' },
+        { id: 'violet', name: 'Violet royal', desc: 'Éclats violets lumineux', price: 80000, tier: '' },
+        { id: 'shadow', name: 'Ombre noire', desc: 'Fumée sombre et lueurs', price: 200000, tier: '' },
+        { id: 'astral', name: 'Astral', desc: 'Violet & noir clignotant', price: 500000, tier: 'Rare' },
+        { id: 'neon', name: 'Néon cyan', desc: 'Étincelles électriques', price: 1000000, tier: 'Épique' },
+        { id: 'gold', name: 'Or divin', desc: 'Paillettes dorées', price: 1500000, tier: 'Épique' },
+        { id: 'cosmic', name: 'Cosmique', desc: 'Arc-en-ciel stellaire', price: 2000000, tier: 'Légendaire' },
+        { id: 'phoenix', name: 'Phénix', desc: 'Braises et flammes intenses', price: 3500000, tier: 'Légendaire' },
+        { id: 'abyss', name: 'Abysse', desc: 'Vortex sombre profond', price: 5000000, tier: 'Mythique' },
+        { id: 'diamond', name: 'Diamant', desc: 'Cristaux scintillants', price: 7500000, tier: 'Mythique' },
+        { id: 'solar', name: 'Solaire', desc: 'Rayons solaires explosifs', price: 10000000, tier: 'Divin' },
+        { id: 'deity', name: 'Divinité', desc: 'Aura divine ultime', price: 15000000, tier: 'Divin' },
+        { id: 'infinity', name: 'Infini', desc: 'Particules cosmiques infinies', price: 20000000, tier: 'Ultime' }
     ];
 
     const catalogById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));
@@ -57,7 +63,10 @@
 
     function renderPseudoHTML(pseudo, cosmeticId) {
         const cid = catalogById[cosmeticId] ? cosmeticId : 'default';
-        return `<span class="${getCosmeticClass(cid)}">${escapeHtml(pseudo)}</span>`;
+        const particles = cid !== 'default'
+            ? `<span class="cos-particles cos-particles-${cid}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>`
+            : '';
+        return `<span class="${getCosmeticClass(cid)} cos-pseudo-wrap">${particles}<span class="cos-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
     }
 
     function applyToElement(el, pseudo, cosmeticId) {
@@ -139,7 +148,12 @@
                 action = `<button type="button" class="cos-card-btn buy" data-buy="${item.id}">${formatPrice(item.price)}</button>`;
             }
 
-            return `<article class="cos-card">
+            const tierBadge = item.tier
+                ? `<span class="cos-tier cos-tier-${item.tier.toLowerCase().replace('é', 'e')}">${item.tier}</span>`
+                : '';
+
+            return `<article class="cos-card${item.price >= 2000000 ? ' cos-card-premium' : ''}">
+                ${tierBadge}
                 <div class="cos-preview">${renderPseudoHTML('Aperçu', item.id)}</div>
                 <h3>${escapeHtml(item.name)}</h3>
                 <p>${escapeHtml(item.desc)}</p>

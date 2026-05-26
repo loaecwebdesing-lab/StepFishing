@@ -130,10 +130,23 @@
                     <span id="user-prestige" class="value">0</span>
                 </div>
             </div>
-            <div id="game-log-container">
-                <div class="log-header">Flux d'événements</div>
-                <div id="game-log">
-                    <div class="log-msg system">Bienvenue dans StepFishing !</div>
+            <div id="sidebar-feed" class="sidebar-feed">
+                <div class="sidebar-feed-tabs" role="tablist">
+                    <button type="button" class="sidebar-feed-tab active" data-panel="log" role="tab">📋 Flux</button>
+                    <button type="button" class="sidebar-feed-tab" data-panel="chat" role="tab">💬 Chat</button>
+                </div>
+                <div id="sidebar-panel-log" class="sidebar-feed-panel active">
+                    <div id="game-log">
+                        <div class="log-msg system">Bienvenue dans StepFishing !</div>
+                    </div>
+                </div>
+                <div id="sidebar-panel-chat" class="sidebar-feed-panel hidden">
+                    <div id="chat-messages" class="chat-messages"></div>
+                    <p id="chat-status" class="chat-status-line"></p>
+                    <form id="chat-form" class="chat-form">
+                        <input type="text" id="chat-input" maxlength="200" placeholder="Écrire un message…" autocomplete="off">
+                        <button type="submit" class="chat-send">➤</button>
+                    </form>
                 </div>
             </div>
         </aside>
@@ -333,12 +346,18 @@
             </div>
 
             <div id="screen-cosmetics" class="screen">
-                <div class="glass-card full-width cosmetics-card">
-                    <h1 class="title">✨ Boutique Cosmétique</h1>
-                    <p class="subtitle">Styles de pseudo · visible dans le chat et le classement</p>
-                    <p id="cosmetics-status" class="cosmetics-status"></p>
-                    <div id="cosmetics-grid" class="cosmetics-grid"></div>
-                    <button id="btn-back-menu-cosmetics" class="btn-secondary">Retour au menu</button>
+                <div class="glass-card cosmetics-card">
+                    <header class="cosmetics-header">
+                        <h1 class="cosmetics-title">✨ Boutique Cosmétique</h1>
+                        <p class="cosmetics-sub">Styles de pseudo · chat & classement</p>
+                        <p id="cosmetics-status" class="cosmetics-status"></p>
+                    </header>
+                    <div class="cosmetics-scroll">
+                        <div id="cosmetics-grid" class="cosmetics-grid"></div>
+                    </div>
+                    <footer class="cosmetics-footer">
+                        <button id="btn-back-menu-cosmetics" class="btn-secondary cosmetics-back-btn">Retour au menu</button>
+                    </footer>
                 </div>
             </div>
 
@@ -365,17 +384,6 @@
                 </div>
             </div>
         </main>
-
-        <div id="global-chat" class="global-chat">
-            <button type="button" id="chat-toggle" class="chat-toggle" title="Réduire le chat">▼</button>
-            <div class="chat-header">💬 Chat global</div>
-            <div id="chat-messages" class="chat-messages"></div>
-            <p id="chat-status" class="chat-status-line"></p>
-            <form id="chat-form" class="chat-form">
-                <input type="text" id="chat-input" maxlength="200" placeholder="Écrire un message…" autocomplete="off">
-                <button type="submit" class="chat-send">➤</button>
-            </form>
-        </div>
 
     </div>
 
