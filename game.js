@@ -53,16 +53,13 @@ const AUDIO_VOLUME = 0.35;
 const AUDIO_FILES = {
     ambi: 'assets/Ambi.mp3',
     splash: 'assets/Splash.mp3',
-    chest: 'assets/Chest.mp3',
-    button: 'assets/Button.mp3'
+    chest: 'assets/Chest.mp3'
 };
 
 let audioCtx = null;
 const audioBuffers = {};
 const sfxPools = {};
 let bgMusicEl = null;
-let lastButtonSfxAt = 0;
-
 function getBgMusic() {
     if (!bgMusicEl) {
         bgMusicEl = window.__stepfishBgMusic || document.getElementById('bg-music');
@@ -133,10 +130,6 @@ function playSfxHtml(key) {
     sound.play().catch(() => {});
 }
 
-function playButtonSound() {
-    if (!playBufferSrc(AUDIO_FILES.button)) playSfxHtml('button');
-}
-
 function playSplashSound() {
     if (!playBufferSrc(AUDIO_FILES.splash)) playSfxHtml('splash');
 }
@@ -154,20 +147,13 @@ function startBackgroundMusic() {
 }
 
 function setupAudio() {
-    document.addEventListener('pointerdown', (e) => {
+    document.addEventListener('pointerdown', () => {
         startBackgroundMusic();
-        const btn = e.target.closest('button');
-        if (!btn || btn.id === 'btn-open-crate') return;
-        const now = performance.now();
-        if (now - lastButtonSfxAt < 40) return;
-        lastButtonSfxAt = now;
-        playButtonSound();
     }, true);
 }
 
 function preloadAllAudio() {
     getAudioContext();
-    initSfxPool('button', AUDIO_FILES.button, 4);
     initSfxPool('splash', AUDIO_FILES.splash, 2);
     initSfxPool('chest', AUDIO_FILES.chest, 2);
     startBackgroundMusic();
@@ -1598,7 +1584,6 @@ async function boot() {
     setupAudio();
     preloadAllAudio();
     if (window.StepFishAuth) await StepFishAuth.init();
-    await decodeAudioFile(AUDIO_FILES.button);
     decodeAudioFile(AUDIO_FILES.splash);
     decodeAudioFile(AUDIO_FILES.chest);
     init();
