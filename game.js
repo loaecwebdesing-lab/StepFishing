@@ -12,7 +12,7 @@ const RARITIES = [
     { name: 'Épique', folder: 'epique', color: '#9C27B0', difficulty: 8, points: 15, speed: 7, class: 'rarity-3', minPrice: 25, maxPrice: 150 },
     { name: 'Légendaire', folder: 'legendaire', color: '#FF9800', difficulty: 10, points: 30, speed: 9, class: 'rarity-4', minPrice: 150, maxPrice: 600 },
     { name: 'Mythique', folder: 'mythique', color: '#F44336', difficulty: 12, points: 60, speed: 12, class: 'rarity-5', minPrice: 600, maxPrice: 2500 },
-    { name: 'Divin', folder: 'divin', color: '#4B00 queL_S', difficulty: 15, points: 150, speed: 15, class: 'rarity-6', minPrice: 2500, maxPrice: 10000 }
+    { name: 'Divin', folder: 'divin', color: '#4B0082', difficulty: 15, points: 150, speed: 15, class: 'rarity-6', minPrice: 2500, maxPrice: 10000 }
 ];
 
 // 1. D'abord on définit les cannes du shop
@@ -37,7 +37,154 @@ const CRATE_RODS = [
 // 3. MAINTENANT on peut fusionner les deux (car les deux existent déjà)
 const ALL_RODS = [...ROD_DATA, ...CRATE_RODS];
 
-const CRATE_WEIGHTS = { 'Rare': 50, 'Épique': 30, 'Légendaire': 15, 'Mythique': 4, 'Divin': 1 };
+const KEY_CATCH_CHANCE = 1 / 150;
+
+const CRATE_MONEY_LOOT = [
+    { type: 'money', amount: 100, weight: 420, label: '100 $', color: '#BDBDBD' },
+    { type: 'money', amount: 1000, weight: 230, label: '1 000 $', color: '#4CAF50' },
+    { type: 'money', amount: 5000, weight: 90, label: '5 000 $', color: '#2196F3' },
+    { type: 'money', amount: 10000, weight: 35, label: '10 000 $', color: '#FF9800' }
+];
+
+const CRATE_ROD_POOL_WEIGHT = 22;
+const CRATE_ROD_WEIGHTS = { 'Rare': 45, 'Épique': 28, 'Légendaire': 15, 'Mythique': 8, 'Divin': 4 };
+
+const AUDIO_VOLUME = 0.35;
+const AUDIO_FILES = {
+    ambi: 'assets/Ambi.mp3',
+    splash: 'assets/Splash.mp3',
+    chest: 'assets/Chest.mp3',
+    button: 'assets/Button.mp3'
+};
+
+let audioCtx = null;
+const audioBuffers = {};
+const sfxPools = {};
+let bgMusicEl = null;
+let lastButtonSfxAt = 0;
+
+function getBgMusic() {
+    if (!bgMusicEl) {
+        bgMusicEl = window.__stepfishBgMusic || document.getElementById('bg-music');
+    }
+    return bgMusicEl;
+}
+
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+}
+
+function decodeAudioFile(src) {
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', src, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+            if (xhr.status && xhr.status !== 200 && xhr.status !== 0) {
+                resolve();
+                return;
+            }
+            getAudioContext().decodeAudioData(xhr.response)
+                .then(decoded => { audioBuffers[src] = decoded; })
+                .catch(() => {})
+                .finally(resolve);
+        };
+        xhr.onerror = () => resolve();
+        xhr.send();
+    });
+}
+
+function initSfxPool(key, src, size) {
+    if (sfxPools[key]?.length) return;
+    sfxPools[key] = [];
+    for (let i = 0; i < size; i++) {
+        const audio = new Audio(src);
+        audio.preload = 'auto';
+        audio.volume = AUDIO_VOLUME;
+        audio.load();
+        sfxPools[key].push(audio);
+    }
+}
+
+function playBufferSrc(src) {
+    const buffer = audioBuffers[src];
+    if (!buffer) return false;
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = AUDIO_VOLUME;
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(0);
+    return true;
+}
+
+function playSfxHtml(key) {
+    const pool = sfxPools[key];
+    if (!pool?.length) return;
+    const sound = pool.find(a => a.paused || a.ended) || pool[0];
+    sound.currentTime = 0;
+    sound.volume = AUDIO_VOLUME;
+    sound.play().catch(() => {});
+}
+
+function playButtonSound() {
+    if (!playBufferSrc(AUDIO_FILES.button)) playSfxHtml('button');
+}
+
+function playSplashSound() {
+    if (!playBufferSrc(AUDIO_FILES.splash)) playSfxHtml('splash');
+}
+
+function playChestSound() {
+    if (!playBufferSrc(AUDIO_FILES.chest)) playSfxHtml('chest');
+}
+
+function startBackgroundMusic() {
+    const music = getBgMusic();
+    if (!music) return;
+    music.muted = false;
+    music.volume = AUDIO_VOLUME;
+    music.play().catch(() => {});
+}
+
+function setupAudio() {
+    document.addEventListener('pointerdown', (e) => {
+        startBackgroundMusic();
+        const btn = e.target.closest('button');
+        if (!btn || btn.id === 'btn-open-crate') return;
+        const now = performance.now();
+        if (now - lastButtonSfxAt < 40) return;
+        lastButtonSfxAt = now;
+        playButtonSound();
+    }, true);
+}
+
+function preloadAllAudio() {
+    getAudioContext();
+    initSfxPool('button', AUDIO_FILES.button, 4);
+    initSfxPool('splash', AUDIO_FILES.splash, 2);
+    initSfxPool('chest', AUDIO_FILES.chest, 2);
+    startBackgroundMusic();
+}
+
+const KEY_FISH = {
+    isKey: true,
+    id: -1,
+    name: 'Clé Mystérieuse',
+    img: '',
+    points: 25,
+    color: '#ffca28',
+    difficulty: 6,
+    class: 'rarity-3',
+    value: 0,
+    mutation: 'Normal'
+};
 
 const ZONE_DATA = [
     // ... (ton code de zones reste identique)
@@ -76,19 +223,113 @@ const FISH_DATA = {
     prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
 };
 
+const MUTATION_ROLL_CHANCE = 1 / 15;
+
 const MUTATIONS = [
-    { name: "Normal", chance: 0.7, multiplier: 1, filter: 'none', color: 'transparent', effect: 'none' },
-    { name: "Albinos", chance: 0.15, multiplier: 2, filter: 'brightness(2) saturate(0)', color: '#ffffff', effect: 'glow' },
-    { name: "Enflammé", chance: 0.07, multiplier: 5, filter: 'contrast(1.5) saturate(3) hue-rotate(-20deg)', color: '#ff4500', effect: 'fire' },
-    { name: "Angélique", chance: 0.04, multiplier: 10, filter: 'brightness(1.2) saturate(0.8)', color: '#fffacd', effect: 'aura' },
-    { name: "Néon", chance: 0.03, multiplier: 15, filter: 'hue-rotate(90deg) saturate(5) brightness(1.2)', color: '#00ff00', effect: 'neon' },
-    { name: "Abyssal", chance: 0.01, multiplier: 50, filter: 'brightness(0.5) hue-rotate(250deg) saturate(2)', color: '#4b0082', effect: 'void' }
+    { name: "Normal", multiplier: 1, filter: 'none', color: 'transparent', effect: 'none' },
+    { name: "Albinos", weight: 220, multiplier: 2, filter: 'brightness(2) saturate(0)', color: '#ffffff', effect: 'glow' },
+    { name: "Glacé", weight: 180, multiplier: 2.5, filter: 'brightness(1.3) saturate(0.6) hue-rotate(180deg)', color: '#aeefff', effect: 'ice' },
+    { name: "Doré", weight: 160, multiplier: 3, filter: 'sepia(0.5) saturate(2) brightness(1.2)', color: '#ffd700', effect: 'gold' },
+    { name: "Toxique", weight: 100, multiplier: 3.5, filter: 'hue-rotate(80deg) saturate(3) brightness(0.9)', color: '#39ff14', effect: 'toxic' },
+    { name: "Corail", weight: 80, multiplier: 4, filter: 'hue-rotate(-30deg) saturate(2.5) brightness(1.1)', color: '#ff6b9d', effect: 'coral' },
+    { name: "Enflammé", weight: 70, multiplier: 5, filter: 'contrast(1.5) saturate(3) hue-rotate(-20deg)', color: '#ff4500', effect: 'fire' },
+    { name: "Spectral", weight: 60, multiplier: 6, filter: 'brightness(1.6) saturate(0.2) contrast(0.9)', color: '#e0e8ff', effect: 'ghost' },
+    { name: "Sombre", weight: 50, multiplier: 7, filter: 'brightness(0.25) contrast(1.5) saturate(0)', color: '#1a1a2e', effect: 'shadow' },
+    { name: "Électrique", weight: 40, multiplier: 8, filter: 'brightness(1.4) saturate(2) hue-rotate(200deg)', color: '#00bfff', effect: 'electric' },
+    { name: "Angélique", weight: 30, multiplier: 10, filter: 'brightness(1.2) saturate(0.8)', color: '#fffacd', effect: 'aura' },
+    { name: "Arc-en-ciel", weight: 22, multiplier: 12, filter: 'saturate(2) brightness(1.15)', color: '#ff00ff', effect: 'rainbow' },
+    { name: "Cristallin", weight: 18, multiplier: 18, filter: 'brightness(1.5) saturate(0.5) contrast(1.2)', color: '#e0ffff', effect: 'crystal' },
+    { name: "Néon", weight: 14, multiplier: 15, filter: 'hue-rotate(90deg) saturate(5) brightness(1.2)', color: '#00ff00', effect: 'neon' },
+    { name: "Abyssal", weight: 5, multiplier: 50, filter: 'brightness(0.5) hue-rotate(250deg) saturate(2)', color: '#4b0082', effect: 'void' },
+    { name: "Cosmique", weight: 3, multiplier: 100, filter: 'brightness(0.85) hue-rotate(270deg) saturate(1.5)', color: '#9370db', effect: 'cosmic' }
 ];
+
+function pickWeightedMutation(pool) {
+    const total = pool.reduce((sum, m) => sum + m.weight, 0);
+    let roll = Math.random() * total;
+    for (const m of pool) {
+        if (roll < m.weight) return m;
+        roll -= m.weight;
+    }
+    return pool[pool.length - 1];
+}
+
+function rollMutation() {
+    if (Math.random() >= MUTATION_ROLL_CHANCE) return MUTATIONS[0];
+    return pickWeightedMutation(MUTATIONS.filter(m => m.name !== 'Normal'));
+}
 
 function safeParse(key, defaultValue) {
     const data = localStorage.getItem(key);
     try { return data ? JSON.parse(data) : defaultValue; } catch (e) { return defaultValue; }
 }
+
+function getSavePayload() {
+    return {
+        totalScore: state.totalScore,
+        money: state.money,
+        maxMoney: state.maxMoney,
+        totalFishesCaught: state.totalFishesCaught,
+        highScore: state.highScore,
+        inventory: state.inventory,
+        unlockedAquariums: state.unlockedAquariums,
+        ownedRods: state.ownedRods,
+        equippedRod: state.equippedRod,
+        discoveredFishes: state.discoveredFishes,
+        keys: state.keys,
+        currentZone: state.currentZone
+    };
+}
+
+function persistGameLocal() {
+    localStorage.setItem('stepFishingTotalScore', state.totalScore);
+    localStorage.setItem('stepFishingMoney', state.money);
+    localStorage.setItem('stepFishingMaxMoney', state.maxMoney);
+    localStorage.setItem('stepFishingTotalCaught', state.totalFishesCaught);
+    localStorage.setItem('stepFishingHighScore', state.highScore);
+    localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
+    localStorage.setItem('stepFishingUnlocked', JSON.stringify(state.unlockedAquariums));
+    localStorage.setItem('stepFishingOwnedRods', JSON.stringify(state.ownedRods));
+    localStorage.setItem('stepFishingEquippedRod', state.equippedRod);
+    localStorage.setItem('stepFishingDiscovered', JSON.stringify(state.discoveredFishes));
+    localStorage.setItem('stepFishingKeys', state.keys);
+    localStorage.setItem('stepFishingCurrentZone', state.currentZone);
+}
+
+let cloudSaveTimer = null;
+function persistGame() {
+    persistGameLocal();
+    if (window.StepFishAuth?.isLoggedIn()) {
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = setTimeout(() => StepFishAuth.saveToCloud(getSavePayload()), 1000);
+    }
+}
+
+function applySaveData(data) {
+    if (!data) return;
+    state.totalScore = parseFloat(data.totalScore) || 0;
+    state.money = parseFloat(data.money) || 0;
+    state.maxMoney = parseFloat(data.maxMoney) || 0;
+    state.totalFishesCaught = parseInt(data.totalFishesCaught, 10) || 0;
+    state.highScore = data.highScore || 0;
+    state.inventory = data.inventory || { aq0: [] };
+    state.unlockedAquariums = data.unlockedAquariums || [0];
+    state.ownedRods = data.ownedRods || [0];
+    state.equippedRod = parseInt(data.equippedRod, 10) || 0;
+    state.discoveredFishes = data.discoveredFishes || [];
+    state.keys = parseInt(data.keys, 10) || 0;
+    state.currentZone = data.currentZone || 'lac';
+    persistGameLocal();
+    updateMoneyDisplay();
+    updateKeysDisplay();
+    updateProgression();
+    updateZoneBackgrounds();
+    updateFishingRodDisplay();
+}
+
+window.getSavePayload = getSavePayload;
+window.getLocalSavePayload = getSavePayload;
+window.applySaveData = applySaveData;
 
 let state = {
     score: 0, 
@@ -115,7 +356,8 @@ let state = {
     ownedRods: safeParse('stepFishingOwnedRods', [0]), 
     equippedRod: parseInt(localStorage.getItem('stepFishingEquippedRod')) || 0,
     discoveredFishes: safeParse('stepFishingDiscovered', []),
-    currentZone: 'lac'
+    currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
+    keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0
 };
 
 const getEl = (id) => document.getElementById(id);
@@ -133,7 +375,7 @@ const elements = {
         index: getEl('screen-index'),
         map: getEl('screen-map')
     },
-    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual')
+    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual')
 };
 
 function calculateFishValue(rarityIdx) {
@@ -145,17 +387,115 @@ function updateMoneyDisplay() {
     const formatted = state.money.toLocaleString('en-US', {minimumFractionDigits: 2});
     if(elements.walletBalance) elements.walletBalance.innerText = formatted;
     if(elements.walletGame) elements.walletGame.innerText = formatted;
-    localStorage.setItem('stepFishingMoney', state.money);
-    if(state.money > state.maxMoney) { state.maxMoney = state.money; localStorage.setItem('stepFishingMaxMoney', state.maxMoney); }
+    if(state.money > state.maxMoney) state.maxMoney = state.money;
+    persistGame();
+}
+
+function updateKeysDisplay() {
+    const text = String(state.keys);
+    if (elements.keysBalance) elements.keysBalance.innerText = text;
+    const crateKeys = document.getElementById('crate-keys-count');
+    if (crateKeys) crateKeys.innerText = `🔑 Clés : ${state.keys}`;
+    persistGame();
+    updateCrateUI();
+}
+
+function pickWeightedLoot(pool) {
+    const total = pool.reduce((sum, item) => sum + item.weight, 0);
+    let roll = Math.random() * total;
+    for (const item of pool) {
+        if (roll < item.weight) return item;
+        roll -= item.weight;
+    }
+    return pool[pool.length - 1];
+}
+
+function rollCrateRod() {
+    const entries = Object.entries(CRATE_ROD_WEIGHTS);
+    const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+    let roll = Math.random() * total;
+    for (const [rarity, weight] of entries) {
+        if (roll < weight) {
+            const rods = CRATE_RODS.filter(r => r.rarity === rarity);
+            const rod = rods[Math.floor(Math.random() * rods.length)];
+            return { type: 'rod', rod, label: rod.name, color: rod.color };
+        }
+        roll -= weight;
+    }
+    const fallback = CRATE_RODS[0];
+    return { type: 'rod', rod: fallback, label: fallback.name, color: fallback.color };
+}
+
+function rollCrateLoot() {
+    const moneyTotal = CRATE_MONEY_LOOT.reduce((sum, item) => sum + item.weight, 0);
+    const grandTotal = moneyTotal + CRATE_ROD_POOL_WEIGHT;
+    if (Math.random() * grandTotal >= moneyTotal) return rollCrateRod();
+    const moneyLoot = pickWeightedLoot(CRATE_MONEY_LOOT);
+    return {
+        type: 'money',
+        amount: moneyLoot.amount,
+        label: moneyLoot.label,
+        color: moneyLoot.color
+    };
+}
+
+function getCrateItemHTML(loot) {
+    if (loot.type === 'money') {
+        return `<div class="crate-money-display" style="color:${loot.color}">${loot.label}</div>
+            <div class="rarity-tag" style="color:${loot.color}">Argent</div>`;
+    }
+    return `<img src="${loot.rod.img}" alt="${loot.rod.name}">
+        <div class="rarity-tag" style="color:${loot.color}">${loot.rod.rarity}</div>`;
+}
+
+function updateCrateUI() {
+    const btn = document.getElementById('btn-open-crate');
+    if (btn) {
+        btn.disabled = state.keys < 1;
+        btn.innerText = state.keys < 1 ? 'Pas de clé disponible' : 'Ouvrir le Coffre (1 clé)';
+    }
+}
+
+function applyCrateReward(loot) {
+    if (loot.type === 'money') {
+        state.money += loot.amount;
+        updateMoneyDisplay();
+        addLog(`Coffre : ${loot.label} obtenus !`, 'epic');
+        alert(`💰 BRAVO ! Vous avez gagné ${loot.label} !`);
+        return;
+    }
+    addLog(`FÉLICITATIONS ! Canne obtenue : ${loot.rod.name} !`, 'epic');
+    if (!state.ownedRods.includes(loot.rod.id)) {
+        state.ownedRods.push(loot.rod.id);
+    }
+    state.equippedRod = loot.rod.id;
+    persistGame();
+    updateFishingRodDisplay();
+    alert(`🎉 BRAVO ! Canne débloquée : ${loot.rod.name} (${loot.rod.rarity})`);
+}
+
+const TIME_CYCLES = [
+    { id: 'bg-day', label: '☀️ Jour' },
+    { id: 'bg-dawn', label: '🌅 Aube' },
+    { id: 'bg-night', label: '🌙 Nuit' }
+];
+
+function updateTimeCycleButton() {
+    const btn = document.getElementById('btn-time-cycle');
+    if (!btn) return;
+    const cycle = TIME_CYCLES[state.currentCycle];
+    btn.innerText = cycle.label;
+    btn.title = `Heure actuelle : ${cycle.label.split(' ')[1]} — cliquer pour changer`;
 }
 
 function updateDayNightCycle() {
-    const layers = ['bg-day', 'bg-dawn', 'bg-night'];
-    const currentEl = document.getElementById(layers[state.currentCycle]);
-    if(currentEl) currentEl.classList.remove('active');
-    state.currentCycle = (state.currentCycle + 1) % layers.length;
-    const nextEl = document.getElementById(layers[state.currentCycle]);
-    if(nextEl) nextEl.classList.add('active');
+    const nextCycle = (state.currentCycle + 1) % TIME_CYCLES.length;
+    const currentEl = document.getElementById(TIME_CYCLES[state.currentCycle].id);
+    const nextEl = document.getElementById(TIME_CYCLES[nextCycle].id);
+    if (nextEl) nextEl.classList.add('active');
+    if (currentEl && currentEl !== nextEl) currentEl.classList.remove('active');
+    state.currentCycle = nextCycle;
+    updateTimeCycleButton();
 }
 
 function updateProgression() {
@@ -163,7 +503,7 @@ function updateProgression() {
     state.prestige = Math.floor(state.level / 100);
     if(elements.userLevel) elements.userLevel.innerText = state.level;
     if(elements.userPrestige) elements.userPrestige.innerText = state.prestige;
-    localStorage.setItem('stepFishingTotalScore', state.totalScore);
+    persistGame();
     const xpFill = document.getElementById('xp-bar-fill');
     const xpText = document.getElementById('xp-text');
     if (xpFill && xpText) {
@@ -204,6 +544,40 @@ const AQ_CONFIGS = [
     { name: "Nébuleuse", cost: 25000, bg: "assets/aquariums/aq4.png" }
 ];
 
+function getMutationData(mutationName) {
+    return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
+}
+
+function buildFishVisualHTML(fish, width) {
+    if (fish.isKey) {
+        return `<div class="fish-visual-wrap key-catch-visual" style="width:${width}px;height:${width}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(width * 0.55)}px">🔑</div>`;
+    }
+    const mutation = getMutationData(fish.mutation);
+    return `<div class="fish-visual-wrap" data-mutation="${mutation.name}">
+        <img src="${fish.img}" class="fish-mut-img" style="width:${width}px" alt="${fish.name}">
+    </div>`;
+}
+
+function spawnFishParticle(fishEl) {
+    const mutationName = fishEl.dataset.mutation;
+    if (!mutationName || mutationName === 'Normal') return;
+    if (Math.random() > 0.04) return;
+
+    const mut = getMutationData(mutationName);
+    const layer = elements.fishLayer;
+    if (!layer) return;
+
+    const fishRect = fishEl.getBoundingClientRect();
+    const layerRect = layer.getBoundingClientRect();
+    const particle = document.createElement('div');
+    particle.className = `fish-particle particle-${mut.effect}`;
+    particle.style.background = mut.color;
+    particle.style.left = (fishRect.left - layerRect.left + fishRect.width * (0.3 + Math.random() * 0.4)) + 'px';
+    particle.style.top = (fishRect.top - layerRect.top + fishRect.height * (0.3 + Math.random() * 0.4)) + 'px';
+    layer.appendChild(particle);
+    setTimeout(() => particle.remove(), 800);
+}
+
 let isAnimating = false;
 function renderAquarium() {
     const aqId = `aq${state.currentAqIndex}`;
@@ -227,18 +601,23 @@ function renderAquarium() {
     elements.fishLayer.innerHTML = '';
     const fishes = state.inventory[aqId] || [];
     elements.aqSlots.innerText = `Slots: ${fishes.length}/15`;
-    const scaleRanges = [[0.7, 1.1], [0.8, 1.2], [0.8, 1.5], [0.9, 1.8], [1.0, 2.0], [1.2, 2.2], [1.5, 3.0]];
+    const scaleRanges = [[0.7, 1.0], [0.75, 1.05], [0.8, 1.15], [0.85, 1.25], [0.9, 1.35], [1.0, 1.5], [1.1, 1.65]];
 
     fishes.forEach((fish, index) => {
         const fDiv = document.createElement('div');
+        const mutation = getMutationData(fish.mutation);
         fDiv.classList.add('aq-fish');
-        const rIdx = RARITIES.findIndex(r => r.class === fish.class);
-        const range = scaleRanges[rIdx] || [0.8, 1.2];
+        if (mutation.effect !== 'none') fDiv.classList.add(`mut-${mutation.effect}`);
+        fDiv.dataset.mutation = mutation.name;
+        fDiv.style.setProperty('--mut-color', mutation.color);
+        let rIdx = typeof fish.id === 'number' ? fish.id : RARITIES.findIndex(r => r.class === fish.class);
+        if (rIdx < 0) rIdx = 0;
+        const range = scaleRanges[rIdx] || [0.8, 1.1];
         const randomScale = Math.random() * (range[1] - range[0]) + range[0];
-        const finalWidth = Math.round(80 * randomScale);
-        fDiv.innerHTML = `<img src="${fish.img}" class="aq-fish-img" style="width: ${finalWidth}px">`;
-        fDiv.style.left = Math.random() * 90 + '%';
-        fDiv.style.top = Math.random() * 90 + '%';
+        const finalWidth = Math.min(130, Math.round(65 * randomScale));
+        fDiv.innerHTML = `<img src="${fish.img}" class="aq-fish-img" style="width:${finalWidth}px">`;
+        fDiv.style.left = Math.random() * 80 + 5 + '%';
+        fDiv.style.top = Math.random() * 75 + 5 + '%';
         fDiv.dataset.fishData = JSON.stringify({ target: null, speed: 0 });
         fDiv.addEventListener('click', (e) => { e.stopPropagation(); openFishModal(index, aqId); });
         elements.fishLayer.appendChild(fDiv);
@@ -256,7 +635,7 @@ function sellAllFromAq() {
     fishes.forEach(fish => { totalGain += fish.value; });
     state.money += totalGain;
     state.inventory[aqId] = [];
-    localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
+    persistGame();
     updateMoneyDisplay();
     renderAquarium();
     addLog(`Vendu tout le bac ! Gain : ${totalGain.toLocaleString('en-US', {minimumFractionDigits: 2})} $`, 'epic');
@@ -272,6 +651,7 @@ function renderMap() {
         card.innerHTML = `<h3>${zone.name}</h3><p>Découvrez les espèces de cette région</p>`;
         card.onclick = () => {
             state.currentZone = zone.id;
+            persistGame();
             updateZoneBackgrounds();
             renderMap();
             showScreen('menu');
@@ -302,7 +682,7 @@ function animateFish() {
             fishes.forEach(fish => {
                 const data = JSON.parse(fish.dataset.fishData || '{"target":null, "speed":0}');
                 if (!data.target) {
-                    data.target = { x: Math.random() * 90, y: Math.random() * 90 };
+                    data.target = { x: 5 + Math.random() * 80, y: 5 + Math.random() * 75 };
                     data.speed = 0.005 + Math.random() * 0.01;
                 }
                 const curX = parseFloat(fish.style.left) || 0;
@@ -312,12 +692,9 @@ function animateFish() {
                 fish.style.left = newX + '%';
                 fish.style.top = newY + '%';
                 fish.style.transform = `scaleX(${newX > curX ? -1 : 1})`;
-                if (Math.abs(newX - data.target.x) < 1) data.target = { x: Math.random() * 90, y: Math.random() * 90 };
+                if (Math.abs(newX - data.target.x) < 1) data.target = { x: 5 + Math.random() * 80, y: 5 + Math.random() * 75 };
                 fish.dataset.fishData = JSON.stringify(data);
-
-                // --- SYSTÈME DE PARTICULES ---
-                // On ne crée des particules que si le poisson a une mutation spéciale
-                const mutData = MUTATIONS.find(m => m.name === JSON.parse(fish.dataset.fishData || "{}").mutation); // Erreur potentielle ici, correction ci-dessous
+                spawnFishParticle(fish);
             });
         } catch (e) { console.error(e); }
         requestAnimationFrame(loop);
@@ -329,11 +706,12 @@ function animateFish() {
 function openFishModal(index, aqId) {
     const fish = state.inventory[aqId][index];
     if(!fish) return;
-    elements.modalFishVisual.innerHTML = `<img src="${fish.img}" width="120">`;
+    elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, 165);
     elements.modalFishName.innerText = fish.name;
     elements.modalFishName.className = `rarity-text ${fish.class}`;
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
-    elements.modalFishRarity.innerText = rarityInfo ? rarityInfo.name : 'Inconnu';
+    const mutation = getMutationData(fish.mutation);
+    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'} · Mutation : ${mutation.name}`;
     elements.modalFishPrice.innerText = fish.value + " $";
     const btnSell = document.getElementById('btn-sell-fish');
     const btnMove = document.getElementById('btn-move-fish');
@@ -347,7 +725,7 @@ function sellFishFromAq(index, aqId) {
     if(!fish) return;
     state.money += fish.value;
     state.inventory[aqId].splice(index, 1);
-    localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
+    persistGame();
     updateMoneyDisplay();
     renderAquarium();
 }
@@ -371,7 +749,7 @@ function moveFishFromAq(index, fromAqId) {
     }
     const [movedFish] = state.inventory[fromAqId].splice(index, 1);
     state.inventory[targetAqId].push(movedFish);
-    localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
+    persistGame();
     renderAquarium();
     showScreen('inventory');
 }
@@ -381,7 +759,7 @@ function buyAquarium() {
     if (state.money >= cost) {
         state.money -= cost;
         state.unlockedAquariums.push(state.currentAqIndex);
-        localStorage.setItem('stepFishingUnlocked', JSON.stringify(state.unlockedAquariums));
+        persistGame();
         updateMoneyDisplay();
         renderAquarium();
     } else { alert("Pas assez d'argent !"); }
@@ -389,12 +767,11 @@ function buyAquarium() {
 
 function spawnOsuTarget() {
     if (state.currentPhase !== 'SIGHTING') return;
-    if (!elements.ocean) return; // Sécurité : si l'océan n'est pas trouvé, on arrête pour éviter le crash
+    if (!elements.ocean) return;
 
     const target = document.createElement('div');
     target.classList.add('osu-target');
     
-    // Calcul sécurisé de la position
     const oceanWidth = elements.ocean.clientWidth;
     const oceanHeight = elements.ocean.clientHeight;
     
@@ -422,25 +799,39 @@ function spawnOsuTarget() {
 
 
 function triggerCatch() {
-    const currentRod = ALL_RODS.find(r => r.id === state.equippedRod) || ALL_RODS[0];
+    if (Math.random() < KEY_CATCH_CHANCE) {
+        state.currentFish = { ...KEY_FISH };
+        setPhase('REELING');
+        addLog('Une clé mystérieuse mord à l\'hameçon !', 'epic');
+        return;
+    }
+
+    const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
-    const activeZone = zone || ZONE_DATA[0]; 
+    const activeZone = zone || ZONE_DATA[0];
     let maxRarityAllowed = 0;
-    if (state.combo >= 12) maxRarityAllowed = 6; else if (state.combo >= 10) maxRarityAllowed = 5;
-    else if (state.combo >= 8) maxRarityAllowed = 4; else if (state.combo >= 6) maxRarityAllowed = 3;
-    else if (state.combo >= 4) maxRarityAllowed = 2; else if (state.combo >= 2) maxRarityAllowed = 1;
-    maxRarityAllowed += currentRod.luck; 
+    if (state.combo >= 12) maxRarityAllowed = 6;
+    else if (state.combo >= 10) maxRarityAllowed = 5;
+    else if (state.combo >= 8) maxRarityAllowed = 4;
+    else if (state.combo >= 6) maxRarityAllowed = 3;
+    else if (state.combo >= 4) maxRarityAllowed = 2;
+    else if (state.combo >= 2) maxRarityAllowed = 1;
+    maxRarityAllowed += currentRod.luck;
     if (maxRarityAllowed > 6) maxRarityAllowed = 6;
+
     let totalWeight = 0;
-    let weights = [];
+    const weights = [];
     for (let i = 0; i < RARITIES.length; i++) {
         if (i <= maxRarityAllowed) {
             let weight = RARITY_WEIGHTS[i];
-            if (i >= 3) weight *= (1 + currentRod.luck * 0.2); 
+            if (i >= 3) weight *= (1 + currentRod.luck * 0.2);
             weights.push(weight);
             totalWeight += weight;
-        } else { weights.push(0); }
+        } else {
+            weights.push(0);
+        }
     }
+
     let randomRoll = Math.random() * totalWeight;
     let rIdx = 0;
     let currentSum = 0;
@@ -448,6 +839,7 @@ function triggerCatch() {
         currentSum += weights[i];
         if (randomRoll <= currentSum) { rIdx = i; break; }
     }
+
     let rData = RARITIES[rIdx];
     let possibleFishes = activeZone.library[rData.folder];
     let selectedImg = '';
@@ -457,79 +849,79 @@ function triggerCatch() {
         selectedImg = `assets/fish/${rData.folder}/${randomFishFile}`;
         fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
     } else {
-        const commonFishes = activeZone.library['commun'];
+        const commonFishes = activeZone.library.commun;
         const randomCommon = commonFishes[Math.floor(Math.random() * commonFishes.length)];
         selectedImg = `assets/fish/commun/${randomCommon}`;
         fishSpecies = randomCommon.replace('.png', '').replace('_', ' ');
-        rIdx = 0; 
-        rData = RARITIES[0]; 
+        rIdx = 0;
+        rData = RARITIES[0];
     }
-    const randMut = Math.random();
-    let cumulativeChance = 0;
-    let mutation = MUTATIONS[0];
-    for (let m of MUTATIONS) {
-        cumulativeChance += m.chance;
-        if (randMut <= cumulativeChance) { mutation = m; break; }
-    }
-    state.currentFish = { 
-        ...rData, id: rIdx, 
-        name: generateProceduralName(rData.name, fishSpecies), 
-        img: selectedImg, 
-        value: calculateFishValue(rIdx) * mutation.multiplier, 
+
+    const mutation = rollMutation();
+    state.currentFish = {
+        ...rData,
+        id: rIdx,
+        name: generateProceduralName(rData.name, fishSpecies),
+        img: selectedImg,
+        value: calculateFishValue(rIdx) * mutation.multiplier,
         mutation: mutation.name
     };
     setPhase('REELING');
 }
 
 function startReelGame() {
-    const currentRod = ALL_RODS.find(r => r.id === state.equippedRod) || ALL_RODS[0];
-    state.reelProgress = 20; 
-    state.fishPos = 150; 
+    const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
+    state.reelProgress = 20;
+    state.fishPos = 150;
     state.fishTargetY = Math.random() * 250;
-    
+
     if(elements.progressFill) elements.progressFill.style.width = '20%';
     if(elements.fishName) {
         elements.fishName.innerText = state.currentFish.name;
         elements.fishName.className = `rarity-text ${state.currentFish.class}`;
     }
-    if(elements.fishVisual) elements.fishVisual.innerHTML = `<img src="${state.currentFish.img}" width="80">`;
-    if(elements.fishTarget) elements.fishTarget.style.backgroundColor = state.currentFish.color;
-    
-    let gracePeriod = 500;
+    if(elements.fishVisual) elements.fishVisual.innerHTML = buildFishVisualHTML(state.currentFish, 80);
+    if(elements.fishTarget) {
+        elements.fishTarget.style.backgroundColor = state.currentFish.color;
+        elements.fishTarget.style.height = '50px';
+    }
+
+    const gracePeriod = 500;
     const startTime = Date.now();
-    
+
     const reelInterval = setInterval(() => {
-        // SECURITE CRUCIALE : Si on n'est plus en phase de remontée, on tue l'intervalle immédiatement
-        if (state.currentPhase !== 'REELING') { 
-            clearInterval(reelInterval); 
-            return; 
+        if (state.currentPhase !== 'REELING') {
+            clearInterval(reelInterval);
+            return;
         }
-        
+
         try {
             const diff = state.fishTargetY - state.fishPos;
             const erraticFactor = (state.currentFish.difficulty / 10) * 0.2;
             state.fishPos += diff * (0.1 + Math.random() * erraticFactor);
-            
+
             if (Math.abs(diff) < 10) state.fishTargetY = Math.random() * 250;
             if(elements.fishTarget) elements.fishTarget.style.top = state.fishPos + 'px';
-            
+
             const isInside = state.playerPos >= state.fishPos && state.playerPos <= (state.fishPos + 50);
-            
-            if (isInside) { 
-                state.reelProgress += (1.2 * (currentRod.speed || 1)); 
+
+            if (isInside) {
+                state.reelProgress += (1.2 * (currentRod.speed || 1));
             } else if (Date.now() - startTime > gracePeriod) {
                 state.reelProgress -= 0.7;
             }
-            
+
             state.reelProgress = Math.max(0, Math.min(100, state.reelProgress));
             if(elements.progressFill) elements.progressFill.style.width = state.reelProgress + '%';
-            
-            if (state.reelProgress >= 100) { 
-                clearInterval(reelInterval); 
-                catchFish(true); 
-            } else if (state.reelProgress <= 0) { 
-                clearInterval(reelInterval); 
-                catchFish(false); 
+
+            if (state.reelProgress >= 100) {
+                clearInterval(reelInterval);
+                playSplashSound();
+                catchFish(true);
+            } else if (state.reelProgress <= 0) {
+                clearInterval(reelInterval);
+                playSplashSound();
+                catchFish(false);
             }
         } catch (e) {
             console.error("Erreur loop mini-jeu : ", e);
@@ -539,8 +931,23 @@ function startReelGame() {
 }
 
 
-
 function catchFish(success) {
+    if (success && state.currentFish?.isKey) {
+        state.keys++;
+        updateKeysDisplay();
+        state.score += state.currentFish.points;
+        state.totalScore += state.currentFish.points;
+        elements.catchTitle.innerText = 'CLÉ TROUVÉE !';
+        elements.catchText.innerText = 'Vous avez pêché une clé mystérieuse ! Utilisez-la pour ouvrir le coffre.';
+        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, 150);
+        showScreen('catch-modal');
+        addLog('🔑 Clé mystérieuse récupérée !', 'epic');
+        updateProgression();
+        elements.score.innerText = state.score;
+        stopFishingSession();
+        return;
+    }
+
     if (success) {
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
@@ -555,34 +962,43 @@ function catchFish(success) {
             }
         }
         if (!placed) addLog("Aquariums pleins ! Poisson perdu.", "system");
-        localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
-        localStorage.setItem('stepFishingTotalCaught', state.totalFishesCaught);
+        persistGame();
         if (state.currentFish.id >= 4) addLog(`🌟 INCROYABLE ! ${state.currentFish.name} capturé !`, 'epic');
         else addLog(`Vous avez pêché un ${state.currentFish.name}.`);
         elements.catchTitle.innerText = "SUCCÈS !";
         elements.catchText.innerText = `Vous avez capturé un ${state.currentFish.name} !`;
-        elements.catchVisual.innerHTML = `<img src="${state.currentFish.img}" width="150">`;
+        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, 150);
         showScreen('catch-modal');
         if (!state.discoveredFishes.includes(state.currentFish.img)) {
             state.discoveredFishes.push(state.currentFish.img);
-            localStorage.setItem('stepFishingDiscovered', JSON.stringify(state.discoveredFishes));
+            persistGame();
             showDiscoveryToast(state.currentFish.name, state.currentFish.name, state.currentFish.mutation);
         }
     } else {
-        elements.catchTitle.innerText = "ÉCHEC...";
-        elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
-        elements.catchVisual.innerHTML = "";
+        if (state.currentFish?.isKey) {
+            elements.catchTitle.innerText = 'CLÉ PERDUE...';
+            elements.catchText.innerText = 'La clé mystérieuse s\'est échappée...';
+        } else {
+            elements.catchTitle.innerText = "ÉCHEC...";
+            elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
+        }
+        elements.catchVisual.innerHTML = state.currentFish?.isKey ? buildFishVisualHTML(state.currentFish, 150) : "";
         showScreen('catch-modal');
-        addLog(`Le ${state.currentFish.name || 'poisson'} a filé...`, 'system');
+        addLog(state.currentFish?.isKey ? 'La clé mystérieuse a filé...' : `Le ${state.currentFish.name || 'poisson'} a filé...`, 'system');
     }
     updateProgression();
     elements.score.innerText = state.score;
+
+    if (state.score > state.highScore) {
+        state.highScore = state.score;
+        persistGame();
+    }
+    stopFishingSession();
 }
 
 function setPhase(phase) {
     state.currentPhase = phase;
     
-    // Nettoyage sécurisé des indicateurs
     if(elements.biteIndicator) elements.biteIndicator.style.display = 'none';
     if(elements.reelContainer) elements.reelContainer.classList.add('hidden');
     document.querySelectorAll('.osu-target').forEach(t => t.remove());
@@ -606,52 +1022,82 @@ function setPhase(phase) {
 }
 
 
+function clearGameTimer() {
+    if (window.gameInterval) {
+        clearInterval(window.gameInterval);
+        window.gameInterval = null;
+    }
+}
+
 function startGame() {
+    clearGameTimer();
     state.gameActive = true; 
     state.score = 0; 
     
-    // Sécurité pour la canne équipée
-    const currentRod = ALL_RODS.find(r => r.id === state.equippedRod) || ALL_RODS[0];
+    const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     
     state.timeLeft = 30 + currentRod.time;
     elements.score.innerText = state.score; 
     elements.timer.innerText = state.timeLeft;
     
-    showScreen('game'); 
+    showScreen('game');
+    updateFishingRodDisplay();
     
-    // LE SECRET : On attend 100ms que l'écran soit actif avant de lancer la phase SIGHTING
     setTimeout(() => {
         setPhase('SIGHTING');
         addLog("Ligne lancée... Bonne chance !");
     }, 100);
 
-    if (!window.gameInterval) {
-        windowPInterval = setInterval(() => {
-            state.timeLeft--; 
-            elements.timer.innerText = state.timeLeft;
-            if (state.timeLeft <= 0) { 
-                clearInterval(window.gameInterval); 
-                window.gameInterval = null; 
-                endGame(); 
-            }
-        }, 1000);
-    }
+    window.gameInterval = setInterval(() => {
+        if (!state.gameActive) return;
+        state.timeLeft--; 
+        elements.timer.innerText = state.timeLeft;
+        if (state.timeLeft <= 0) { 
+            clearGameTimer(); 
+            endGame(); 
+        }
+    }, 1000);
+}
+
+function stopFishingSession() {
+    state.gameActive = false;
+    clearGameTimer();
+    state.currentPhase = 'MENU';
+    state.currentFish = null;
+    document.querySelectorAll('.osu-target').forEach(t => t.remove());
+    if (elements.reelContainer) elements.reelContainer.classList.add('hidden');
+    if (elements.biteIndicator) elements.biteIndicator.style.display = 'none';
+}
+
+function goToMenu() {
+    stopFishingSession();
+    isAnimating = false;
+    showScreen('menu');
 }
 
 function endGame() {
-    state.gameActive = false; 
+    stopFishingSession();
     if(elements.finalScore) elements.finalScore.innerText = state.score;
     if (state.score > state.highScore) { 
         state.highScore = state.score; 
-        localStorage.setItem('stepFishingHighScore', state.highScore); 
+        persistGame();
     }
-    showScreen('gameOver');
+    addLog(`Session terminée — ${state.score} points !`, 'system');
+    goToMenu();
 }
 
 function showScreen(screenName) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    let target = document.getElementById(screenName) || document.getElementById('screen-' + screenName);
-    if (target) target.classList.add('active');
+    const kebab = screenName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    const target = document.getElementById(screenName)
+        || document.getElementById('screen-' + screenName)
+        || document.getElementById('screen-' + kebab);
+    if (target) {
+        target.classList.add('active');
+    } else {
+        console.warn('Écran introuvable :', screenName);
+        document.getElementById('screen-menu')?.classList.add('active');
+    }
 }
 
 function generateProceduralName(rarityName, speciesName) {
@@ -659,6 +1105,66 @@ function generateProceduralName(rarityName, speciesName) {
     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
     return `${prefix} ${speciesName}`;
 }
+
+function rollRandomMutation() {
+    return pickWeightedMutation(MUTATIONS.filter(m => m.name !== 'Normal'));
+}
+
+function createRandomMutatedFish(zoneId = state.currentZone) {
+    const zone = ZONE_DATA.find(z => z.id === zoneId) || ZONE_DATA[0];
+    const weights = RARITY_WEIGHTS.map((w, i) => {
+        const folder = RARITIES[i].folder;
+        return (zone.library[folder] || []).length > 0 ? w : 0;
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let roll = Math.random() * totalWeight;
+    let rIdx = 0;
+    for (let i = 0; i < weights.length; i++) {
+        roll -= weights[i];
+        if (roll <= 0) { rIdx = i; break; }
+    }
+    let rData = RARITIES[rIdx];
+    let possibleFishes = zone.library[rData.folder];
+    if (!possibleFishes || possibleFishes.length === 0) {
+        possibleFishes = zone.library.commun;
+        rIdx = 0;
+        rData = RARITIES[0];
+    }
+    const randomFishFile = possibleFishes[Math.floor(Math.random() * possibleFishes.length)];
+    const fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
+    const mutation = rollRandomMutation();
+    return {
+        ...rData,
+        id: rIdx,
+        name: generateProceduralName(rData.name, fishSpecies),
+        img: `assets/fish/${rData.folder}/${randomFishFile}`,
+        value: parseFloat((calculateFishValue(rIdx) * mutation.multiplier).toFixed(2)),
+        mutation: mutation.name
+    };
+}
+
+/** Console : giveRandomMutatedFish(5) */
+function giveRandomMutatedFish(count = 1, aqIndex = state.currentAqIndex) {
+    const aqId = `aq${aqIndex}`;
+    if (!state.inventory[aqId]) state.inventory[aqId] = [];
+    const added = [];
+    for (let i = 0; i < count; i++) {
+        if (state.inventory[aqId].length >= 15) break;
+        added.push(createRandomMutatedFish());
+        state.inventory[aqId].push(added[added.length - 1]);
+    }
+    persistGame();
+    if (state.currentPhase === 'INVENTORY' && state.currentAqIndex === aqIndex) {
+        renderAquarium();
+        animateFish();
+    }
+    if (added.length > 0) addLog(`🎁 ${added.length} poisson(s) muté(s) ajouté(s) !`, 'epic');
+    else addLog("Aquarium plein !", "system");
+    console.table(added.map(f => ({ nom: f.name, mutation: f.mutation, valeur: f.value + ' $' })));
+    return added;
+}
+
+window.giveRandomMutatedFish = giveRandomMutatedFish;
 
 function showDiscoveryToast(fishName, rarity, mutation) {
     const toast = document.getElementById('discovery-toast');
@@ -701,7 +1207,7 @@ function buyRod(id) {
     if (state.money >= rod.cost) {
         state.money -= rod.cost;
         state.ownedRods.push(id);
-        localStorage.setItem('stepFishingOwnedRods', JSON.stringify(state.ownedRods));
+        persistGame();
         updateMoneyDisplay();
         renderShop();
         addLog(`Achat réussi : ${rod.name} !`);
@@ -731,16 +1237,12 @@ function renderEquipment() {
 
 function equipRod(id) {
     state.equippedRod = id;
-    localStorage.setItem('stepFishingEquippedRod', state.equippedRod);
+    persistGame();
     renderEquipment();
     
     const rod = ALL_RODS.find(r => r.id === id);
     addLog(`Matériel changé : ${rod ? rod.name : 'Canne'} équipée.`);
-    
-    // MISE À JOUR VISUELLE DE LA CANNE SUR L'ÉCRAN
-    if(document.getElementById('fishing-rod-container')) {
-        document.getElementById('fishing-rod-container').innerHTML = drawFishingRod();
-    }
+    updateFishingRodDisplay();
 }
 
 
@@ -783,12 +1285,28 @@ function setupIndexTabs() {
     });
 }
 
-function drawFishingRod() { 
-    // On cherche la canne équipée dans la liste complète
-    const currentRod = ALL_RODS.find(r => r.id === state.equippedRod) || ALL_RODS[0];
-    
-    // On utilise l'image de la canne équipée
-    return `<img src="${currentRod.img}" class="fishing-rod-img">`; 
+function getEquippedRodData() {
+    const id = Number(state.equippedRod);
+    const owned = state.ownedRods.map(Number);
+    const rod = ALL_RODS.find(r => r.id === id);
+    if (!rod || !owned.includes(id)) return ALL_RODS[0];
+    return rod;
+}
+
+function getRodDisplayImage(rod) {
+    if (rod.id >= 10) return 'assets/rods/rod5.png';
+    return rod.img;
+}
+
+function updateFishingRodDisplay() {
+    const container = document.getElementById('fishing-rod-container');
+    if (container) container.innerHTML = drawFishingRod();
+}
+
+function drawFishingRod() {
+    const currentRod = getEquippedRodData();
+    const img = getRodDisplayImage(currentRod);
+    return `<img src="${img}" class="fishing-rod-img" alt="${currentRod.name}">`;
 }
 
 
@@ -807,10 +1325,14 @@ function init() {
         if(elements.highScore) elements.highScore.innerText = `Meilleur Score : ${state.highScore}`;
         updateMoneyDisplay(); 
         updateProgression();
+        updateKeysDisplay();
         updateZoneBackgrounds();
+        updateTimeCycleButton();
     } catch(e) { 
         console.error("Erreur visuelle init : ", e); 
     }
+
+    bind('btn-time-cycle', updateDayNightCycle);
 
     // --- BOUTONS MENU ---
     bind('btn-start', startGame);
@@ -825,21 +1347,27 @@ function init() {
     bind('btn-equipment', () => { showScreen('equipment'); renderEquipment(); });
     bind('btn-index', () => { showScreen('index'); setupIndexTabs(); renderIndex('commun'); });
     bind('btn-map', () => { showScreen('map'); renderMap(); });
-    bind('btn-crate', () => showScreen('crate'));
+    bind('btn-crate', () => { updateKeysDisplay(); showScreen('crate'); });
 
     // --- BOUTONS RETOUR & MODALS ---
-    bind('btn-back-menu', () => showScreen('menu'));
-    bind('btn-back-menu-shop', () => showScreen('menu'));
-    bind('btn-back-menu-eq', () => showScreen('menu'));
-    bind('btn-back-menu-index', () => showScreen('menu'));
-    bind('btn-back-menu-map', () => showScreen('menu'));
+    bind('btn-back-menu', goToMenu);
+    bind('btn-back-menu-shop', goToMenu);
+    bind('btn-back-menu-eq', goToMenu);
+    bind('btn-back-menu-index', goToMenu);
+    bind('btn-back-menu-map', goToMenu);
     bind('btn-close-fish', () => showScreen('inventory'));
-    bind('btn-close-profile', () => showScreen('menu'));
-    bind('btn-close-catch', () => showScreen('menu'));
+    bind('btn-close-profile', goToMenu);
+    bind('btn-logout', () => {
+        if (window.StepFishAuth?.isLoggedIn()) {
+            persistGame();
+            StepFishAuth.saveToCloud(getSavePayload()).finally(() => StepFishAuth.logout());
+        }
+    });
+    bind('btn-close-catch', goToMenu);
     bind('user-pseudo', openProfile);
     bind('btn-buy-aq', buyAquarium);
     bind('btn-open-crate', openCrate);
-    bind('btn-back-menu-crate', () => showScreen('menu'));
+    bind('btn-back-menu-crate', goToMenu);
 
     // --- NAVIGATION AQUARIUM ---
     bind('prev-aq', () => {
@@ -893,89 +1421,72 @@ function init() {
 
 
     // Canne à pêche
-    if(document.getElementById('fishing-rod-container')) {
-        document.getElementById('fishing-rod-container').innerHTML = drawFishingRod();
-    }
+    updateFishingRodDisplay();
 }
 
+let isCrateOpening = false;
+
 function openCrate() {
-    if (state.money < 50000) {
-        addLog("Pas assez d'argent pour ouvrir un coffre !", "system");
+    if (isCrateOpening) return;
+    if (state.keys < 1) {
+        addLog('Vous n\'avez pas de clé ! Pêchez pour en trouver (~1/150).', 'system');
         return;
     }
 
-    state.money -= 50000;
-    updateMoneyDisplay();
+    state.keys--;
+    updateKeysDisplay();
+    playChestSound();
 
     const crateList = document.getElementById('crate-list');
+    if (!crateList) return;
+    isCrateOpening = true;
+    updateCrateUI();
+
     crateList.style.transition = 'none';
     crateList.style.transform = 'translateX(0)';
     crateList.innerHTML = '';
 
-    // 1. On génère 50 cannes au hasard pour le défilement
     const itemsToSpawn = 50;
-    let winningRod = null;
+    const winIndex = 45;
+    let winningLoot = null;
 
     for (let i = 0; i < itemsToSpawn; i++) {
-        // Tirage au sort basé sur les poids
-        let roll = Math.random() * 100;
-        let cumulative = 0;
-        let selectedRarity = 'Rare';
-
-        for (const [rarity, weight] of Object.entries(CRATE_WEIGHTS)) {
-            cumulative += weight;
-            if (roll <= cumulative) {
-                selectedRarity = rarity;
-                break;
-            }
-        }
-
-        // On filtre les cannes de cette rareté
-        const possibleRods = CRATE_RODS.filter(r => r.rarity === selectedRarity);
-        const rod = possibleRods[Math.floor(Math.random() * possibleRods.length)];
-        
-        if (i === 45) winningRod = rod; // Le 46ème item est celui qu'on gagne
+        const loot = rollCrateLoot();
+        if (i === winIndex) winningLoot = loot;
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'crate-item';
-        itemDiv.style.borderColor = rod.color;
-        itemDiv.innerHTML = `
-            <img src="${rod.img}">
-            <div class="rarity-tag" style="color:${rod.color}">${rod.rarity}</div>
-        `;
+        itemDiv.style.borderColor = loot.color;
+        itemDiv.innerHTML = getCrateItemHTML(loot);
         crateList.appendChild(itemDiv);
     }
 
-    // 2. Lancer l'animation
+    if (!winningLoot) winningLoot = rollCrateLoot();
+
     setTimeout(() => {
         crateList.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.05, 1)';
-        // On calcule la position pour que l'item 45 soit au centre
-        const itemWidth = 160; // 140px + 20px margin
+        const itemWidth = 160;
         const centerOffset = (800 / 2) - (itemWidth / 2);
-        const finalPosition = (45 * itemWidth) - centerOffset;
-        
+        const finalPosition = (winIndex * itemWidth) - centerOffset;
         crateList.style.transform = `translateX(-${finalPosition}px)`;
     }, 50);
 
-    // 3. Attribuer la récompense après l'animation
     setTimeout(() => {
-        addLog(`FÉLICITATIONS ! Vous avez obtenu : ${winningRod.name} !`, 'epic');
-        
-        // Ajouter la canne aux possessions du joueur
-        if (!state.ownedRods.includes(winningRod.id)) {
-            state.ownedRods.push(winningRod.id);
-            localStorage.setItem('stepFishingOwnedRods', JSON.stringify(state.ownedRods));
-        }
-        
-        // Optionnel : L'équiper directement
-        state.equippedRod = winningRod.id;
-        localStorage.setItem('stepFishingEquippedRod', state.equippedRod);
-        
-        alert(`🎉 BRAVO ! Vous avez débloqué : ${winningRod.name} (${winningRod.rarity})`);
+        applyCrateReward(winningLoot);
+        isCrateOpening = false;
+        updateCrateUI();
     }, 5200);
-
-    
 }
 
-setInterval(updateDayNightCycle, 180000);
-init();
+async function boot() {
+    setupAudio();
+    preloadAllAudio();
+    if (window.StepFishAuth) await StepFishAuth.init();
+    await decodeAudioFile(AUDIO_FILES.button);
+    decodeAudioFile(AUDIO_FILES.splash);
+    decodeAudioFile(AUDIO_FILES.chest);
+    init();
+    if (window.StepFishAuth) StepFishAuth.updatePseudoDisplay();
+}
+
+boot();

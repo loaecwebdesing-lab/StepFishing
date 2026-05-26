@@ -5,9 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StepFishing | Pro Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Neko+One&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preload" href="assets/Ambi.mp3" as="fetch" type="audio/mpeg">
+    <link rel="preload" href="assets/Button.mp3" as="fetch" type="audio/mpeg">
+    <script>
+    (function () {
+        var m = new Audio('assets/Ambi.mp3');
+        m.loop = true;
+        m.volume = 0.35;
+        m.preload = 'auto';
+        m.playsInline = true;
+        window.__stepfishBgMusic = m;
+        function playBg() {
+            m.muted = false;
+            m.volume = 0.35;
+            m.play().catch(function () {});
+        }
+        playBg();
+        document.addEventListener('DOMContentLoaded', playBg);
+        window.addEventListener('load', playBg);
+        window.addEventListener('pageshow', playBg);
+    })();
+    </script>
 </head>
 <body style="user-select: none;">
+
+    <!-- ÉCRAN CONNEXION / INSCRIPTION -->
+    <div id="screen-auth" class="screen auth-screen">
+        <div class="glass-card auth-card">
+            <img src="assets/logo.png" class="main-logo auth-logo" alt="StepFishing">
+            <p class="subtitle">Crée un compte pour sauvegarder ta progression en ligne</p>
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-tab="login">Connexion</button>
+                <button type="button" class="auth-tab" data-tab="register">Inscription</button>
+            </div>
+            <div id="auth-message" class="auth-message"></div>
+            <form id="auth-form-login" class="auth-form">
+                <input type="email" id="login-email" placeholder="Email" required autocomplete="username">
+                <input type="password" id="login-password" placeholder="Mot de passe" required autocomplete="current-password">
+                <button type="submit" class="btn-primary btn-start">Se connecter</button>
+            </form>
+            <form id="auth-form-register" class="auth-form hidden">
+                <input type="text" id="register-pseudo" placeholder="Pseudo (3-20 caractères)" required minlength="3" maxlength="20" autocomplete="nickname">
+                <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
+                <input type="password" id="register-password" placeholder="Mot de passe (6+ caractères)" required minlength="6" autocomplete="new-password">
+                <input type="password" id="register-password-confirm" placeholder="Confirmer le mot de passe" required autocomplete="new-password">
+                <button type="submit" class="btn-primary btn-start">Créer mon compte</button>
+            </form>
+            <button type="button" id="btn-auth-guest" class="btn-secondary auth-guest-btn">Jouer sans compte (progression locale)</button>
+        </div>
+    </div>
 
     <div id="game-viewport">
         <!-- SIDEBAR -->
@@ -25,6 +72,10 @@
                 <div class="stat-item">
                     <span class="label">💰 Argent</span>
                     <span id="wallet-balance" class="value">0.00 $</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">🔑 Clés</span>
+                    <span id="keys-balance" class="value">0</span>
                 </div>
                 <div class="stat-item" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                     <div style="display:flex; justify-content: space-between; width:100%;">
@@ -67,8 +118,10 @@
                 <div class="bubble"></div><div class="bubble"></div>
             </div>
 
+            <button id="btn-time-cycle" class="time-cycle-btn" title="Changer l'heure">☀️ Jour</button>
+
             <!-- MENU PRINCIPAL -->
-            <div id="screen-menu" class="screen active">
+            <div id="screen-menu" class="screen">
                 <div class="glass-card">
                     <img src="assets/logo.png" class="main-logo" alt="StepFishing Logo">
                     <p class="subtitle">L'expérience ultime de pêche procédurale</p>
@@ -82,7 +135,7 @@
     <button id="btn-index" class="btn-secondary">📖 FishIndex</button>
     <button id="btn-map" class="btn-secondary">🗺️ Carte</button>
     <!-- NOUVEAU BOUTON ICI -->
-    <button id="btn-crate" class="btn-primary" style="background-image: url('assets/ui/btn_primary.png'); border: 2px solid var(--wood-gold);">💎 Caisse Mystère</button>
+    <button id="btn-crate" class="btn-primary">🔑 Caisse Mystère</button>
 </div>
 
                 </div>
@@ -90,8 +143,10 @@
             <!-- ÉCRAN COFFRE (CSGO STYLE) -->
 <div id="screen-crate" class="screen">
     <div class="glass-card full-width" style="max-width: 900px; text-align: center;">
+        <img src="assets/chest.png" class="crate-chest-img" alt="Coffre mystère">
         <h1 class="title">Caisse Mystère</h1>
-        <p class="subtitle">Coût : 50,000 $ | Chancez d'obtenir une canne légendaire !</p>
+        <p class="subtitle">Pêchez des clés (~1/150) et ouvrez le coffre pour tenter votre chance !</p>
+        <p id="crate-keys-count" class="subtitle" style="margin-bottom: 10px;">🔑 Clés : 0</p>
         
         <div id="crate-viewport">
             <div id="crate-selector"></div>
@@ -101,7 +156,7 @@
         </div>
 
         <div class="main-action-container" style="margin-top: 30px;">
-            <button id="btn-open-crate" class="btn-primary btn-start" style="width: 300px; height: 80px;">Ouvrir le Coffre</button>
+            <button id="btn-open-crate" class="btn-primary btn-start" style="width: 300px; height: 80px;">Ouvrir le Coffre (1 clé)</button>
             <button id="btn-back-menu-crate" class="btn-secondary" style="width: 200px; height: 60px; margin-top: 20px;">Retour</button>
         </div>
     </div>
@@ -173,8 +228,8 @@
                 </div>
                 <div id="ocean">
                     <div id="bite-indicator">🌟 MORDU ! 🌟</div>
-                    <div id="fishing-rod-container"></div>
                 </div>
+                <div id="fishing-rod-container"></div>
                 <div id="reel-container" class="hidden">
                     <div class="reel-glass">
                         <div id="reel-bar">
@@ -210,6 +265,7 @@
                         <div class="p-stat"><span>XP Totale :</span> <strong id="prof-total-score">0</strong></div>
                     </div>
                     <button id="btn-close-profile" class="btn-secondary" style="margin-top: 20px;">Fermer</button>
+                    <button id="btn-logout" class="btn-secondary hidden" style="margin-top: 10px;">Se déconnecter</button>
                 </div>
             </div>
 
@@ -257,6 +313,9 @@
         </div>
     </div>
 
+    <script src="config.example.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
