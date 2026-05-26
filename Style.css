@@ -1858,6 +1858,96 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     font-size: 1rem !important;
 }
 
+.lb-list.lb-cat-best-fish .lb-row {
+    grid-template-columns: 40px minmax(0, 1fr) minmax(130px, 42%);
+    align-items: center;
+}
+
+.lb-row-best-fish {
+    min-height: 56px;
+    padding: 8px 10px;
+}
+
+.lb-value-best-fish {
+    white-space: normal;
+    text-align: right;
+    overflow: visible;
+}
+
+.lb-best-fish-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.lb-fish-thumb {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    line-height: 0;
+}
+
+.lb-fish-thumb .fish-visual-wrap {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+}
+
+.lb-fish-thumb .fish-mut-img {
+    width: 42px !important;
+    max-width: 42px !important;
+    max-height: 44px !important;
+    height: auto !important;
+    display: block;
+}
+
+.lb-best-fish-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    min-width: 0;
+    font-size: 0.78rem;
+    line-height: 1.2;
+}
+
+.lb-best-fish-name {
+    font-size: 0.85rem;
+    word-break: break-word;
+    text-align: right;
+}
+
+.lb-best-fish-mut {
+    color: #b39ddb;
+    font-size: 0.75rem;
+}
+
+.lb-best-fish-val {
+    color: #81c784;
+    font-weight: 600;
+}
+
+.lb-best-fish-empty {
+    opacity: 0.5;
+}
+
+#screen-leaderboard .lb-fish-thumb[data-mutation="Doré"] .fish-mut-img,
+.lb-fish-thumb[data-mutation="Doré"] .fish-mut-img {
+    filter: drop-shadow(0 0 5px rgba(255, 202, 40, 0.85));
+}
+#screen-leaderboard .lb-fish-thumb[data-mutation="Néon"] .fish-mut-img,
+.lb-fish-thumb[data-mutation="Néon"] .fish-mut-img {
+    filter: drop-shadow(0 0 6px rgba(0, 255, 200, 0.8));
+}
+
 @media (max-width: 520px) {
     .lb-row {
         grid-template-columns: 36px 1fr;
@@ -1869,6 +1959,30 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
         text-align: left;
         white-space: normal;
         font-size: 0.8rem;
+    }
+
+    .lb-list.lb-cat-best-fish .lb-row {
+        grid-template-columns: 36px 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .lb-value-best-fish {
+        grid-column: 1 / -1;
+        text-align: left;
+        padding-left: 46px;
+    }
+
+    .lb-best-fish-wrap {
+        justify-content: flex-start;
+    }
+
+    .lb-best-fish-info {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .lb-best-fish-name {
+        text-align: left;
     }
 }
 
@@ -2575,22 +2689,25 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .trade-tabs {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    flex-wrap: wrap;
     margin-bottom: 14px;
 }
 
 .trade-tab {
-    flex: 1;
-    min-width: 90px;
-    padding: 10px 8px;
+    min-width: 0;
+    padding: 10px 6px;
     border-radius: 10px;
     border: 2px solid var(--wood-medium);
     background: rgba(0, 0, 0, 0.25);
     color: #fff;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    white-space: normal;
+    height: auto;
+    min-height: 44px;
 }
 
 .trade-tab.active {
@@ -2777,16 +2894,22 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .trade-item-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
     margin-top: 10px;
 }
 
 .trade-item-actions button {
-    flex: 1;
-    min-width: 120px;
-    font-size: 0.85rem !important;
-    height: 44px !important;
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    font-size: 0.88rem !important;
+    height: 46px !important;
+    white-space: normal;
+    line-height: 1.15;
+    padding: 6px 16px !important;
 }
 
 .trade-empty {
@@ -2901,13 +3024,38 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .trade-accept-actions {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 8px;
     margin-top: 12px;
 }
 
-#screen-trades .trade-back-btn {
+.trade-accept-actions button,
+.trade-send-btn {
     width: 100%;
-    margin-top: 16px;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.15;
+    padding: 6px 16px !important;
+    height: 48px !important;
+}
+
+#screen-trades .trade-back-btn {
+    width: min(280px, 100%) !important;
+    margin: 16px auto 0;
+    display: block;
+    height: 52px !important;
+}
+
+#screen-trades .btn-primary,
+#screen-trades .btn-secondary {
+    background-size: 100% 100% !important;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#screen-trades .trade-btn-accept {
+    font-size: 0.82rem !important;
 }
 
 #sidebar-panel-chat .chat-form input:disabled {

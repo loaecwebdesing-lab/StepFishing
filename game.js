@@ -549,8 +549,11 @@ function findBestFishInInventory(inventory) {
                 best = {
                     name: fish.name || 'Poisson',
                     value: fish.value || 0,
+                    weight: getFishWeightKg(fish),
                     class: fish.class || '',
-                    rarity: getRarityNameFromClass(fish.class)
+                    rarity: getRarityNameFromClass(fish.class),
+                    img: fish.img || '',
+                    mutation: fish.mutation || 'Normal'
                 };
             }
         }
@@ -565,7 +568,9 @@ function updateBestFishRecord(fish) {
         value: fish.value,
         weight: getFishWeightKg(fish),
         class: fish.class,
-        rarity: getRarityNameFromClass(fish.class)
+        rarity: getRarityNameFromClass(fish.class),
+        img: fish.img || '',
+        mutation: fish.mutation || 'Normal'
     };
     if (!state.bestFish || entry.value > (state.bestFish.value || 0)) {
         state.bestFish = entry;

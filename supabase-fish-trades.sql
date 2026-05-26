@@ -166,7 +166,9 @@ begin
                     'value', v,
                     'weight', elem -> 'weight',
                     'class', coalesce(elem ->> 'class', ''),
-                    'rarity', rname
+                    'rarity', rname,
+                    'img', coalesce(elem ->> 'img', ''),
+                    'mutation', coalesce(elem ->> 'mutation', 'Normal')
                 );
             end if;
         end loop;

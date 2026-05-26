@@ -70,13 +70,61 @@
             case 'fishes':
                 return `${row.fishes_caught} poisson${row.fishes_caught > 1 ? 's' : ''}`;
             case 'best_fish':
-                if (!row.best_fish_value || row.best_fish_value <= 0) {
-                    return '—';
-                }
-                return `${row.best_fish_name || 'Poisson'} · ${formatMoney(row.best_fish_value)}${row.best_fish_rarity ? ' · ' + row.best_fish_rarity : ''}`;
+                return '';
             default:
                 return '';
         }
+    }
+
+    function bestFishDataForRow(row, myPseudo) {
+        if (myPseudo && row.pseudo === myPseudo) {
+            const local = window.__stepfishGetState?.()?.bestFish;
+            if (local?.name) {
+                return {
+                    name: local.name,
+                    value: local.value ?? row.best_fish_value,
+                    img: local.img || row.best_fish_img || '',
+                    mutation: local.mutation || row.best_fish_mutation || 'Normal',
+                    class: local.class || row.best_fish_class || ''
+                };
+            }
+        }
+        if (!row.best_fish_value || row.best_fish_value <= 0) return null;
+        return {
+            name: row.best_fish_name || 'Poisson',
+            value: row.best_fish_value,
+            img: row.best_fish_img || '',
+            mutation: row.best_fish_mutation || 'Normal',
+            class: row.best_fish_class || ''
+        };
+    }
+
+    function renderBestFishCell(row, myPseudo) {
+        const bf = bestFishDataForRow(row, myPseudo);
+        if (!bf) return '<span class="lb-best-fish-empty">—</span>';
+
+        const game = window.StepFishGameTrade;
+        let thumb = '';
+        if (bf.img && game?.buildFishVisualHTML) {
+            const fishObj = {
+                name: bf.name,
+                img: bf.img,
+                mutation: bf.mutation,
+                class: bf.class
+            };
+            thumb = `<span class="lb-fish-thumb" data-mutation="${escapeHtml(bf.mutation)}">${game.buildFishVisualHTML(fishObj, 44)}</span>`;
+        }
+
+        const mutLabel = escapeHtml(bf.mutation || 'Normal');
+        const nameClass = escapeHtml(bf.class || '');
+        return `<span class="lb-best-fish-wrap">
+            ${thumb}
+            <span class="lb-best-fish-info">
+                <strong class="lb-best-fish-name rarity-text ${nameClass}">${escapeHtml(bf.name)}</strong>
+                <span class="lb-best-fish-mut">${mutLabel}</span>
+                <span class="lb-best-fish-val">${formatMoney(bf.value)}</span>
+            </span>
+        </span>`;
     }
 
     function medalForRank(rank) {
@@ -133,6 +181,9 @@
         const list = document.getElementById('lb-list');
         if (!list) return;
 
+        const isBestFish = activeCategory === 'best_fish';
+        list.classList.toggle('lb-cat-best-fish', isBestFish);
+
         if (!rows.length) {
             list.innerHTML = '<li class="lb-empty">Aucun joueur classé pour le moment.</li>';
             return;
@@ -144,10 +195,13 @@
             const isMe = myPseudo && row.pseudo === myPseudo;
             const cosId = cosmeticIdForRow(row, myPseudo);
             const hasFx = cosId !== 'default';
-            return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}">
+            const valueCell = isBestFish
+                ? renderBestFishCell(row, myPseudo)
+                : escapeHtml(formatValue(row, activeCategory));
+            return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}${isBestFish ? ' lb-row-best-fish' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
                 <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId)}</span>
-                <span class="lb-value">${escapeHtml(formatValue(row, activeCategory))}</span>
+                <span class="lb-value${isBestFish ? ' lb-value-best-fish' : ''}">${valueCell}</span>
             </li>`;
         }).join('');
     }
@@ -174,7 +228,7 @@
 
         let query = client
             .from('leaderboard_stats')
-            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, cosmetic_id')
+            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, cosmetic_id')
             .limit(LIMIT);
 
         cat.orders.forEach((order, i) => {

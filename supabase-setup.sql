@@ -72,6 +72,9 @@ create table if not exists public.leaderboard_stats (
 );
 
 alter table public.leaderboard_stats add column if not exists cosmetic_id text not null default 'default';
+alter table public.leaderboard_stats add column if not exists best_fish_img text not null default '';
+alter table public.leaderboard_stats add column if not exists best_fish_mutation text not null default '';
+alter table public.leaderboard_stats add column if not exists best_fish_class text not null default '';
 
 create index if not exists leaderboard_money_idx on public.leaderboard_stats (money desc);
 create index if not exists leaderboard_level_idx on public.leaderboard_stats (prestige desc, level desc, total_score desc);
@@ -118,6 +121,7 @@ begin
     insert into public.leaderboard_stats (
         id, pseudo, money, total_score, level, prestige,
         fishes_caught, best_fish_value, best_fish_name, best_fish_rarity,
+        best_fish_img, best_fish_mutation, best_fish_class,
         cosmetic_id, updated_at
     ) values (
         new.id,
@@ -130,6 +134,9 @@ begin
         coalesce((bf->>'value')::numeric, 0),
         coalesce(bf->>'name', ''),
         coalesce(bf->>'rarity', ''),
+        coalesce(bf->>'img', ''),
+        coalesce(bf->>'mutation', 'Normal'),
+        coalesce(bf->>'class', ''),
         coalesce(sd->>'equippedCosmetic', 'default'),
         now()
     )
@@ -143,6 +150,9 @@ begin
         best_fish_value = excluded.best_fish_value,
         best_fish_name = excluded.best_fish_name,
         best_fish_rarity = excluded.best_fish_rarity,
+        best_fish_img = excluded.best_fish_img,
+        best_fish_mutation = excluded.best_fish_mutation,
+        best_fish_class = excluded.best_fish_class,
         cosmetic_id = excluded.cosmetic_id,
         updated_at = now();
 
@@ -387,7 +397,9 @@ begin
                     'value', v,
                     'weight', elem -> 'weight',
                     'class', coalesce(elem ->> 'class', ''),
-                    'rarity', rname
+                    'rarity', rname,
+                    'img', coalesce(elem ->> 'img', ''),
+                    'mutation', coalesce(elem ->> 'mutation', 'Normal')
                 );
             end if;
         end loop;
