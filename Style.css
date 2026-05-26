@@ -1917,7 +1917,7 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     padding: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     text-align: center;
 }
 
@@ -1957,17 +1957,42 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .cosmetics-footer {
     flex-shrink: 0;
-    padding: 12px 16px 16px;
-    border-top: 2px solid var(--wood-medium);
-    background: rgba(0, 0, 0, 0.35);
+    padding: 14px 16px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
 }
 
 #screen-cosmetics .cosmetics-back-btn {
-    width: min(300px, 100%) !important;
-    height: 52px !important;
+    width: min(280px, 100%) !important;
+    height: 56px !important;
     margin: 0 auto;
-    display: block;
+    display: flex !important;
     font-size: 1rem !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    background-image: url('assets/ui/btn_secondary.png') !important;
+    background-size: 100% 100% !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    overflow: visible;
+}
+
+#screen-cosmetics .cosmetics-back-btn:hover {
+    transform: none;
+    filter: brightness(1.15);
+}
+
+#screen-cosmetics .cosmetics-back-btn:active {
+    transform: none;
+    filter: brightness(0.9);
+}
+
+#screen-cosmetics .cosmetics-back-btn:focus,
+#screen-cosmetics .cosmetics-back-btn:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .cosmetics-grid {
