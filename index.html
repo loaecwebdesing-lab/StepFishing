@@ -395,8 +395,9 @@
                             <h2 id="trade-accept-title" class="trade-section-title">Finaliser l'échange</h2>
                             <p class="trade-accept-label">Tu reçois :</p>
                             <div id="trade-accept-offered"></div>
-                            <p class="trade-accept-label">Tu donnes :</p>
-                            <div id="trade-accept-picker" class="trade-offer-picker"></div>
+                            <label class="trade-label" for="trade-accept-select">Tu donnes</label>
+                            <select id="trade-accept-select" class="trade-select"></select>
+                            <div id="trade-accept-preview" class="trade-fish-preview"></div>
                             <div class="trade-accept-actions">
                                 <button type="button" id="btn-trade-confirm-accept" class="btn-primary">Confirmer l'échange</button>
                                 <button type="button" id="btn-trade-cancel-accept" class="btn-secondary">Annuler</button>
@@ -408,8 +409,9 @@
                             <input id="trade-target-pseudo" class="trade-input" type="text" maxlength="20" placeholder="Ex: PêcheurPro" autocomplete="off">
                             <label class="trade-label" for="trade-offer-message">Message (optionnel)</label>
                             <input id="trade-offer-message" class="trade-input" type="text" maxlength="120" placeholder="Ex: Échange rare contre rare ?">
-                            <p class="trade-label">Ton poisson à proposer</p>
-                            <div id="trade-offer-picker" class="trade-offer-picker"></div>
+                            <label class="trade-label" for="trade-offer-select">Ton poisson à proposer</label>
+                            <select id="trade-offer-select" class="trade-select"></select>
+                            <div id="trade-offer-preview" class="trade-fish-preview"></div>
                             <button type="button" id="btn-trade-send-offer" class="btn-primary trade-send-btn">Envoyer l'offre</button>
                         </section>
                     </div>
@@ -468,6 +470,6 @@
     <script src="chat.js"></script>
     <script src="leaderboard.js?v=lb-cos"></script>
     <script src="game.js"></script>
-    <script src="trade.js?v=2"></script>
+    <script src="trade.js?v=3"></script>
 </body>
 </html>

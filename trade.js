@@ -47,6 +47,24 @@
         return fish;
     }
 
+    function fishOptionLabel(entry) {
+        const game = G();
+        const fish = normalizeTradeFish(entry?.fish);
+        if (!fish || !game) return 'Poisson';
+        const mut = game.getMutationData(fish.mutation);
+        const tank = entry.tankName ? ` · ${entry.tankName}` : '';
+        return `${fish.name} — ${Number(fish.value || 0).toFixed(2)} $ — ${mut.name}${tank}`;
+    }
+
+    function fishSummaryHTML(fish) {
+        fish = normalizeTradeFish(fish);
+        const game = G();
+        if (!fish || !game) return '<span class="trade-fish-summary">—</span>';
+        const mut = game.getMutationData(fish.mutation);
+        return `<span class="trade-fish-summary rarity-text ${escapeHtml(fish.class || '')}">${escapeHtml(fish.name)}</span>
+            <span class="trade-fish-summary-meta">${escapeHtml(mut.name)} · ${Number(fish.value || 0).toFixed(2)} $</span>`;
+    }
+
     function fishCardHTML(fish, compact) {
         const game = G();
         fish = normalizeTradeFish(fish);
@@ -120,8 +138,8 @@
             }
 
             const counterBlock = counter
-                ? `<div class="trade-arrow">⇄</div>${fishCardHTML(counter, true)}`
-                : (isPending && canAccept ? '<p class="trade-await">Choisis ton poisson contre celui-ci</p>' : '');
+                ? `<div class="trade-arrow">⇄</div><div class="trade-fish-line">${fishSummaryHTML(counter)}</div>`
+                : (isPending && canAccept ? '<p class="trade-await">Ouvre l\'offre et choisis ton poisson dans le menu</p>' : '');
 
             return `<article class="trade-item trade-status-${t.status}" data-id="${t.id}">
                 <header class="trade-item-head">
@@ -130,7 +148,7 @@
                 </header>
                 ${t.message ? `<p class="trade-msg">« ${escapeHtml(t.message)} »</p>` : ''}
                 <div class="trade-fish-row">
-                    ${fishCardHTML(offered, true)}
+                    <div class="trade-fish-line">${fishSummaryHTML(offered)}</div>
                     ${counterBlock}
                 </div>
                 <footer class="trade-item-actions">${actions}</footer>
@@ -148,35 +166,88 @@
         });
     }
 
-    function renderOfferFishPicker() {
-        const picker = document.getElementById('trade-offer-picker');
-        if (!picker) return;
-        const game = G();
-        if (!game) return;
-        const list = game.listTradeableFish();
-        if (!list.length) {
-            picker.innerHTML = '<p class="trade-empty">Aucun poisson échangeable (déverrouille ou retire le cadenas).</p>';
-            return;
-        }
-        picker.innerHTML = list.map(({ fish, aqId }) => {
-            const sel = fish.uid === selectedOfferUid;
-            return `<button type="button" class="trade-pick-fish${sel ? ' selected' : ''}" data-uid="${fish.uid}" data-aq="${aqId}">
-                ${fishCardHTML(fish, true)}
-            </button>`;
-        }).join('');
-        picker.querySelectorAll('.trade-pick-fish').forEach(btn => {
-            btn.addEventListener('click', () => {
-                selectedOfferUid = btn.dataset.uid;
-                selectedOfferAqId = btn.dataset.aq || 'aq0';
-                renderOfferFishPicker();
-            });
+    function bindFishSelect(selectEl, onPick) {
+        if (!selectEl || selectEl.dataset.bound === '1') return;
+        selectEl.dataset.bound = '1';
+        selectEl.addEventListener('change', () => {
+            const opt = selectEl.selectedOptions[0];
+            const uid = selectEl.value || null;
+            const aqId = opt?.dataset?.aq || 'aq0';
+            onPick(uid, aqId);
         });
     }
 
+    function renderOfferPreview() {
+        const preview = document.getElementById('trade-offer-preview');
+        const game = G();
+        if (!preview || !game) return;
+        if (!selectedOfferUid) {
+            preview.innerHTML = '';
+            return;
+        }
+        const found = game.findFishByUid(selectedOfferUid);
+        preview.innerHTML = found ? fishCardHTML(found.fish, false) : '';
+    }
+
+    function renderAcceptPreview(uid) {
+        const preview = document.getElementById('trade-accept-preview');
+        const game = G();
+        const btn = document.getElementById('btn-trade-confirm-accept');
+        if (!preview || !game) return;
+        if (!uid) {
+            preview.innerHTML = '';
+            if (btn) { btn.dataset.uid = ''; btn.dataset.aq = 'aq0'; }
+            return;
+        }
+        const found = game.findFishByUid(uid);
+        preview.innerHTML = found ? fishCardHTML(found.fish, false) : '';
+        if (btn && found) {
+            btn.dataset.uid = uid;
+            btn.dataset.aq = found.aqId || 'aq0';
+        }
+    }
+
+    function fillFishSelect(selectEl, list, selectedUid) {
+        if (!selectEl) return;
+        if (!list.length) {
+            selectEl.innerHTML = '<option value="">— Aucun poisson disponible —</option>';
+            selectEl.disabled = true;
+            return;
+        }
+        selectEl.disabled = false;
+        const opts = ['<option value="">— Choisir un poisson —</option>'];
+        list.forEach(entry => {
+            const uid = entry.fish.uid;
+            const label = escapeHtml(fishOptionLabel(entry));
+            const sel = uid === selectedUid ? ' selected' : '';
+            opts.push(`<option value="${escapeHtml(uid)}" data-aq="${escapeHtml(entry.aqId)}"${sel}>${label}</option>`);
+        });
+        selectEl.innerHTML = opts.join('');
+        if (selectedUid && !list.some(e => e.fish.uid === selectedUid)) {
+            selectEl.value = '';
+        } else if (selectedUid) {
+            selectEl.value = selectedUid;
+        }
+    }
+
+    function renderOfferFishPicker() {
+        const select = document.getElementById('trade-offer-select');
+        const game = G();
+        if (!select || !game) return;
+        const list = game.listTradeableFish();
+        fillFishSelect(select, list, selectedOfferUid);
+        bindFishSelect(select, (uid, aqId) => {
+            selectedOfferUid = uid;
+            selectedOfferAqId = aqId;
+            renderOfferPreview();
+        });
+        renderOfferPreview();
+    }
+
     function renderAcceptFishPicker() {
-        const picker = document.getElementById('trade-accept-picker');
+        const select = document.getElementById('trade-accept-select');
         const panel = document.getElementById('trade-accept-panel');
-        if (!picker || !panel) return;
+        if (!select || !panel) return;
         const game = G();
         if (!pendingAcceptTradeId || !game) {
             panel.classList.add('hidden');
@@ -193,25 +264,17 @@
             `Échanger avec ${trade.from_pseudo}`;
         document.getElementById('trade-accept-offered').innerHTML = fishCardHTML(trade.offered_fish, false);
 
-        if (!list.length) {
-            picker.innerHTML = '<p class="trade-empty">Aucun poisson disponible pour contrepartie.</p>';
-            return;
-        }
-        let selectedCounter = null;
-        picker.innerHTML = list.map(({ fish, aqId }) =>
-            `<button type="button" class="trade-pick-fish trade-pick-counter" data-uid="${fish.uid}" data-aq="${aqId}">
-                ${fishCardHTML(fish, true)}
-            </button>`
-        ).join('');
-        picker.querySelectorAll('.trade-pick-counter').forEach(btn => {
-            btn.addEventListener('click', () => {
-                picker.querySelectorAll('.trade-pick-counter').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedCounter = { uid: btn.dataset.uid, aqId: btn.dataset.aq };
-                document.getElementById('btn-trade-confirm-accept').dataset.uid = selectedCounter.uid;
-                document.getElementById('btn-trade-confirm-accept').dataset.aq = selectedCounter.aqId;
-            });
+        const currentUid = select.value || document.getElementById('btn-trade-confirm-accept')?.dataset?.uid || '';
+        fillFishSelect(select, list, currentUid || null);
+        bindFishSelect(select, (uid, aqId) => {
+            renderAcceptPreview(uid);
+            const btn = document.getElementById('btn-trade-confirm-accept');
+            if (btn) {
+                btn.dataset.uid = uid || '';
+                btn.dataset.aq = aqId;
+            }
         });
+        renderAcceptPreview(select.value || null);
     }
 
     function switchTab(tabId) {
@@ -308,12 +371,18 @@
 
     function openAcceptPanel(tradeId) {
         pendingAcceptTradeId = tradeId;
+        const select = document.getElementById('trade-accept-select');
+        if (select) select.value = '';
+        renderAcceptPreview(null);
         renderAcceptFishPicker();
         document.getElementById('trade-accept-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function closeAcceptPanel() {
         pendingAcceptTradeId = null;
+        const select = document.getElementById('trade-accept-select');
+        if (select) select.value = '';
+        renderAcceptPreview(null);
         document.getElementById('trade-accept-panel')?.classList.add('hidden');
     }
 
@@ -431,6 +500,11 @@
         selectedOfferUid = uid;
         selectedOfferAqId = aqId || 'aq0';
         open().then(() => {
+            const select = document.getElementById('trade-offer-select');
+            if (select && uid) {
+                select.value = uid;
+                selectedOfferAqId = aqId || 'aq0';
+            }
             renderOfferFishPicker();
             document.getElementById('trade-create-section')?.scrollIntoView({ behavior: 'smooth' });
         });
