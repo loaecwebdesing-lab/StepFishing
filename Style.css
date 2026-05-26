@@ -1859,12 +1859,12 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .lb-list.lb-cat-best-fish .lb-row {
-    grid-template-columns: 40px minmax(0, 1fr) minmax(130px, 42%);
+    grid-template-columns: 40px minmax(72px, 0.9fr) minmax(150px, 1.1fr);
     align-items: center;
 }
 
 .lb-row-best-fish {
-    min-height: 56px;
+    min-height: 58px;
     padding: 8px 10px;
 }
 
@@ -1876,9 +1876,17 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .lb-best-fish-wrap {
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    max-width: 100%;
+}
+
+.lb-best-fish-head {
+    display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
     max-width: 100%;
 }
 
@@ -1887,42 +1895,35 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     line-height: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.lb-fish-thumb .fish-visual-wrap {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 48px !important;
-    height: 48px !important;
-    max-width: 48px !important;
-    max-height: 48px !important;
-}
-
-.lb-fish-thumb .fish-mut-img {
-    width: 42px !important;
-    max-width: 42px !important;
-    max-height: 44px !important;
-    height: auto !important;
+.lb-best-fish-img {
     display: block;
+    width: 52px !important;
+    height: auto !important;
+    max-height: 50px !important;
+    object-fit: contain;
+    margin: 0 auto;
 }
 
-.lb-best-fish-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    min-width: 0;
-    font-size: 0.78rem;
-    line-height: 1.2;
+.lb-fish-thumb-placeholder {
+    font-size: 1.6rem;
+    opacity: 0.45;
+    background: rgba(0, 0, 0, 0.25);
 }
 
 .lb-best-fish-name {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.2;
     word-break: break-word;
     text-align: right;
+    min-width: 0;
 }
 
 .lb-best-fish-mut {
@@ -1939,13 +1940,17 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     opacity: 0.5;
 }
 
-#screen-leaderboard .lb-fish-thumb[data-mutation="Doré"] .fish-mut-img,
-.lb-fish-thumb[data-mutation="Doré"] .fish-mut-img {
+#screen-leaderboard .lb-fish-thumb[data-mutation="Doré"] .lb-best-fish-img,
+.lb-fish-thumb[data-mutation="Doré"] .lb-best-fish-img {
     filter: drop-shadow(0 0 5px rgba(255, 202, 40, 0.85));
 }
-#screen-leaderboard .lb-fish-thumb[data-mutation="Néon"] .fish-mut-img,
-.lb-fish-thumb[data-mutation="Néon"] .fish-mut-img {
+#screen-leaderboard .lb-fish-thumb[data-mutation="Néon"] .lb-best-fish-img,
+.lb-fish-thumb[data-mutation="Néon"] .lb-best-fish-img {
     filter: drop-shadow(0 0 6px rgba(0, 255, 200, 0.8));
+}
+#screen-leaderboard .lb-fish-thumb[data-mutation="Albinos"] .lb-best-fish-img,
+.lb-fish-thumb[data-mutation="Albinos"] .lb-best-fish-img {
+    filter: brightness(1.12) drop-shadow(0 0 4px rgba(255, 255, 255, 0.55));
 }
 
 @media (max-width: 520px) {
@@ -1973,12 +1978,11 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     }
 
     .lb-best-fish-wrap {
-        justify-content: flex-start;
+        align-items: flex-start;
     }
 
-    .lb-best-fish-info {
-        align-items: flex-start;
-        text-align: left;
+    .lb-best-fish-head {
+        justify-content: flex-start;
     }
 
     .lb-best-fish-name {

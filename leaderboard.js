@@ -99,31 +99,29 @@
         };
     }
 
+    function renderFishThumb(bf) {
+        const mut = escapeHtml(bf.mutation || 'Normal');
+        if (bf.img) {
+            return `<span class="lb-fish-thumb" data-mutation="${mut}">
+                <img src="${escapeHtml(bf.img)}" class="lb-best-fish-img" alt="" loading="lazy" width="52" height="52">
+            </span>`;
+        }
+        return '<span class="lb-fish-thumb lb-fish-thumb-placeholder" aria-hidden="true">🐟</span>';
+    }
+
     function renderBestFishCell(row, myPseudo) {
         const bf = bestFishDataForRow(row, myPseudo);
         if (!bf) return '<span class="lb-best-fish-empty">—</span>';
 
-        const game = window.StepFishGameTrade;
-        let thumb = '';
-        if (bf.img && game?.buildFishVisualHTML) {
-            const fishObj = {
-                name: bf.name,
-                img: bf.img,
-                mutation: bf.mutation,
-                class: bf.class
-            };
-            thumb = `<span class="lb-fish-thumb" data-mutation="${escapeHtml(bf.mutation)}">${game.buildFishVisualHTML(fishObj, 44)}</span>`;
-        }
-
         const mutLabel = escapeHtml(bf.mutation || 'Normal');
         const nameClass = escapeHtml(bf.class || '');
         return `<span class="lb-best-fish-wrap">
-            ${thumb}
-            <span class="lb-best-fish-info">
+            <span class="lb-best-fish-head">
+                ${renderFishThumb(bf)}
                 <strong class="lb-best-fish-name rarity-text ${nameClass}">${escapeHtml(bf.name)}</strong>
-                <span class="lb-best-fish-mut">${mutLabel}</span>
-                <span class="lb-best-fish-val">${formatMoney(bf.value)}</span>
             </span>
+            <span class="lb-best-fish-mut">${mutLabel}</span>
+            <span class="lb-best-fish-val">${formatMoney(bf.value)}</span>
         </span>`;
     }
 
