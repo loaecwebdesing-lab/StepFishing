@@ -722,6 +722,11 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .crate-keys {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
     margin: 0 0 8px !important;
     font-size: 1rem !important;
 }
@@ -811,7 +816,35 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .key-catch-visual {
-    filter: drop-shadow(0 0 12px #ffca28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 14px rgba(255, 202, 40, 0.85));
+}
+
+.key-catch-img {
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+    animation: keyCatchGlow 2s infinite ease-in-out;
+}
+
+@keyframes keyCatchGlow {
+    0%, 100% { filter: drop-shadow(0 0 6px #ffca28); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 14px #ffe082); transform: scale(1.06); }
+}
+
+.key-icon-inline {
+    vertical-align: middle;
+    object-fit: contain;
+    margin-right: 4px;
+    filter: drop-shadow(0 0 4px rgba(255, 202, 40, 0.6));
+}
+
+.keys-stat-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 #btn-open-crate:disabled {

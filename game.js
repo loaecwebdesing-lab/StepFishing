@@ -39,6 +39,7 @@ const CRATE_RODS = [
 const ALL_RODS = [...ROD_DATA, ...CRATE_RODS];
 
 const KEY_CATCH_CHANCE = 1 / 150;
+const KEY_IMG = 'assets/Key.png?v=1';
 
 const CRATE_MONEY_LOOT = [
     { type: 'money', amount: 100, weight: 420, label: '100 $', color: '#BDBDBD' },
@@ -179,7 +180,7 @@ const KEY_FISH = {
     isKey: true,
     id: -1,
     name: 'Clé Mystérieuse',
-    img: '',
+    img: KEY_IMG,
     points: 25,
     color: '#ffca28',
     difficulty: 6,
@@ -470,7 +471,9 @@ function updateKeysDisplay() {
     const text = String(state.keys);
     if (elements.keysBalance) elements.keysBalance.innerText = text;
     const crateKeys = document.getElementById('crate-keys-count');
-    if (crateKeys) crateKeys.innerText = `🔑 Clés : ${state.keys}`;
+    if (crateKeys) {
+        crateKeys.innerHTML = `<img src="${KEY_IMG}" class="key-icon-inline" alt="" width="22" height="22"> Clés : <strong>${state.keys}</strong>`;
+    }
     persistGame();
     updateCrateUI();
 }
@@ -713,7 +716,11 @@ function getMutationData(mutationName) {
 
 function buildFishVisualHTML(fish, width) {
     if (fish.isKey) {
-        return `<div class="fish-visual-wrap key-catch-visual" style="width:${width}px;height:${width}px;display:flex;align-items:center;justify-content:center;font-size:${Math.round(width * 0.55)}px">🔑</div>`;
+        const img = fish.img || KEY_IMG;
+        const size = Math.round(width * 0.88);
+        return `<div class="fish-visual-wrap key-catch-visual" style="width:${width}px;height:${width}px;">
+            <img src="${img}" class="key-catch-img" style="width:${size}px;height:${size}px" alt="Clé mystérieuse">
+        </div>`;
     }
     const mutation = getMutationData(fish.mutation);
     return `<div class="fish-visual-wrap" data-mutation="${mutation.name}">
@@ -1044,9 +1051,16 @@ function startReelGame() {
         elements.fishName.className = `rarity-text ${state.currentFish.class}`;
     }
     if(elements.fishVisual) elements.fishVisual.innerHTML = buildFishVisualHTML(state.currentFish, 80);
-    if(elements.fishTarget) {
-        elements.fishTarget.style.backgroundColor = state.currentFish.color;
-        elements.fishTarget.style.height = '50px';
+    if (elements.fishTarget) {
+        if (state.currentFish?.isKey) {
+            elements.fishTarget.style.backgroundColor = 'transparent';
+            elements.fishTarget.style.boxShadow = 'none';
+            elements.fishTarget.style.height = '44px';
+        } else {
+            elements.fishTarget.style.backgroundColor = state.currentFish.color;
+            elements.fishTarget.style.boxShadow = '';
+            elements.fishTarget.style.height = '50px';
+        }
     }
 
     const gracePeriod = 500;
