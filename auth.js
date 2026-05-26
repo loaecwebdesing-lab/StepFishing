@@ -92,6 +92,7 @@
         if (auth) auth.classList.remove('active');
         if (menu) menu.classList.add('active');
         document.body.classList.remove('auth-pending');
+        window.__stepfishSyncMenuRod?.();
     }
 
     function updatePseudoDisplay() {

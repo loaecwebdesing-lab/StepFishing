@@ -1263,7 +1263,17 @@ function showScreen(screenName) {
         console.warn('Écran introuvable :', screenName);
         document.getElementById('screen-menu')?.classList.add('active');
     }
+    syncMenuRodBackdrop();
 }
+
+function syncMenuRodBackdrop() {
+    const backdrop = document.getElementById('menu-rod-backdrop');
+    const menu = document.getElementById('screen-menu');
+    if (!backdrop) return;
+    backdrop.classList.toggle('visible', Boolean(menu?.classList.contains('active')));
+    backdrop.setAttribute('aria-hidden', menu?.classList.contains('active') ? 'false' : 'true');
+}
+window.__stepfishSyncMenuRod = syncMenuRodBackdrop;
 
 function generateProceduralName(rarityName, speciesName) {
     const prefixes = FISH_DATA.prefixes[rarityName];
@@ -1463,20 +1473,15 @@ function getEquippedRodData() {
     return rod;
 }
 
-function getRodDisplayImage(rod) {
-    if (rod.id >= 10) return 'assets/rods/rod5.png';
-    return rod.img;
-}
-
 function updateFishingRodDisplay() {
-    const container = document.getElementById('fishing-rod-container');
-    if (container) container.innerHTML = drawFishingRod();
-}
-
-function drawFishingRod() {
     const currentRod = getEquippedRodData();
-    const img = getRodDisplayImage(currentRod);
-    return `<img src="${img}" class="fishing-rod-img" alt="${currentRod.name}">`;
+    const gameContainer = document.getElementById('fishing-rod-container');
+    const menuBackdrop = document.getElementById('menu-rod-backdrop');
+    const imgHtml = `<img src="${currentRod.img}" class="fishing-rod-img" alt="${currentRod.name}">`;
+    const menuHtml = `<img src="${currentRod.img}" class="menu-rod-img" alt="">`;
+    if (gameContainer) gameContainer.innerHTML = imgHtml;
+    if (menuBackdrop) menuBackdrop.innerHTML = menuHtml;
+    syncMenuRodBackdrop();
 }
 
 
