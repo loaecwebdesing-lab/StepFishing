@@ -943,6 +943,9 @@ function startReelGame() {
 
     const gracePeriod = 500;
     const startTime = Date.now();
+    const difficulty = state.currentFish?.difficulty || 2;
+    const fishLerp = 0.06;
+    const erraticFactor = (difficulty / 10) * 0.12;
 
     const reelInterval = setInterval(() => {
         if (state.currentPhase !== 'REELING') {
@@ -952,8 +955,7 @@ function startReelGame() {
 
         try {
             const diff = state.fishTargetY - state.fishPos;
-            const erraticFactor = (state.currentFish.difficulty / 10) * 0.2;
-            state.fishPos += diff * (0.1 + Math.random() * erraticFactor);
+            state.fishPos += diff * (fishLerp + Math.random() * erraticFactor);
 
             if (Math.abs(diff) < 10) state.fishTargetY = Math.random() * 250;
             if(elements.fishTarget) elements.fishTarget.style.top = state.fishPos + 'px';
