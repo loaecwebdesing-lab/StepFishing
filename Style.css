@@ -376,6 +376,33 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .aq-fish-img, .fish-mut-img { display: block; height: auto; object-fit: contain; }
 .fish-visual-wrap { display: inline-flex; align-items: center; justify-content: center; line-height: 0; overflow: visible; padding: 30px 24px; }
 #modal-fish-visual, #catch-visual { display: flex; justify-content: center; align-items: center; min-height: 190px; margin: 0 auto; overflow: visible; }
+
+#catch-visual {
+    margin: 16px 0 8px;
+    padding: 12px;
+    border-radius: 20px;
+    filter: drop-shadow(0 0 18px var(--catch-glow, rgba(255, 255, 255, 0.4)));
+}
+
+.catch-fish-name {
+    margin: 0 0 6px;
+    font-size: 2rem !important;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.catch-fish-rarity {
+    margin: 0 0 12px;
+    font-size: 1rem !important;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+#catch-modal #catch-text {
+    opacity: 0.85;
+    margin-bottom: 8px;
+}
 #fish-visual { display: flex; justify-content: center; align-items: center; overflow: visible; }
 .fish-mut-img { max-width: 180px; }
 #modal-fish-visual .fish-mut-img { max-width: 190px; }

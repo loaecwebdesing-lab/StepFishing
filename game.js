@@ -823,6 +823,41 @@ function getMutationData(mutationName) {
     return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
 }
 
+function renderCatchReveal(fish) {
+    const nameEl = document.getElementById('catch-fish-name');
+    const rarityEl = document.getElementById('catch-fish-rarity');
+    const visual = elements.catchVisual;
+    if (!fish) {
+        if (nameEl) { nameEl.textContent = ''; nameEl.className = 'rarity-text catch-fish-name'; }
+        if (rarityEl) rarityEl.textContent = '';
+        if (visual) { visual.innerHTML = ''; visual.style.removeProperty('--catch-glow'); }
+        return;
+    }
+    const size = fish.isKey ? 150 : aquariumFishWidthPx(fish.weight) + 22;
+    if (visual) {
+        visual.innerHTML = buildFishVisualHTML(fish, size);
+        visual.style.setProperty('--catch-glow', fish.color || '#ffffff');
+    }
+    if (nameEl) {
+        nameEl.textContent = fish.name;
+        nameEl.className = `rarity-text catch-fish-name ${fish.class || 'rarity-0'}`;
+    }
+    if (rarityEl) {
+        if (fish.isKey) {
+            rarityEl.textContent = 'Clé mystérieuse';
+            rarityEl.style.color = fish.color || '#ffca28';
+        } else {
+            const mutation = getMutationData(fish.mutation);
+            rarityEl.textContent = `${getRarityNameFromClass(fish.class)} · ${formatFishWeight(fish.weight)} · ${mutation.name}`;
+            rarityEl.style.color = fish.color || '';
+        }
+    }
+}
+
+function clearCatchReveal() {
+    renderCatchReveal(null);
+}
+
 function buildFishVisualHTML(fish, width) {
     if (fish.isKey) {
         const img = fish.img || KEY_IMG;
@@ -1232,8 +1267,8 @@ function catchFish(success) {
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
         elements.catchTitle.innerText = 'CLÉ TROUVÉE !';
-        elements.catchText.innerText = 'Vous avez pêché une clé mystérieuse ! Utilisez-la pour ouvrir le coffre.';
-        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, 150);
+        elements.catchText.innerText = 'Utilisez-la pour ouvrir le coffre mystère.';
+        renderCatchReveal(state.currentFish);
         showScreen('catch-modal');
         addLog('🔑 Clé mystérieuse récupérée !', 'epic');
         updateProgression();
@@ -1261,8 +1296,8 @@ function catchFish(success) {
         if (state.currentFish.id >= 4) addLog(`🌟 INCROYABLE ! ${state.currentFish.name} capturé !`, 'epic');
         else addLog(`Vous avez pêché un ${state.currentFish.name}.`);
         elements.catchTitle.innerText = "SUCCÈS !";
-        elements.catchText.innerText = `Vous avez capturé un ${state.currentFish.name} (${formatFishWeight(state.currentFish.weight)}) !`;
-        elements.catchVisual.innerHTML = buildFishVisualHTML(state.currentFish, aquariumFishWidthPx(state.currentFish.weight) + 22);
+        elements.catchText.innerText = 'Ajouté à votre aquarium !';
+        renderCatchReveal(state.currentFish);
         showScreen('catch-modal');
         if (!state.discoveredFishes.includes(state.currentFish.img)) {
             state.discoveredFishes.push(state.currentFish.img);
@@ -1280,7 +1315,7 @@ function catchFish(success) {
             elements.catchTitle.innerText = "ÉCHEC...";
             elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
         }
-        elements.catchVisual.innerHTML = state.currentFish?.isKey ? buildFishVisualHTML(state.currentFish, 150) : "";
+        clearCatchReveal();
         showScreen('catch-modal');
         addLog(state.currentFish?.isKey ? 'La clé mystérieuse a filé...' : `Le ${state.currentFish.name || 'poisson'} a filé...`, 'system');
     }
