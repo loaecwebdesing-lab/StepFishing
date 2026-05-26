@@ -1167,7 +1167,7 @@ function startReelGame() {
     if(elements.progressFill) elements.progressFill.style.width = '20%';
     const difficulty = state.currentFish?.difficulty || 6;
     if (elements.fishName) {
-        elements.fishName.innerHTML = `???<br><span class="fish-weight-tag">Difficulté : ${difficulty} / 15</span>`;
+        elements.fishName.innerHTML = `???<br><span class="fish-weight-tag">Difficulté : ${difficulty}</span>`;
         elements.fishName.className = 'rarity-text reel-mystery-name';
     }
     if (elements.fishVisual) {
