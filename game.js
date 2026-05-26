@@ -49,10 +49,9 @@ const CRATE_MONEY_LOOT = [
 const CRATE_ROD_POOL_WEIGHT = 22;
 const CRATE_ROD_WEIGHTS = { 'Rare': 45, 'Épique': 28, 'Légendaire': 15, 'Mythique': 8, 'Divin': 4 };
 
-const AUDIO_BASE = 0.35;
-const MUSIC_VOLUME = AUDIO_BASE * 0.85;
-const BUTTON_VOLUME = Math.min(1, AUDIO_BASE * 1.5);
-const SFX_VOLUME = AUDIO_BASE;
+const MUSIC_VOLUME = 0.2;
+const BUTTON_VOLUME = 0.9;
+const SFX_VOLUME = 0.35;
 const AUDIO_FILES = {
     ambi: 'assets/Ambi.mp3',
     splash: 'assets/Splash.mp3',
