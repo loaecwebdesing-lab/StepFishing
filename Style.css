@@ -474,36 +474,6 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #bg-dawn { background-image: url('assets/background_dawn.png'); }
 #bg-night { background-image: url('assets/background_night.png'); }
 
-.time-cycle-btn {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 150;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    border: 2px solid var(--wood-gold);
-    border-radius: 50px;
-    background: rgba(40, 30, 20, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: var(--white);
-    font-family: 'Neko One', cursive;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-.time-cycle-btn:hover {
-    transform: scale(1.05);
-    background: rgba(60, 45, 30, 0.9);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-}
-.time-cycle-btn:active {
-    transform: scale(0.97);
-}
-
 .zone-card {
     background: rgba(0, 0, 0, 0.5);
     border: 3px solid var(--wood-medium);

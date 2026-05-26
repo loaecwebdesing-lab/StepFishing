@@ -530,17 +530,18 @@ function applyCrateReward(loot) {
 }
 
 const TIME_CYCLES = [
-    { id: 'bg-day', label: '☀️ Jour' },
-    { id: 'bg-dawn', label: '🌅 Aube' },
-    { id: 'bg-night', label: '🌙 Nuit' }
+    { id: 'bg-day' },
+    { id: 'bg-dawn' },
+    { id: 'bg-night' }
 ];
+const CYCLE_DURATION_MS = 2.5 * 60 * 1000;
+let dayNightTimer = null;
 
-function updateTimeCycleButton() {
-    const btn = document.getElementById('btn-time-cycle');
-    if (!btn) return;
-    const cycle = TIME_CYCLES[state.currentCycle];
-    btn.innerText = cycle.label;
-    btn.title = `Heure actuelle : ${cycle.label.split(' ')[1]} — cliquer pour changer`;
+function syncDayNightBackgrounds() {
+    TIME_CYCLES.forEach((cycle, i) => {
+        const el = document.getElementById(cycle.id);
+        if (el) el.classList.toggle('active', i === state.currentCycle);
+    });
 }
 
 function updateDayNightCycle() {
@@ -550,7 +551,12 @@ function updateDayNightCycle() {
     if (nextEl) nextEl.classList.add('active');
     if (currentEl && currentEl !== nextEl) currentEl.classList.remove('active');
     state.currentCycle = nextCycle;
-    updateTimeCycleButton();
+}
+
+function startAutoDayNightCycle() {
+    if (dayNightTimer) clearInterval(dayNightTimer);
+    syncDayNightBackgrounds();
+    dayNightTimer = setInterval(updateDayNightCycle, CYCLE_DURATION_MS);
 }
 
 function updateProgression() {
@@ -1390,12 +1396,10 @@ function init() {
         updateProgression();
         updateKeysDisplay();
         updateZoneBackgrounds();
-        updateTimeCycleButton();
+        startAutoDayNightCycle();
     } catch(e) { 
         console.error("Erreur visuelle init : ", e); 
     }
-
-    bind('btn-time-cycle', updateDayNightCycle);
 
     // --- BOUTONS MENU ---
     bind('btn-start', startGame);
