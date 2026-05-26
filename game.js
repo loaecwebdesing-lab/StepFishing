@@ -500,6 +500,68 @@ function rollCrateRod() {
     return { type: 'rod', rod: fallback, label: fallback.name, color: fallback.color };
 }
 
+function getCrateProbabilities() {
+    const moneyTotal = CRATE_MONEY_LOOT.reduce((sum, item) => sum + item.weight, 0);
+    const grandTotal = moneyTotal + CRATE_ROD_POOL_WEIGHT;
+    const rodWeightSum = Object.values(CRATE_ROD_WEIGHTS).reduce((a, b) => a + b, 0);
+    return {
+        grandTotal,
+        moneyPoolPct: (moneyTotal / grandTotal) * 100,
+        rodPoolPct: (CRATE_ROD_POOL_WEIGHT / grandTotal) * 100,
+        money: CRATE_MONEY_LOOT.map(item => ({
+            label: item.label,
+            color: item.color,
+            percent: (item.weight / grandTotal) * 100
+        })),
+        rods: CRATE_RODS.map(rod => ({
+            rod,
+            percent: (CRATE_ROD_POOL_WEIGHT / grandTotal)
+                * ((CRATE_ROD_WEIGHTS[rod.rarity] || 0) / rodWeightSum) * 100
+        }))
+    };
+}
+
+function formatCratePercent(n) {
+    if (n >= 10) return n.toFixed(1).replace('.', ',') + ' %';
+    if (n >= 1) return n.toFixed(2).replace('.', ',') + ' %';
+    return n.toFixed(2).replace('.', ',') + ' %';
+}
+
+function renderCrateLootInfo() {
+    const el = document.getElementById('crate-loot-info');
+    if (!el) return;
+    const p = getCrateProbabilities();
+    const keyChanceLabel = `1 chance sur ${Math.round(1 / KEY_CATCH_CHANCE)} par poisson pêché`;
+
+    const moneyRows = p.money.map(m => `
+        <li class="crate-loot-row">
+            <span class="crate-loot-name" style="color:${m.color}">${m.label}</span>
+            <span class="crate-loot-pct">${formatCratePercent(m.percent)}</span>
+        </li>`).join('');
+
+    const rodRows = p.rods.map(({ rod, percent }) => `
+        <li class="crate-loot-row crate-loot-row-rod">
+            <img src="${rod.img}" alt="" class="crate-loot-thumb" width="36" height="36">
+            <span class="crate-loot-name" style="color:${rod.color}">${rod.name}</span>
+            <span class="crate-loot-rarity" style="color:${rod.color}">${rod.rarity}</span>
+            <span class="crate-loot-pct">${formatCratePercent(percent)}</span>
+        </li>`).join('');
+
+    el.innerHTML = `
+        <h2 class="crate-loot-title">📋 Contenu & probabilités</h2>
+        <p class="crate-loot-hint">Clé mystère : ${keyChanceLabel} (1 chance sur 150 à chaque poisson pêché)</p>
+        <div class="crate-loot-cols">
+            <section class="crate-loot-section">
+                <h3 class="crate-loot-heading">💰 Argent <span class="crate-loot-pool-pct">${formatCratePercent(p.moneyPoolPct)}</span></h3>
+                <ul class="crate-loot-list">${moneyRows}</ul>
+            </section>
+            <section class="crate-loot-section">
+                <h3 class="crate-loot-heading">🎣 Cannes exclusives <span class="crate-loot-pool-pct">${formatCratePercent(p.rodPoolPct)}</span></h3>
+                <ul class="crate-loot-list crate-loot-list-rods">${rodRows}</ul>
+            </section>
+        </div>`;
+}
+
 function rollCrateLoot() {
     const moneyTotal = CRATE_MONEY_LOOT.reduce((sum, item) => sum + item.weight, 0);
     const grandTotal = moneyTotal + CRATE_ROD_POOL_WEIGHT;
@@ -1461,7 +1523,11 @@ function init() {
     bind('btn-cosmetics', () => {
         if (window.StepFishCosmetics) StepFishCosmetics.open();
     });
-    bind('btn-crate', () => { updateKeysDisplay(); showScreen('crate'); });
+    bind('btn-crate', () => {
+        updateKeysDisplay();
+        renderCrateLootInfo();
+        showScreen('crate');
+    });
 
     // --- BOUTONS RETOUR & MODALS ---
     bind('btn-back-menu', goToMenu);
