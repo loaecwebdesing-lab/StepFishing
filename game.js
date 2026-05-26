@@ -1224,13 +1224,18 @@ function giveRandomMutatedFish(count = 1, aqIndex = state.currentAqIndex) {
 
 window.giveRandomMutatedFish = giveRandomMutatedFish;
 
+let discoveryToastTimer = null;
+
 function showDiscoveryToast(fishName, rarity, mutation) {
     const toast = document.getElementById('discovery-toast');
     const text = document.getElementById('toast-text');
     if(!toast || !text) return;
     text.innerHTML = `FÉLICITATIONS ! <br> <span style="color:var(--wood-gold)">${fishName}</span> [${rarity}] <br> <small>Mutation: ${mutation}</small>`;
+    clearTimeout(discoveryToastTimer);
+    toast.classList.remove('show');
+    void toast.offsetHeight;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 5000);
+    discoveryToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
 }
 
 function renderShop() {
