@@ -541,28 +541,48 @@ const TIME_CYCLES = [
     { id: 'bg-night' }
 ];
 const CYCLE_DURATION_MS = 2.5 * 60 * 1000;
+const FULL_DAY_CYCLE_MS = CYCLE_DURATION_MS * TIME_CYCLES.length;
 let dayNightTimer = null;
+let dayNightResyncTimer = null;
 
-function syncDayNightBackgrounds() {
-    TIME_CYCLES.forEach((cycle, i) => {
-        const el = document.getElementById(cycle.id);
-        if (el) el.classList.toggle('active', i === state.currentCycle);
-    });
+function getGlobalCycleIndex() {
+    const elapsed = Date.now() % FULL_DAY_CYCLE_MS;
+    return Math.floor(elapsed / CYCLE_DURATION_MS);
 }
 
-function updateDayNightCycle() {
-    const nextCycle = (state.currentCycle + 1) % TIME_CYCLES.length;
-    const currentEl = document.getElementById(TIME_CYCLES[state.currentCycle].id);
-    const nextEl = document.getElementById(TIME_CYCLES[nextCycle].id);
-    if (nextEl) nextEl.classList.add('active');
-    if (currentEl && currentEl !== nextEl) currentEl.classList.remove('active');
-    state.currentCycle = nextCycle;
+function getMsUntilNextPhase() {
+    const phaseElapsed = Date.now() % FULL_DAY_CYCLE_MS % CYCLE_DURATION_MS;
+    return CYCLE_DURATION_MS - phaseElapsed;
+}
+
+function applyGlobalTimeCycle() {
+    const targetCycle = getGlobalCycleIndex();
+    TIME_CYCLES.forEach((cycle, i) => {
+        const el = document.getElementById(cycle.id);
+        if (el) el.classList.toggle('active', i === targetCycle);
+    });
+    state.currentCycle = targetCycle;
+}
+
+function scheduleGlobalDayNightCycle() {
+    clearTimeout(dayNightTimer);
+    applyGlobalTimeCycle();
+    dayNightTimer = setTimeout(() => scheduleGlobalDayNightCycle(), getMsUntilNextPhase() + 50);
 }
 
 function startAutoDayNightCycle() {
-    if (dayNightTimer) clearInterval(dayNightTimer);
-    syncDayNightBackgrounds();
-    dayNightTimer = setInterval(updateDayNightCycle, CYCLE_DURATION_MS);
+    if (dayNightResyncTimer) clearInterval(dayNightResyncTimer);
+    scheduleGlobalDayNightCycle();
+    if (!window.__stepfishDayNightVisibilityBound) {
+        window.__stepfishDayNightVisibilityBound = true;
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                applyGlobalTimeCycle();
+                scheduleGlobalDayNightCycle();
+            }
+        });
+    }
+    dayNightResyncTimer = setInterval(applyGlobalTimeCycle, 15000);
 }
 
 function updateProgression() {
