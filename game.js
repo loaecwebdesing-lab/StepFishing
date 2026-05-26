@@ -209,6 +209,7 @@ const ZONE_DATA = [
     { 
         id: 'ocean', 
         name: 'Haute Mer', 
+        minLevel: 10,
         bgDay: 'assets/ocean_day.png', 
         bgDawn: 'assets/ocean_dawn.png', 
         bgNight: 'assets/ocean_night.png',
@@ -351,6 +352,7 @@ function applySaveData(data) {
     updateMoneyDisplay();
     updateKeysDisplay();
     updateProgression();
+    ensureValidZone();
     updateZoneBackgrounds();
     updateFishingRodDisplay();
 }
@@ -425,6 +427,22 @@ function computeLevelFromScore(totalScore) {
 
 function computePrestigeFromLevel(level) {
     return Math.floor((level || 1) / 100);
+}
+
+function getZoneMinLevel(zone) {
+    return zone?.minLevel || 1;
+}
+
+function isZoneUnlocked(zone) {
+    if (!zone) return false;
+    return state.level >= getZoneMinLevel(zone);
+}
+
+function ensureValidZone() {
+    const zone = ZONE_DATA.find(z => z.id === state.currentZone);
+    if (zone && isZoneUnlocked(zone)) return;
+    state.currentZone = 'lac';
+    persistGameLocal();
 }
 
 function findBestFishInInventory(inventory) {
@@ -668,6 +686,7 @@ function updateProgression() {
     state.prestige = computePrestigeFromLevel(state.level);
     if(elements.userLevel) elements.userLevel.innerText = state.level;
     if(elements.userPrestige) elements.userPrestige.innerText = state.prestige;
+    ensureValidZone();
     persistGame();
     const xpFill = document.getElementById('xp-bar-fill');
     const xpText = document.getElementById('xp-text');
@@ -816,17 +835,23 @@ function renderMap() {
     if(!mapGrid) return;
     mapGrid.innerHTML = '';
     ZONE_DATA.forEach(zone => {
+        const unlocked = isZoneUnlocked(zone);
+        const minLvl = getZoneMinLevel(zone);
         const card = document.createElement('div');
-        card.className = `zone-card ${state.currentZone === zone.id ? 'active' : ''}`;
-        card.innerHTML = `<h3>${zone.name}</h3><p>Découvrez les espèces de cette région</p>`;
-        card.onclick = () => {
-            state.currentZone = zone.id;
-            persistGame();
-            updateZoneBackgrounds();
-            renderMap();
-            showScreen('menu');
-            addLog(`Vous avez voyagé vers : ${zone.name}`);
-        };
+        card.className = `zone-card${state.currentZone === zone.id && unlocked ? ' active' : ''}${unlocked ? '' : ' zone-card-locked'}`;
+        if (unlocked) {
+            card.innerHTML = `<h3>${zone.name}</h3><p>Découvrez les espèces de cette région</p>`;
+            card.onclick = () => {
+                state.currentZone = zone.id;
+                persistGame();
+                updateZoneBackgrounds();
+                renderMap();
+                showScreen('menu');
+                addLog(`Vous avez voyagé vers : ${zone.name}`);
+            };
+        } else {
+            card.innerHTML = `<h3>🔒 ${zone.name}</h3><p>Niveau ${minLvl} requis · tu es niveau ${state.level}</p>`;
+        }
         mapGrid.appendChild(card);
     });
 }
@@ -1210,6 +1235,8 @@ function clearGameTimer() {
 }
 
 function startGame() {
+    ensureValidZone();
+    updateZoneBackgrounds();
     clearGameTimer();
     state.gameActive = true; 
     state.score = 0; 
