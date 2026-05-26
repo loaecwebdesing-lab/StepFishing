@@ -295,6 +295,8 @@ function getSavePayload() {
 }
 
 function persistGameLocal() {
+    normalizeInventory();
+    normalizeUnlockedAquariums();
     localStorage.setItem('stepFishingTotalScore', state.totalScore);
     localStorage.setItem('stepFishingMoney', state.money);
     localStorage.setItem('stepFishingMaxMoney', state.maxMoney);
@@ -332,6 +334,8 @@ function applySaveData(data) {
     state.highScore = data.highScore || 0;
     state.inventory = data.inventory || { aq0: [] };
     state.unlockedAquariums = data.unlockedAquariums || [0];
+    normalizeInventory();
+    normalizeUnlockedAquariums();
     state.ownedRods = data.ownedRods || [0];
     state.equippedRod = parseInt(data.equippedRod, 10) || 0;
     state.discoveredFishes = data.discoveredFishes || [];
@@ -819,6 +823,44 @@ const AQ_CONFIGS = [
     { name: "Nébuleuse", cost: 25000, bg: "assets/aquariums/aq4.png" }
 ];
 
+function normalizeInventory() {
+    const inv = state.inventory && typeof state.inventory === 'object' ? state.inventory : {};
+    AQ_CONFIGS.forEach((_, i) => {
+        const key = `aq${i}`;
+        if (!Array.isArray(inv[key])) inv[key] = [];
+    });
+    state.inventory = inv;
+    return inv;
+}
+
+function normalizeUnlockedAquariums() {
+    const raw = Array.isArray(state.unlockedAquariums) ? state.unlockedAquariums : [0];
+    const ids = [...new Set(
+        raw.map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n >= 0 && n < AQ_CONFIGS.length)
+    )];
+    if (!ids.includes(0)) ids.unshift(0);
+    state.unlockedAquariums = ids.sort((a, b) => a - b);
+    return state.unlockedAquariums;
+}
+
+function isAquariumUnlocked(index) {
+    return normalizeUnlockedAquariums().includes(Number(index));
+}
+
+function placeFishInAquarium(fish) {
+    normalizeInventory();
+    const unlocked = normalizeUnlockedAquariums();
+    for (let i = 0; i < AQ_CONFIGS.length; i++) {
+        if (!unlocked.includes(i)) continue;
+        const aqId = `aq${i}`;
+        if (state.inventory[aqId].length < 15) {
+            state.inventory[aqId].push({ ...fish });
+            return { placed: true, aqIndex: i, aqId };
+        }
+    }
+    return { placed: false };
+}
+
 function getMutationData(mutationName) {
     return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
 }
@@ -894,27 +936,41 @@ function spawnFishParticle(fishEl) {
 
 let isAnimating = false;
 function renderAquarium() {
-    const aqId = `aq${state.currentAqIndex}`;
-    const config = AQ_CONFIGS[state.currentAqIndex];
-    
-    if(!elements.aqTitle) return;
-    
+    normalizeInventory();
+    normalizeUnlockedAquariums();
+    const aqIndex = state.currentAqIndex;
+    const aqId = `aq${aqIndex}`;
+    const config = AQ_CONFIGS[aqIndex];
+    const isUnlocked = isAquariumUnlocked(aqIndex);
+
+    if (!elements.aqTitle) return;
+
     elements.aqTitle.innerText = config.name;
-    
+
     const aqContainer = document.getElementById('aquarium-container');
     if (aqContainer) {
         aqContainer.style.backgroundImage = `url('${config.bg}')`;
-        // ON FORCE ICI LE REMPLISSAGE POUR ÉVITER LE CONTOUR BUGGÉ
         aqContainer.style.backgroundSize = 'cover';
         aqContainer.style.backgroundPosition = 'center';
         aqContainer.style.backgroundRepeat = 'no-repeat';
     }
-    // ... (le reste de la fonction reste identique)
 
-    elements.aqLock.classList.add('hidden');
+    if (elements.aqCost) {
+        elements.aqCost.innerText = config.cost.toLocaleString('fr-FR');
+    }
+
+    if (!isUnlocked) {
+        if (elements.aqLock) elements.aqLock.classList.remove('hidden');
+        if (elements.fishLayer) elements.fishLayer.innerHTML = '';
+        if (elements.aqSlots) elements.aqSlots.innerText = '🔒 Verrouillé';
+        return;
+    }
+
+    if (elements.aqLock) elements.aqLock.classList.add('hidden');
+    if (!elements.fishLayer) return;
     elements.fishLayer.innerHTML = '';
     const fishes = state.inventory[aqId] || [];
-    elements.aqSlots.innerText = `Slots: ${fishes.length}/15`;
+    if (elements.aqSlots) elements.aqSlots.innerText = `Slots: ${fishes.length}/15`;
     fishes.forEach((fish, index) => {
         const fDiv = document.createElement('div');
         const mutation = getMutationData(fish.mutation);
@@ -1057,7 +1113,7 @@ function moveFishFromAq(index, fromAqId) {
     if (isNaN(targetAqIndex) || targetAqIndex < 0 || targetAqIndex >= AQ_CONFIGS.length) {
         alert("❌ Numéro de bac invalide !"); return;
     }
-    if (!state.unlockedAquariums.includes(targetAqIndex)) {
+    if (!isAquariumUnlocked(targetAqIndex)) {
         alert("❌ Cet aquarium est verrouillé !"); return;
     }
     if (!state.inventory[targetAqId]) state.inventory[targetAqId] = [];
@@ -1072,14 +1128,25 @@ function moveFishFromAq(index, fromAqId) {
 }
 
 function buyAquarium() {
-    const cost = AQ_CONFIGS[state.currentAqIndex].cost;
-    if (state.money >= cost) {
-        state.money -= cost;
-        state.unlockedAquariums.push(state.currentAqIndex);
-        persistGame();
-        updateMoneyDisplay();
-        renderAquarium();
-    } else { alert("Pas assez d'argent !"); }
+    normalizeUnlockedAquariums();
+    const idx = state.currentAqIndex;
+    if (isAquariumUnlocked(idx)) {
+        alert('Cet aquarium est déjà débloqué.');
+        return;
+    }
+    const cost = AQ_CONFIGS[idx].cost;
+    if (state.money < cost) {
+        alert('Pas assez d\'argent !');
+        return;
+    }
+    state.money -= cost;
+    state.unlockedAquariums.push(idx);
+    normalizeUnlockedAquariums();
+    if (!state.inventory[`aq${idx}`]) state.inventory[`aq${idx}`] = [];
+    persistGame();
+    updateMoneyDisplay();
+    renderAquarium();
+    addLog(`${AQ_CONFIGS[idx].name} débloqué !`, 'epic');
 }
 
 function spawnOsuTarget() {
@@ -1282,16 +1349,12 @@ function catchFish(success) {
         state.totalScore += state.currentFish.points;
         state.totalFishesCaught++;
         updateBestFishRecord(state.currentFish);
-        let placed = false;
-        for (let i = 0; i < AQ_CONFIGS.length; i++) {
-            const aqId = `aq${i}`;
-            if (!state.inventory[aqId]) state.inventory[aqId] = [];
-            if (state.inventory[aqId].length < 15 && state.unlockedAquariums.includes(i)) {
-                state.inventory[aqId].push({ ...state.currentFish });
-                placed = true; break;
-            }
+        const placement = placeFishInAquarium(state.currentFish);
+        if (!placement.placed) {
+            addLog('Aquariums pleins ou verrouillés ! Poisson perdu.', 'system');
+        } else if (placement.aqIndex !== state.currentAqIndex) {
+            addLog(`Poisson placé dans : ${AQ_CONFIGS[placement.aqIndex].name}`, 'system');
         }
-        if (!placed) addLog("Aquariums pleins ! Poisson perdu.", "system");
         persistGame();
         if (state.currentFish.id >= 4) addLog(`🌟 INCROYABLE ! ${state.currentFish.name} capturé !`, 'epic');
         else addLog(`Vous avez pêché un ${state.currentFish.name}.`);
@@ -1492,13 +1555,14 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
 
 /** Console : giveRandomMutatedFish(5) */
 function giveRandomMutatedFish(count = 1, aqIndex = state.currentAqIndex) {
-    const aqId = `aq${aqIndex}`;
-    if (!state.inventory[aqId]) state.inventory[aqId] = [];
+    normalizeInventory();
+    normalizeUnlockedAquariums();
     const added = [];
     for (let i = 0; i < count; i++) {
-        if (state.inventory[aqId].length >= 15) break;
-        added.push(createRandomMutatedFish());
-        state.inventory[aqId].push(added[added.length - 1]);
+        const fish = createRandomMutatedFish();
+        const placement = placeFishInAquarium(fish);
+        if (!placement.placed) break;
+        added.push(fish);
     }
     persistGame();
     if (state.currentPhase === 'INVENTORY' && state.currentAqIndex === aqIndex) {
@@ -1658,6 +1722,8 @@ function updateFishingRodDisplay() {
 
 
 function init() {
+    normalizeInventory();
+    normalizeUnlockedAquariums();
     // Fonction interne pour ajouter des événements sans faire planter le jeu
     const bind = (id, action) => {
         const el = document.getElementById(id);
