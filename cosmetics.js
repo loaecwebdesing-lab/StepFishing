@@ -3,21 +3,21 @@
  */
 (function () {
     const COSMETIC_CATALOG = [
-        { id: 'default', name: 'Classique', desc: 'Style par défaut', price: 0, tier: '' },
-        { id: 'ember', name: 'Flammes rouges', desc: 'Particules de feu rouges', price: 10000, tier: '' },
-        { id: 'ocean', name: 'Bleu océan', desc: 'Bulles et reflets bleus', price: 35000, tier: '' },
-        { id: 'violet', name: 'Violet royal', desc: 'Éclats violets lumineux', price: 80000, tier: '' },
-        { id: 'shadow', name: 'Ombre noire', desc: 'Fumée sombre et lueurs', price: 200000, tier: '' },
-        { id: 'astral', name: 'Astral', desc: 'Violet & noir clignotant', price: 500000, tier: 'Rare' },
-        { id: 'neon', name: 'Néon cyan', desc: 'Étincelles électriques', price: 1000000, tier: 'Épique' },
-        { id: 'gold', name: 'Or divin', desc: 'Paillettes dorées', price: 1500000, tier: 'Épique' },
-        { id: 'cosmic', name: 'Cosmique', desc: 'Arc-en-ciel stellaire', price: 2000000, tier: 'Légendaire' },
-        { id: 'phoenix', name: 'Phénix', desc: 'Braises et flammes intenses', price: 3500000, tier: 'Légendaire' },
-        { id: 'abyss', name: 'Abysse', desc: 'Vortex sombre profond', price: 5000000, tier: 'Mythique' },
-        { id: 'diamond', name: 'Diamant', desc: 'Cristaux scintillants', price: 7500000, tier: 'Mythique' },
-        { id: 'solar', name: 'Solaire', desc: 'Rayons solaires explosifs', price: 10000000, tier: 'Divin' },
-        { id: 'deity', name: 'Divinité', desc: 'Aura divine ultime', price: 15000000, tier: 'Divin' },
-        { id: 'infinity', name: 'Infini', desc: 'Particules cosmiques infinies', price: 20000000, tier: 'Ultime' }
+        { id: 'default', name: 'Classique', desc: 'Simple et sobre', price: 0, tier: '' },
+        { id: 'ember', name: 'Flammes rouges', desc: 'Braises qui montent · texte qui tremble', price: 10000, tier: '' },
+        { id: 'ocean', name: 'Bleu océan', desc: 'Bulles · soulignement ondulé', price: 35000, tier: '' },
+        { id: 'violet', name: 'Violet royal', desc: 'Italique · losanges scintillants', price: 80000, tier: '' },
+        { id: 'shadow', name: 'Ombre noire', desc: 'Fumée latérale · glitch violet', price: 200000, tier: '' },
+        { id: 'astral', name: 'Astral', desc: 'Clignotement violet/noir · étoiles', price: 500000, tier: 'Rare' },
+        { id: 'neon', name: 'Néon cyan', desc: 'Stroboscope · éclairs carrés', price: 1000000, tier: 'Épique' },
+        { id: 'gold', name: 'Or divin', desc: 'Relief métal · poussière qui tombe', price: 1500000, tier: 'Épique' },
+        { id: 'cosmic', name: 'Cosmique', desc: 'Arc-en-ciel horizontal · pastilles', price: 2000000, tier: 'Légendaire' },
+        { id: 'phoenix', name: 'Phénix', desc: 'Texte incliné · étincelles qui explosent', price: 3500000, tier: 'Légendaire' },
+        { id: 'abyss', name: 'Abysse', desc: 'Bleu abyssal · particules aspirées', price: 5000000, tier: 'Mythique' },
+        { id: 'diamond', name: 'Diamant', desc: 'Glace · cristaux en facettes', price: 7500000, tier: 'Mythique' },
+        { id: 'solar', name: 'Solaire', desc: 'Rayons de soleil · pulsation dorée', price: 10000000, tier: 'Divin' },
+        { id: 'deity', name: 'Divinité', desc: 'Halo rose-or · orbite lente', price: 15000000, tier: 'Divin' },
+        { id: 'infinity', name: 'Infini', desc: 'Dégradé vertical · orbites multicolores', price: 20000000, tier: 'Ultime' }
     ];
 
     const catalogById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));

@@ -1529,146 +1529,373 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     line-height: 1.2;
 }
 
-.cos-pseudo-default { color: var(--white); }
+/* --- Texte : chaque style a son propre rendu --- */
+.cos-pseudo-default { color: #f5ebe0; text-shadow: none; }
 
+/* Braise : rouge chaud, tremble */
 .cos-pseudo-ember {
-    color: #ff5722;
-    text-shadow: 0 0 8px #ff9800, 0 0 16px #f44336;
-    animation: cosFlame 1.2s ease-in-out infinite;
+    color: #ff3d00;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 6px #ff6d00, 0 2px 12px #bf360c;
+    animation: cosTxtEmber 0.55s ease-in-out infinite alternate;
+}
+@keyframes cosTxtEmber {
+    0% { text-shadow: 0 0 4px #ff9800, 0 0 10px #e64a19; filter: brightness(1); }
+    100% { text-shadow: 0 0 14px #ffeb3b, 0 0 22px #ff3d00; filter: brightness(1.2); }
 }
 
+/* Océan : bleu, ondulation */
 .cos-pseudo-ocean {
-    color: #4fc3f7;
-    text-shadow: 0 0 10px #0288d1;
-    animation: cosWave 2s ease-in-out infinite;
+    color: #29b6f6;
+    text-decoration: underline wavy rgba(1, 87, 155, 0.6);
+    text-underline-offset: 4px;
+    text-shadow: 0 0 8px #01579b;
+    animation: cosTxtOcean 2.5s ease-in-out infinite;
+}
+@keyframes cosTxtOcean {
+    0%, 100% { transform: translateY(0); color: #4fc3f7; }
+    50% { transform: translateY(-3px); color: #81d4fa; }
 }
 
+/* Violet : majestueux, halo doux */
 .cos-pseudo-violet {
-    color: #ce93d8;
-    text-shadow: 0 0 12px #9c27b0, 0 0 20px #7b1fa2;
+    color: #ea80fc;
+    font-style: italic;
+    text-shadow: 0 0 4px #fff, 0 0 16px #ab47bc, 0 0 28px #6a1b9a;
+    animation: cosTxtViolet 3s ease-in-out infinite;
+}
+@keyframes cosTxtViolet {
+    0%, 100% { letter-spacing: 0; }
+    50% { letter-spacing: 0.08em; }
 }
 
+/* Ombre : sombre, contour glitch */
 .cos-pseudo-shadow {
-    color: #1a1a1a;
-    text-shadow: 0 0 6px #000, 0 0 14px #9c27b0, 0 0 22px #4a148c;
-    animation: cosShadowPulse 2.5s ease-in-out infinite;
+    color: #212121;
+    text-shadow:
+        2px 0 #7b1fa2,
+        -2px 0 #000,
+        0 0 20px rgba(123, 31, 162, 0.8);
+    animation: cosTxtShadow 4s steps(2) infinite;
+}
+@keyframes cosTxtShadow {
+    0%, 90% { transform: translateX(0); }
+    92% { transform: translateX(-2px); }
+    94% { transform: translateX(2px); }
+    96% { transform: translateX(0); }
 }
 
+/* Astral : clignotement violet / noir */
 .cos-pseudo-astral {
-    color: #e040fb;
-    text-shadow: 0 0 10px #7c4dff, 0 0 18px #000;
-    animation: cosAstralBlink 1.1s step-end infinite;
+    animation: cosTxtAstral 0.85s step-end infinite;
+}
+@keyframes cosTxtAstral {
+    0%, 40% { color: #e040fb; text-shadow: 0 0 14px #7c4dff, 0 0 24px #fff; }
+    45%, 85% { color: #0a0a0a; text-shadow: 0 0 6px #4a148c; }
+    90%, 100% { color: #e040fb; text-shadow: 0 0 14px #7c4dff; }
 }
 
+/* Néon : cyan tranchant, stroboscope */
 .cos-pseudo-neon {
-    color: #00e5ff;
-    text-shadow: 0 0 8px #00bcd4, 0 0 18px #00e5ff, 0 0 28px #006064;
-    animation: cosNeonPulse 1.4s ease-in-out infinite;
+    color: #00ffff;
+    text-shadow: 0 0 2px #fff, 0 0 12px #00e5ff, 0 0 24px #00bcd4;
+    animation: cosTxtNeon 0.12s steps(2) infinite;
+}
+@keyframes cosTxtNeon {
+    0%, 49% { opacity: 1; filter: brightness(1.3); }
+    50%, 100% { opacity: 0.85; filter: brightness(0.9); }
 }
 
+/* Or : métal doré, pas de gradient */
 .cos-pseudo-gold {
-    color: #ffd700;
-    text-shadow: 0 0 10px #ff8f00, 0 0 20px #ffc107;
-    animation: cosGoldShine 2s linear infinite;
+    color: #ffc400;
+    text-shadow:
+        1px 1px 0 #b8860b,
+        -1px -1px 0 #fff8e1,
+        0 0 12px #ff8f00;
+    animation: cosTxtGold 2.8s ease-in-out infinite;
+}
+@keyframes cosTxtGold {
+    0%, 100% { filter: saturate(1); }
+    50% { filter: saturate(1.6) brightness(1.25); }
 }
 
-.cos-pseudo-cosmic {
-    background: linear-gradient(90deg, #ff6ec7, #ffd700, #00e5ff, #9c27b0, #ff6ec7);
-    background-size: 300% 100%;
+/* Cosmique : arc-en-ciel horizontal */
+.cos-pseudo-cosmic .cos-pseudo-text {
+    background: linear-gradient(90deg, #f44336, #ffeb3b, #4caf50, #2196f3, #9c27b0, #f44336);
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: cosCosmicShift 3s linear infinite;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+    animation: cosTxtCosmic 4s linear infinite;
 }
-
-@keyframes cosFlame {
-    0%, 100% { text-shadow: 0 0 8px #ff9800, 0 0 16px #f44336; transform: scale(1); }
-    50% { text-shadow: 0 0 14px #ffeb3b, 0 0 24px #ff5722; transform: scale(1.03); }
-}
-@keyframes cosWave {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
-}
-@keyframes cosShadowPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.75; }
-}
-@keyframes cosAstralBlink {
-    0%, 45% { color: #e040fb; text-shadow: 0 0 12px #7c4dff; }
-    50%, 95% { color: #111; text-shadow: 0 0 8px #9c27b0; }
-    100% { color: #e040fb; }
-}
-@keyframes cosNeonPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.65; }
-}
-@keyframes cosGoldShine {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.35); }
-}
-@keyframes cosCosmicShift {
+@keyframes cosTxtCosmic {
     0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
-/* Nouveaux styles premium */
-.cos-pseudo-phoenix { color: #ff6d00; text-shadow: 0 0 12px #ff3d00, 0 0 20px #ffd700; animation: cosFlame 0.9s ease-in-out infinite; }
-.cos-particles-phoenix i { background: #ff5722; box-shadow: 0 0 8px #ffeb3b; animation-duration: 1.4s; }
+/* Phénix : orange vif, inclinaison */
+.cos-pseudo-phoenix {
+    color: #ff9100;
+    display: inline-block;
+    transform: skewX(-6deg);
+    text-shadow: 0 0 10px #ff3d00, 0 0 20px #ffea00;
+    animation: cosTxtPhoenix 1s ease-in-out infinite;
+}
+@keyframes cosTxtPhoenix {
+    0%, 100% { transform: skewX(-6deg) scale(1); }
+    50% { transform: skewX(-6deg) scale(1.06); }
+}
 
-.cos-pseudo-abyss { color: #311b92; text-shadow: 0 0 14px #000, 0 0 22px #7c4dff; animation: cosShadowPulse 1.8s ease-in-out infinite; }
-.cos-particles-abyss i { background: #4a148c; box-shadow: 0 0 10px #7c4dff; animation-duration: 2.8s; }
+/* Abysse : bleu profond, léger flou */
+.cos-pseudo-abyss {
+    color: #5c6bc0;
+    text-shadow: 0 0 20px #1a237e, 0 0 40px #000051;
+    filter: blur(0.3px);
+    animation: cosTxtAbyss 5s ease-in-out infinite;
+}
+@keyframes cosTxtAbyss {
+    0%, 100% { color: #3949ab; }
+    50% { color: #7986cb; }
+}
 
-.cos-pseudo-diamond { color: #e0f7fa; text-shadow: 0 0 10px #00bcd4, 0 0 18px #fff; animation: cosDiamondSpark 1.6s ease-in-out infinite; }
-.cos-particles-diamond i { background: #b2ebf2; box-shadow: 0 0 10px #fff; width: 6px; height: 6px; animation-duration: 1.8s; }
+/* Diamant : blanc glacé, facettes */
+.cos-pseudo-diamond {
+    color: #e0f7fa;
+    text-shadow: 0 0 2px #fff, 0 0 14px #00bcd4, 2px 2px 0 rgba(0, 188, 212, 0.4);
+    animation: cosTxtDiamond 1.2s steps(3) infinite;
+}
+@keyframes cosTxtDiamond {
+    0%, 100% { opacity: 1; }
+    33% { opacity: 0.7; }
+    66% { opacity: 1; filter: brightness(1.8); }
+}
 
-.cos-pseudo-solar { color: #ffea00; text-shadow: 0 0 16px #ff6f00, 0 0 28px #fff59d; animation: cosGoldShine 1.2s linear infinite; }
-.cos-particles-solar i { background: #ffc107; box-shadow: 0 0 12px #ff9800; animation-duration: 1.1s; }
+/* Solaire : jaune éclatant, scale pulse */
+.cos-pseudo-solar {
+    color: #ffee58;
+    text-shadow: 0 0 8px #fff, 0 0 20px #ff6f00, 0 0 36px #fdd835;
+    animation: cosTxtSolar 1.5s ease-in-out infinite;
+}
+@keyframes cosTxtSolar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); text-shadow: 0 0 16px #fff, 0 0 32px #ffab00; }
+}
 
-.cos-pseudo-deity { color: #fff8e1; text-shadow: 0 0 12px #ffd700, 0 0 24px #ff80ab; animation: cosDeityPulse 2s ease-in-out infinite; }
-.cos-particles-deity i { background: linear-gradient(#ffd700, #ff80ab); animation-duration: 1.5s; }
+/* Divinité : blanc rosé, halo */
+.cos-pseudo-deity {
+    color: #fffde7;
+    text-shadow: 0 0 8px #ffd54f, 0 0 18px #f48fb1, 0 0 30px #fff;
+    animation: cosTxtDeity 3.5s ease-in-out infinite;
+}
+@keyframes cosTxtDeity {
+    0%, 100% { filter: drop-shadow(0 0 4px #ffd700); }
+    50% { filter: drop-shadow(0 0 12px #ff80ab); }
+}
 
-.cos-pseudo-infinity {
-    background: linear-gradient(90deg, #ff6ec7, #ffd700, #00e5ff, #b388ff, #ff6ec7);
-    background-size: 400% 100%;
+/* Infini : dégradé vertical + scintillement */
+.cos-pseudo-infinity .cos-pseudo-text {
+    background: linear-gradient(180deg, #fff 0%, #e040fb 35%, #00e5ff 70%, #ffd700 100%);
+    background-size: 100% 200%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: cosCosmicShift 2s linear infinite, cosDeityPulse 2.5s ease-in-out infinite;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+    animation: cosTxtInfinity 2.5s ease-in-out infinite;
 }
-.cos-particles-infinity i {
-    width: 6px; height: 6px;
-    animation: cosParticleOrbit 2s linear infinite;
+@keyframes cosTxtInfinity {
+    0%, 100% { background-position: 0% 0%; filter: hue-rotate(0deg); }
+    50% { background-position: 0% 100%; filter: hue-rotate(25deg); }
+}
+
+/* --- Particules : animation unique par style --- */
+.cos-particles-ember i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #ff6d00;
+    box-shadow: 0 0 6px #ffeb3b;
+    animation: cosPtlEmber 1.6s ease-out infinite !important;
+}
+@keyframes cosPtlEmber {
+    0% { opacity: 0; transform: translateY(8px) scale(0.3); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-18px) scale(0.1); }
+}
+
+.cos-particles-ocean i {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(79, 195, 247, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    animation: cosPtlBubble 2.8s ease-in infinite !important;
+}
+@keyframes cosPtlBubble {
+    0% { opacity: 0; transform: translateY(10px) scale(0.5); }
+    20% { opacity: 0.9; }
+    100% { opacity: 0; transform: translateY(-22px) scale(1.2); }
+}
+
+.cos-particles-violet i {
+    width: 3px; height: 3px; border-radius: 0;
+    transform: rotate(45deg);
+    background: #ea80fc;
+    box-shadow: 0 0 6px #ce93d8;
+    animation: cosPtlSparkle 2.2s ease-in-out infinite !important;
+}
+@keyframes cosPtlSparkle {
+    0%, 100% { opacity: 0; transform: rotate(45deg) scale(0); }
+    50% { opacity: 1; transform: rotate(45deg) scale(1.5); }
+}
+
+.cos-particles-shadow i {
+    width: 10px; height: 3px; border-radius: 50%;
+    background: rgba(66, 66, 66, 0.9);
+    box-shadow: 0 0 8px #7b1fa2;
+    animation: cosPtlSmoke 3.5s ease-in-out infinite !important;
+}
+@keyframes cosPtlSmoke {
+    0% { opacity: 0; transform: translateX(-12px); }
+    50% { opacity: 0.7; }
+    100% { opacity: 0; transform: translateX(14px); }
+}
+
+.cos-particles-astral i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #e040fb;
+    animation: cosPtlStar 1.4s steps(1) infinite !important;
+}
+@keyframes cosPtlStar {
+    0%, 70% { opacity: 0; transform: scale(0); }
+    75% { opacity: 1; transform: scale(1.8); }
+    100% { opacity: 0; transform: scale(0); }
+}
+
+.cos-particles-neon i {
+    width: 3px; height: 3px; border-radius: 0;
+    background: #00ffff;
+    box-shadow: 0 0 8px #00e5ff;
+    animation: cosPtlNeonZap 0.35s steps(1) infinite !important;
+}
+@keyframes cosPtlNeonZap {
+    0%, 60% { opacity: 0; }
+    65% { opacity: 1; transform: scale(2); }
+    100% { opacity: 0; }
+}
+
+.cos-particles-gold i {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: #ffd700;
+    animation: cosPtlGoldFall 2.4s linear infinite !important;
+}
+@keyframes cosPtlGoldFall {
+    0% { opacity: 0; transform: translateY(-14px); }
+    15% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(16px); }
+}
+
+.cos-particles-cosmic i {
+    width: 5px; height: 5px; border-radius: 50%;
+    animation: cosPtlCosmicPop 2s ease-in-out infinite !important;
+}
+.cos-particles-cosmic i:nth-child(odd) { background: #ff6ec7; box-shadow: 0 0 6px #ff6ec7; }
+.cos-particles-cosmic i:nth-child(even) { background: #00e5ff; box-shadow: 0 0 6px #00e5ff; }
+@keyframes cosPtlCosmicPop {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1.4); }
+}
+
+.cos-particles-phoenix i {
+    width: 5px; height: 8px; border-radius: 40% 40% 50% 50%;
+    background: linear-gradient(#ffeb3b, #ff3d00);
+    animation: cosPtlPhoenixBurst 1.2s ease-out infinite !important;
+}
+@keyframes cosPtlPhoenixBurst {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--px, 10px), var(--py, -12px)) scale(0.2); }
+}
+.cos-particles-phoenix i:nth-child(1) { --px: -14px; --py: -10px; }
+.cos-particles-phoenix i:nth-child(2) { --px: 14px; --py: -8px; }
+.cos-particles-phoenix i:nth-child(3) { --px: -8px; --py: -16px; }
+.cos-particles-phoenix i:nth-child(4) { --px: 10px; --py: -14px; }
+.cos-particles-phoenix i:nth-child(5) { --px: 0px; --py: -18px; }
+.cos-particles-phoenix i:nth-child(6) { --px: -12px; --py: -6px; }
+
+.cos-particles-abyss i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #1a237e;
+    box-shadow: 0 0 10px #5c6bc0;
+    animation: cosPtlAbyssPull 2.5s ease-in infinite !important;
+}
+@keyframes cosPtlAbyssPull {
+    0% { opacity: 0.2; transform: translate(var(--ax, 12px), var(--ay, -8px)) scale(1); }
+    100% { opacity: 0.9; transform: translate(0, 0) scale(0.3); }
+}
+.cos-particles-abyss i:nth-child(1) { --ax: 16px; --ay: 0; }
+.cos-particles-abyss i:nth-child(2) { --ax: -14px; --ay: 4px; }
+.cos-particles-abyss i:nth-child(3) { --ax: 0; --ay: -14px; }
+.cos-particles-abyss i:nth-child(4) { --ax: 12px; --ay: 10px; }
+.cos-particles-abyss i:nth-child(5) { --ax: -10px; --ay: -10px; }
+.cos-particles-abyss i:nth-child(6) { --ax: -16px; --ay: 0; }
+
+.cos-particles-diamond i {
+    width: 5px; height: 5px; border-radius: 0;
+    transform: rotate(45deg);
     background: #fff;
-    box-shadow: 0 0 10px #e040fb, 0 0 14px #00e5ff;
+    animation: cosPtlCrystal 1.5s ease-in-out infinite !important;
 }
-.cos-particles-infinity i:nth-child(1) { animation: cosParticleOrbit 1.8s linear infinite; }
-.cos-particles-infinity i:nth-child(2) { animation: cosParticleOrbit 2.2s linear infinite reverse; }
-.cos-particles-infinity i:nth-child(3) { animation: cosParticleOrbit 2.6s linear infinite; animation-delay: 0.3s; }
+@keyframes cosPtlCrystal {
+    0%, 100% { opacity: 0.2; transform: rotate(45deg) scale(0.5); }
+    50% { opacity: 1; transform: rotate(45deg) scale(1.3); filter: brightness(2); }
+}
 
-@keyframes cosDiamondSpark {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.5); }
+.cos-particles-solar i {
+    width: 2px; height: 10px; border-radius: 1px;
+    background: linear-gradient(transparent, #ffeb3b, transparent);
+    animation: cosPtlRay 1.8s ease-in-out infinite !important;
 }
-@keyframes cosDeityPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.04); }
+@keyframes cosPtlRay {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1.2); }
 }
-@keyframes cosParticleOrbit {
-    0% { opacity: 0.3; transform: rotate(0deg) translateX(14px) scale(0.6); }
+.cos-particles-solar i:nth-child(1) { left: 50%; top: 0; transform-origin: bottom center; }
+.cos-particles-solar i:nth-child(2) { left: 10%; top: 40%; transform: rotate(45deg); }
+.cos-particles-solar i:nth-child(3) { left: 85%; top: 35%; transform: rotate(-40deg); }
+.cos-particles-solar i:nth-child(4) { left: 20%; top: 75%; transform: rotate(70deg); }
+.cos-particles-solar i:nth-child(5) { left: 75%; top: 70%; transform: rotate(-60deg); }
+.cos-particles-solar i:nth-child(6) { left: 45%; top: 85%; transform: rotate(90deg); }
+
+.cos-particles-deity i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #fff9c4;
+    box-shadow: 0 0 8px #f48fb1;
+    animation: cosPtlHalo 3s linear infinite !important;
+}
+@keyframes cosPtlHalo {
+    0% { opacity: 0.6; transform: rotate(0deg) translateX(16px) rotate(0deg); }
+    100% { opacity: 0.6; transform: rotate(360deg) translateX(16px) rotate(-360deg); }
+}
+.cos-particles-deity i:nth-child(1) { animation-delay: 0s !important; }
+.cos-particles-deity i:nth-child(2) { animation-delay: -0.5s !important; }
+.cos-particles-deity i:nth-child(3) { animation-delay: -1s !important; }
+.cos-particles-deity i:nth-child(4) { animation-delay: -1.5s !important; }
+.cos-particles-deity i:nth-child(5) { animation-delay: -2s !important; }
+.cos-particles-deity i:nth-child(6) { animation-delay: -2.5s !important; }
+
+.cos-particles-infinity i {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px currentColor;
+    color: #e040fb;
+    animation: cosPtlInfinityOrbit 2.2s linear infinite !important;
+}
+.cos-particles-infinity i:nth-child(1) { color: #ff6ec7; animation-duration: 1.8s !important; }
+.cos-particles-infinity i:nth-child(2) { color: #00e5ff; animation-duration: 2.4s !important; animation-direction: reverse !important; }
+.cos-particles-infinity i:nth-child(3) { color: #ffd700; animation-duration: 2s !important; }
+.cos-particles-infinity i:nth-child(4) { color: #b388ff; animation-duration: 2.8s !important; animation-direction: reverse !important; }
+.cos-particles-infinity i:nth-child(5) { color: #69f0ae; animation-duration: 2.1s !important; }
+.cos-particles-infinity i:nth-child(6) { color: #ff8a80; animation-duration: 2.6s !important; animation-direction: reverse !important; }
+@keyframes cosPtlInfinityOrbit {
+    0% { opacity: 0.4; transform: rotate(0deg) translateX(18px) scale(0.7); }
     50% { opacity: 1; }
-    100% { opacity: 0.3; transform: rotate(360deg) translateX(14px) scale(0.6); }
+    100% { opacity: 0.4; transform: rotate(360deg) translateX(18px) scale(0.7); }
 }
-
-.cos-particles-ember i { background: #ff5722; box-shadow: 0 0 6px #ff9800; }
-.cos-particles-ocean i { background: #4fc3f7; box-shadow: 0 0 6px #0288d1; }
-.cos-particles-violet i { background: #ce93d8; box-shadow: 0 0 8px #9c27b0; }
-.cos-particles-shadow i { background: #424242; box-shadow: 0 0 8px #9c27b0; }
-.cos-particles-astral i { background: #e040fb; box-shadow: 0 0 8px #311b92; animation-duration: 1.5s; }
-.cos-particles-neon i { background: #00e5ff; box-shadow: 0 0 10px #00bcd4; animation-duration: 1.3s; }
-.cos-particles-gold i { background: #ffd700; box-shadow: 0 0 8px #ff8f00; }
-.cos-particles-cosmic i { background: #ff6ec7; box-shadow: 0 0 8px #00e5ff; animation-duration: 1.6s; }
 
 #screen-cosmetics {
     overflow-y: auto;
