@@ -421,15 +421,21 @@
 
             <div id="screen-leaderboard" class="screen">
                 <div class="glass-card lb-card full-width">
-                    <h1 class="lb-title">🏆 Classement</h1>
-                    <p class="lb-subtitle">Top 50 · synchronisé avec les comptes en ligne</p>
-                    <div id="lb-tabs" class="lb-tabs" role="tablist"></div>
-                    <div class="lb-toolbar">
-                        <p id="lb-status" class="lb-status"></p>
-                        <button type="button" id="btn-lb-refresh" class="lb-refresh-btn" title="Actualiser">↻</button>
+                    <header class="lb-card-header">
+                        <h1 class="lb-title">🏆 Classement</h1>
+                        <p class="lb-subtitle">Top 50 · synchronisé avec les comptes en ligne</p>
+                        <div id="lb-tabs" class="lb-tabs" role="tablist"></div>
+                        <div class="lb-toolbar">
+                            <p id="lb-status" class="lb-status"></p>
+                            <button type="button" id="btn-lb-refresh" class="lb-refresh-btn" title="Actualiser">↻</button>
+                        </div>
+                    </header>
+                    <div class="lb-list-scroll">
+                        <ol id="lb-list" class="lb-list"></ol>
                     </div>
-                    <ol id="lb-list" class="lb-list"></ol>
-                    <button id="btn-back-menu-lb" class="btn-secondary lb-back-btn">Retour au menu</button>
+                    <footer class="lb-card-footer">
+                        <button id="btn-back-menu-lb" class="btn-secondary lb-back-btn">Retour au menu</button>
+                    </footer>
                 </div>
             </div>
 
