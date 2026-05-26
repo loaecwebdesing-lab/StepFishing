@@ -105,6 +105,19 @@
         });
     }
 
+    function resolveCosmeticId(id) {
+        const catalog = window.StepFishCosmetics?.catalog || [];
+        const valid = new Set(catalog.map(c => c.id));
+        return id && valid.has(id) ? id : 'default';
+    }
+
+    function renderPseudoCell(pseudo, cosmeticId) {
+        if (window.StepFishCosmetics?.renderPseudoHTML) {
+            return window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId));
+        }
+        return `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
+    }
+
     function renderList(rows) {
         const list = document.getElementById('lb-list');
         if (!list) return;
@@ -115,15 +128,14 @@
         }
 
         const myPseudo = getMyPseudo();
-        const renderPseudo = window.StepFishCosmetics?.renderPseudoHTML
-            ? (p, c) => window.StepFishCosmetics.renderPseudoHTML(p, c || 'default')
-            : (p) => escapeHtml(p);
         list.innerHTML = rows.map((row, index) => {
             const rank = index + 1;
             const isMe = myPseudo && row.pseudo === myPseudo;
-            return `<li class="lb-row${isMe ? ' lb-row-me' : ''}">
+            const cosId = resolveCosmeticId(row.cosmetic_id);
+            const hasFx = cosId !== 'default';
+            return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
-                <span class="lb-pseudo">${renderPseudo(row.pseudo, row.cosmetic_id)}</span>
+                <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId)}</span>
                 <span class="lb-value">${escapeHtml(formatValue(row, activeCategory))}</span>
             </li>`;
         }).join('');

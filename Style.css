@@ -1400,10 +1400,11 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .lb-list {
     list-style: none;
     margin: 0;
-    padding: 8px 4px;
+    padding: 14px 10px;
     flex: 1;
     min-height: 200px;
     max-height: min(52vh, 420px);
+    overflow-x: hidden;
     overflow-y: auto;
     text-align: left;
     background: rgba(0, 0, 0, 0.28);
@@ -1416,9 +1417,16 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     grid-template-columns: 42px 1fr minmax(120px, auto);
     gap: 10px;
     align-items: center;
-    padding: 10px 12px;
+    padding: 8px 10px;
+    min-height: 40px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     font-size: 0.92rem;
+    overflow: visible;
+}
+
+.lb-row-cos {
+    min-height: 48px;
+    padding: 10px 10px 12px;
 }
 
 .lb-row:last-child {
@@ -1437,9 +1445,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .lb-pseudo {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    overflow: visible;
+    padding: 2px 0;
 }
 
 .lb-value {
@@ -2050,20 +2058,44 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     text-align: center;
 }
 
-.lb-pseudo .cos-pseudo-wrap {
+#screen-leaderboard .lb-pseudo .cos-pseudo-wrap {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
+    overflow: visible;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.3;
 }
 
-.lb-pseudo .cos-pseudo-text {
+#screen-leaderboard .lb-pseudo .cos-particles {
+    overflow: visible;
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-text {
+    display: inline-block;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    vertical-align: middle;
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-astral,
+#screen-leaderboard .lb-pseudo .cos-pseudo-neon {
     display: inline-block;
     max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.lb-pseudo-plain {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--wood-gold);
 }
 
 .chat-msg {
