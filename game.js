@@ -224,6 +224,7 @@ const FISH_DATA = {
 };
 
 const MUTATION_ROLL_CHANCE = 1 / 15;
+const MUTATION_BONUS_BY_CYCLE = { 0: 0, 1: 0.03, 2: 0.05 };
 
 const MUTATIONS = [
     { name: "Normal", multiplier: 1, filter: 'none', color: 'transparent', effect: 'none' },
@@ -254,8 +255,13 @@ function pickWeightedMutation(pool) {
     return pool[pool.length - 1];
 }
 
+function getMutationRollChance() {
+    const bonus = MUTATION_BONUS_BY_CYCLE[state.currentCycle] || 0;
+    return Math.min(MUTATION_ROLL_CHANCE + bonus, 1);
+}
+
 function rollMutation() {
-    if (Math.random() >= MUTATION_ROLL_CHANCE) return MUTATIONS[0];
+    if (Math.random() >= getMutationRollChance()) return MUTATIONS[0];
     return pickWeightedMutation(MUTATIONS.filter(m => m.name !== 'Normal'));
 }
 
