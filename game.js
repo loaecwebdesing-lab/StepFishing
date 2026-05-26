@@ -224,7 +224,7 @@ const ZONE_DATA = [
 ];
 
 const FISH_DATA = {
-    prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
+    prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
 };
 
 const MUTATION_ROLL_CHANCE = 1 / 15;
@@ -479,9 +479,52 @@ function getZoneMinLevel(zone) {
     return zone?.minLevel || 1;
 }
 
+function getZoneFishImagePaths(zoneId) {
+    const zone = ZONE_DATA.find(z => z.id === zoneId);
+    if (!zone?.library) return [];
+    const paths = [];
+    Object.keys(zone.library).forEach(folder => {
+        (zone.library[folder] || []).forEach(file => {
+            paths.push(`assets/fish/${folder}/${file}`);
+        });
+    });
+    return paths;
+}
+
+function getLacFishCount() {
+    return getZoneFishImagePaths('lac').length;
+}
+
+function getDiscoveredLacCount() {
+    const required = getZoneFishImagePaths('lac');
+    return required.filter(path => state.discoveredFishes.includes(path)).length;
+}
+
+function hasDiscoveredAllLacFish() {
+    const required = getZoneFishImagePaths('lac');
+    if (!required.length) return true;
+    return required.every(path => state.discoveredFishes.includes(path));
+}
+
 function isZoneUnlocked(zone) {
     if (!zone) return false;
-    return state.level >= getZoneMinLevel(zone);
+    if (state.level < getZoneMinLevel(zone)) return false;
+    if (zone.id === 'ocean') return hasDiscoveredAllLacFish();
+    return true;
+}
+
+function getZoneLockMessage(zone) {
+    if (!zone) return '';
+    const minLvl = getZoneMinLevel(zone);
+    if (state.level < minLvl) {
+        return `Niveau ${minLvl} requis · tu es niveau ${state.level}`;
+    }
+    if (zone.id === 'ocean' && !hasDiscoveredAllLacFish()) {
+        const total = getLacFishCount();
+        const found = getDiscoveredLacCount();
+        return `Niveau 10 OK · Lac : ${found}/${total} espèces découvertes (FishIndex)`;
+    }
+    return '';
 }
 
 function ensureValidZone() {
@@ -879,7 +922,6 @@ function renderMap() {
     mapGrid.innerHTML = '';
     ZONE_DATA.forEach(zone => {
         const unlocked = isZoneUnlocked(zone);
-        const minLvl = getZoneMinLevel(zone);
         const card = document.createElement('div');
         card.className = `zone-card${state.currentZone === zone.id && unlocked ? ' active' : ''}${unlocked ? '' : ' zone-card-locked'}`;
         if (unlocked) {
@@ -893,7 +935,8 @@ function renderMap() {
                 addLog(`Vous avez voyagé vers : ${zone.name}`);
             };
         } else {
-            card.innerHTML = `<h3>🔒 ${zone.name}</h3><p>Niveau ${minLvl} requis · tu es niveau ${state.level}</p>`;
+            const lockMsg = getZoneLockMessage(zone);
+            card.innerHTML = `<h3>🔒 ${zone.name}</h3><p>${lockMsg}</p>`;
         }
         mapGrid.appendChild(card);
     });
@@ -1010,12 +1053,17 @@ function spawnOsuTarget() {
 
     const target = document.createElement('div');
     target.classList.add('osu-target');
-    
+
     const oceanWidth = elements.ocean.clientWidth;
     const oceanHeight = elements.ocean.clientHeight;
-    
-    target.style.left = Math.random() * (oceanWidth - 80) + 10 + 'px';
-    target.style.top = Math.random() * (oceanHeight - 80) + 10 + 'px';
+    const targetSize = 70;
+    const marginX = Math.max(48, Math.round(oceanWidth * 0.14));
+    const marginY = Math.max(48, Math.round(oceanHeight * 0.16));
+    const usableW = Math.max(0, oceanWidth - marginX * 2 - targetSize);
+    const usableH = Math.max(0, oceanHeight - marginY * 2 - targetSize);
+
+    target.style.left = (marginX + Math.random() * usableW) + 'px';
+    target.style.top = (marginY + Math.random() * usableH) + 'px';
     
     target.addEventListener('mousedown', (e) => {
         e.stopPropagation();
@@ -1041,7 +1089,7 @@ function triggerCatch() {
     if (Math.random() < KEY_CATCH_CHANCE) {
         state.currentFish = { ...KEY_FISH };
         setPhase('REELING');
-        addLog('Une clé mystérieuse mord à l\'hameçon !', 'epic');
+        addLog('Quelque chose d\'inhabituel mord à l\'hameçon…', 'epic');
         return;
     }
 
@@ -1117,33 +1165,22 @@ function startReelGame() {
     state.fishTargetY = Math.random() * 250;
 
     if(elements.progressFill) elements.progressFill.style.width = '20%';
+    const difficulty = state.currentFish?.difficulty || 6;
     if (elements.fishName) {
-        if (state.currentFish?.isKey) {
-            elements.fishName.innerText = state.currentFish.name;
-        } else {
-            elements.fishName.innerHTML = `${state.currentFish.name}<br><span class="fish-weight-tag">${formatFishWeight(state.currentFish.weight)}</span>`;
-        }
-        elements.fishName.className = `rarity-text ${state.currentFish.class}`;
+        elements.fishName.innerHTML = `???<br><span class="fish-weight-tag">Difficulté : ${difficulty} / 15</span>`;
+        elements.fishName.className = 'rarity-text reel-mystery-name';
     }
     if (elements.fishVisual) {
-        const visualSize = state.currentFish?.isKey ? 80 : aquariumFishWidthPx(state.currentFish.weight) + 12;
-        elements.fishVisual.innerHTML = buildFishVisualHTML(state.currentFish, visualSize);
+        elements.fishVisual.innerHTML = '<div class="reel-mystery-fish" aria-hidden="true">?</div>';
     }
     if (elements.fishTarget) {
-        if (state.currentFish?.isKey) {
-            elements.fishTarget.style.backgroundColor = 'transparent';
-            elements.fishTarget.style.boxShadow = 'none';
-            elements.fishTarget.style.height = '44px';
-        } else {
-            elements.fishTarget.style.backgroundColor = state.currentFish.color;
-            elements.fishTarget.style.boxShadow = '';
-            elements.fishTarget.style.height = '50px';
-        }
+        elements.fishTarget.style.backgroundColor = 'rgba(90, 90, 90, 0.92)';
+        elements.fishTarget.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.35)';
+        elements.fishTarget.style.height = Math.max(36, Math.min(56, 32 + difficulty * 2)) + 'px';
     }
 
     const gracePeriod = 500;
     const startTime = Date.now();
-    const difficulty = state.currentFish?.difficulty || 2;
     const fishLerp = 0.06;
     const erraticFactor = (difficulty / 10) * 0.12;
 
@@ -1231,6 +1268,9 @@ function catchFish(success) {
             state.discoveredFishes.push(state.currentFish.img);
             persistGame();
             showDiscoveryToast(state.currentFish.name, state.currentFish.name, state.currentFish.mutation);
+            if (hasDiscoveredAllLacFish() && state.level >= 10) {
+                addLog('🌊 Haute Mer débloquée ! Toutes les espèces du Lac ont été découvertes.', 'epic');
+            }
         }
     } else {
         if (state.currentFish?.isKey) {
