@@ -172,7 +172,7 @@
     <button id="btn-equipment" class="btn-secondary">🛠️ Matériel</button>
     <button id="btn-index" class="btn-secondary">📖 FishIndex</button>
     <button id="btn-map" class="btn-secondary">🗺️ Carte</button>
-    <!-- NOUVEAU BOUTON ICI -->
+    <button id="btn-leaderboard" class="btn-secondary">🏆 Classement</button>
     <button id="btn-crate" class="btn-primary">🔑 Caisse Mystère</button>
 </div>
 
@@ -332,6 +332,20 @@
                 </div>
             </div>
 
+            <div id="screen-leaderboard" class="screen">
+                <div class="glass-card lb-card full-width">
+                    <h1 class="lb-title">🏆 Classement</h1>
+                    <p class="lb-subtitle">Top 50 · synchronisé avec les comptes en ligne</p>
+                    <div id="lb-tabs" class="lb-tabs" role="tablist"></div>
+                    <div class="lb-toolbar">
+                        <p id="lb-status" class="lb-status"></p>
+                        <button type="button" id="btn-lb-refresh" class="lb-refresh-btn" title="Actualiser">↻</button>
+                    </div>
+                    <ol id="lb-list" class="lb-list"></ol>
+                    <button id="btn-back-menu-lb" class="btn-secondary lb-back-btn">Retour au menu</button>
+                </div>
+            </div>
+
             <div id="screen-index" class="screen">
                 <div class="glass-card full-width" style="max-width: 900px; height: 80vh;">
                     <h1 class="title">FishIndex</h1>
@@ -365,6 +379,7 @@
     })();
     </script>
     <script src="auth.js"></script>
+    <script src="leaderboard.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

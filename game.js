@@ -277,7 +277,8 @@ function getSavePayload() {
         equippedRod: state.equippedRod,
         discoveredFishes: state.discoveredFishes,
         keys: state.keys,
-        currentZone: state.currentZone
+        currentZone: state.currentZone,
+        bestFish: state.bestFish || null
     };
 }
 
@@ -294,6 +295,9 @@ function persistGameLocal() {
     localStorage.setItem('stepFishingDiscovered', JSON.stringify(state.discoveredFishes));
     localStorage.setItem('stepFishingKeys', state.keys);
     localStorage.setItem('stepFishingCurrentZone', state.currentZone);
+    if (state.bestFish) {
+        localStorage.setItem('stepFishingBestFish', JSON.stringify(state.bestFish));
+    }
 }
 
 let cloudSaveTimer = null;
@@ -319,6 +323,11 @@ function applySaveData(data) {
     state.discoveredFishes = data.discoveredFishes || [];
     state.keys = parseInt(data.keys, 10) || 0;
     state.currentZone = data.currentZone || 'lac';
+    state.bestFish = data.bestFish || null;
+    if (!state.bestFish?.value) {
+        const derived = findBestFishInInventory(state.inventory);
+        if (derived) state.bestFish = derived;
+    }
     persistGameLocal();
     updateMoneyDisplay();
     updateKeysDisplay();
@@ -356,6 +365,7 @@ let state = {
     ownedRods: safeParse('stepFishingOwnedRods', [0]), 
     equippedRod: parseInt(localStorage.getItem('stepFishingEquippedRod')) || 0,
     discoveredFishes: safeParse('stepFishingDiscovered', []),
+    bestFish: safeParse('stepFishingBestFish', null),
     currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
     keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0
 };
@@ -381,6 +391,51 @@ const elements = {
 function calculateFishValue(rarityIdx) {
     const rarity = RARITIES[rarityIdx];
     return parseFloat((Math.random() * (rarity.maxPrice - rarity.minPrice) + rarity.minPrice).toFixed(2));
+}
+
+function getRarityNameFromClass(className) {
+    const r = RARITIES.find(x => x.class === className);
+    return r ? r.name : 'Inconnu';
+}
+
+function computeLevelFromScore(totalScore) {
+    return Math.floor(Math.pow((totalScore || 0) / 10, 0.7)) + 1;
+}
+
+function computePrestigeFromLevel(level) {
+    return Math.floor((level || 1) / 100);
+}
+
+function findBestFishInInventory(inventory) {
+    let best = null;
+    for (const fishes of Object.values(inventory || {})) {
+        if (!Array.isArray(fishes)) continue;
+        for (const fish of fishes) {
+            if (!fish || fish.isKey) continue;
+            if (!best || (fish.value || 0) > (best.value || 0)) {
+                best = {
+                    name: fish.name || 'Poisson',
+                    value: fish.value || 0,
+                    class: fish.class || '',
+                    rarity: getRarityNameFromClass(fish.class)
+                };
+            }
+        }
+    }
+    return best;
+}
+
+function updateBestFishRecord(fish) {
+    if (!fish || fish.isKey) return;
+    const entry = {
+        name: fish.name,
+        value: fish.value,
+        class: fish.class,
+        rarity: getRarityNameFromClass(fish.class)
+    };
+    if (!state.bestFish || entry.value > (state.bestFish.value || 0)) {
+        state.bestFish = entry;
+    }
 }
 
 function updateMoneyDisplay() {
@@ -499,8 +554,8 @@ function updateDayNightCycle() {
 }
 
 function updateProgression() {
-    state.level = Math.floor(Math.pow(state.totalScore / 10, 0.7)) + 1;
-    state.prestige = Math.floor(state.level / 100);
+    state.level = computeLevelFromScore(state.totalScore);
+    state.prestige = computePrestigeFromLevel(state.level);
     if(elements.userLevel) elements.userLevel.innerText = state.level;
     if(elements.userPrestige) elements.userPrestige.innerText = state.prestige;
     persistGame();
@@ -952,6 +1007,7 @@ function catchFish(success) {
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
         state.totalFishesCaught++;
+        updateBestFishRecord(state.currentFish);
         let placed = false;
         for (let i = 0; i < AQ_CONFIGS.length; i++) {
             const aqId = `aq${i}`;
@@ -1347,6 +1403,10 @@ function init() {
     bind('btn-equipment', () => { showScreen('equipment'); renderEquipment(); });
     bind('btn-index', () => { showScreen('index'); setupIndexTabs(); renderIndex('commun'); });
     bind('btn-map', () => { showScreen('map'); renderMap(); });
+    bind('btn-leaderboard', () => {
+        if (window.StepFishLeaderboard) StepFishLeaderboard.open();
+        else showScreen('leaderboard');
+    });
     bind('btn-crate', () => { updateKeysDisplay(); showScreen('crate'); });
 
     // --- BOUTONS RETOUR & MODALS ---
@@ -1355,6 +1415,7 @@ function init() {
     bind('btn-back-menu-eq', goToMenu);
     bind('btn-back-menu-index', goToMenu);
     bind('btn-back-menu-map', goToMenu);
+    bind('btn-back-menu-lb', goToMenu);
     bind('btn-close-fish', () => showScreen('inventory'));
     bind('btn-close-profile', goToMenu);
     bind('btn-logout', () => {
@@ -1487,6 +1548,7 @@ async function boot() {
     decodeAudioFile(AUDIO_FILES.chest);
     init();
     if (window.StepFishAuth) StepFishAuth.updatePseudoDisplay();
+    if (window.StepFishLeaderboard) StepFishLeaderboard.init();
 }
 
 boot();

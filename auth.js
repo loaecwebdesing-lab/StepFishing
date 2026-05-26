@@ -14,7 +14,8 @@
         equippedRod: 0,
         discoveredFishes: [],
         keys: 0,
-        currentZone: 'lac'
+        currentZone: 'lac',
+        bestFish: null
     };
 
     let supabaseClient = null;
@@ -418,6 +419,8 @@
         getPseudo: () => pseudo,
         saveToCloud,
         logout,
-        updatePseudoDisplay
+        updatePseudoDisplay,
+        getSupabaseClient: () => supabaseClient,
+        getUserId
     };
 })();

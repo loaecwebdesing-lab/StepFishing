@@ -1172,3 +1172,197 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     }
 }
 
+/* --- CLASSEMENT --- */
+#screen-leaderboard {
+    overflow-y: auto;
+    padding: 12px;
+}
+
+#screen-leaderboard .lb-card {
+    width: min(720px, 96vw);
+    max-height: 92vh;
+    padding: 22px 24px 20px;
+    text-align: center;
+    animation: menuFloat 4s infinite ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+#screen-leaderboard .lb-title {
+    font-size: 2.4rem !important;
+    margin: 0 0 4px;
+    line-height: 1.1;
+}
+
+#screen-leaderboard .lb-subtitle {
+    margin: 0 0 14px;
+    font-size: 0.95rem !important;
+    opacity: 0.7;
+}
+
+.lb-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+#screen-leaderboard .lb-tab {
+    width: auto !important;
+    height: auto !important;
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 0.9rem !important;
+    letter-spacing: 0;
+    text-transform: none;
+    border-radius: 999px;
+    border: 2px solid var(--wood-medium) !important;
+    background: rgba(0, 0, 0, 0.35) !important;
+    background-image: none !important;
+    color: rgba(255, 255, 255, 0.85);
+    box-shadow: none !important;
+}
+
+#screen-leaderboard .lb-tab:hover {
+    transform: none;
+    filter: brightness(1.1);
+    border-color: var(--wood-gold) !important;
+}
+
+#screen-leaderboard .lb-tab.active {
+    background: var(--wood-gold) !important;
+    color: #1a1208;
+    border-color: var(--wood-gold) !important;
+}
+
+.lb-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.lb-status {
+    flex: 1;
+    text-align: left;
+    font-size: 0.82rem;
+    opacity: 0.65;
+    margin: 0;
+    min-height: 1.2em;
+}
+
+.lb-status-error {
+    color: #ff8a80;
+    opacity: 1;
+}
+
+.lb-status-ok {
+    color: #69f0ae;
+    opacity: 0.9;
+}
+
+#screen-leaderboard .lb-refresh-btn {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0;
+    font-size: 1.2rem !important;
+    border-radius: 10px;
+    border: 2px solid var(--wood-medium) !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    background-image: none !important;
+    color: var(--white);
+    flex-shrink: 0;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#screen-leaderboard .lb-refresh-btn:hover {
+    transform: none;
+    filter: brightness(1.15);
+    border-color: var(--wood-gold) !important;
+}
+
+.lb-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px 4px;
+    flex: 1;
+    min-height: 200px;
+    max-height: min(52vh, 420px);
+    overflow-y: auto;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 14px;
+    border: 2px solid var(--wood-medium);
+}
+
+.lb-row {
+    display: grid;
+    grid-template-columns: 42px 1fr minmax(120px, auto);
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.92rem;
+}
+
+.lb-row:last-child {
+    border-bottom: none;
+}
+
+.lb-row-me {
+    background: rgba(212, 175, 55, 0.12);
+    border-radius: 8px;
+}
+
+.lb-rank {
+    font-weight: bold;
+    text-align: center;
+    color: var(--wood-gold);
+}
+
+.lb-pseudo {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lb-value {
+    text-align: right;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.lb-empty {
+    padding: 24px 16px;
+    text-align: center;
+    opacity: 0.6;
+    list-style: none;
+}
+
+#screen-leaderboard .lb-back-btn {
+    width: min(280px, 100%) !important;
+    height: 56px !important;
+    margin: 14px auto 0;
+    font-size: 1rem !important;
+}
+
+@media (max-width: 520px) {
+    .lb-row {
+        grid-template-columns: 36px 1fr;
+        grid-template-rows: auto auto;
+    }
+
+    .lb-value {
+        grid-column: 2;
+        text-align: left;
+        white-space: normal;
+        font-size: 0.8rem;
+    }
+}
+
