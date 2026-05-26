@@ -1320,7 +1320,7 @@ window.__stepfishSyncMenuRod = syncMenuRodBackdrop;
 function generateProceduralName(rarityName, speciesName) {
     const prefixes = FISH_DATA.prefixes[rarityName];
     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    return `${prefix} ${speciesName}`;
+    return `${speciesName} ${prefix}`;
 }
 
 function rollRandomMutation() {
