@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StepFishing | Pro Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Neko+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="user-select: none;">
+
+    <div id="game-viewport">
+        <!-- SIDEBAR -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <div class="profile-section">
+                    <div class="avatar">🎣</div>
+                    <div class="profile-info">
+                        <span id="user-pseudo" class="pseudo">Pêcheur Anonyme</span>
+                        <span id="user-rank" class="rank">Novice</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-stats">
+                <div class="stat-item">
+                    <span class="label">💰 Argent</span>
+                    <span id="wallet-balance" class="value">0.00 $</span>
+                </div>
+                <div class="stat-item" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                    <div style="display:flex; justify-content: space-between; width:100%;">
+                        <span class="label">⭐ Niveau</span>
+                        <span id="user-level" class="value">1</span>
+                    </div>
+                    <div class="xp-bar-container">
+                        <div id="xp-bar-fill" class="xp-bar-fill"></div>
+                        <span id="xp-text">0 / 0 XP</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="label">🏆 Prestige</span>
+                    <span id="user-prestige" class="value">0</span>
+                </div>
+            </div>
+            <div id="game-log-container">
+                <div class="log-header">Flux d'événements</div>
+                <div id="game-log">
+                    <div class="log-msg system">Bienvenue dans StepFishing !</div>
+                </div>
+            </div>
+        </aside>
+
+                <!-- MAIN CONTENT -->
+        <main id="main-content">
+            <!-- GESTIONNAIRE DES FONDS (Cycle Jour/Nuit) -->
+            <div id="bg-manager">
+                <div id="bg-day" class="bg-layer active"></div>
+                <div id="bg-dawn" class="bg-layer"></div>
+                <div id="bg-night" class="bg-layer"></div>
+            </div>
+
+            <div class="vignette-overlay"></div>
+            <div class="sun-glow"></div>
+            <div class="sun-reflection"></div>
+
+            <div class="ocean-bg">
+                <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+                <div class="bubble"></div><div class="bubble"></div>
+            </div>
+
+            <!-- MENU PRINCIPAL -->
+            <div id="screen-menu" class="screen active">
+                <div class="glass-card">
+                    <img src="assets/logo.png" class="main-logo" alt="StepFishing Logo">
+                    <p class="subtitle">L'expérience ultime de pêche procédurale</p>
+                    <div class="main-action-container">
+                        <button id="btn-start" class="btn-primary btn-start">Lancer la ligne</button>
+                    </div>
+                    <div class="menu-buttons">
+    <button id="btn-inventory" class="btn-secondary">🎒 Aquarium</button>
+    <button id="btn-shop" class="btn-secondary">🛒 Magasin</button>
+    <button id="btn-equipment" class="btn-secondary">🛠️ Matériel</button>
+    <button id="btn-index" class="btn-secondary">📖 FishIndex</button>
+    <button id="btn-map" class="btn-secondary">🗺️ Carte</button>
+    <!-- NOUVEAU BOUTON ICI -->
+    <button id="btn-crate" class="btn-primary" style="background-image: url('assets/ui/btn_primary.png'); border: 2px solid var(--wood-gold);">💎 Caisse Mystère</button>
+</div>
+
+                </div>
+            </div>
+            <!-- ÉCRAN COFFRE (CSGO STYLE) -->
+<div id="screen-crate" class="screen">
+    <div class="glass-card full-width" style="max-width: 900px; text-align: center;">
+        <h1 class="title">Caisse Mystère</h1>
+        <p class="subtitle">Coût : 50,000 $ | Chancez d'obtenir une canne légendaire !</p>
+        
+        <div id="crate-viewport">
+            <div id="crate-selector"></div>
+            <div id="crate-list">
+                <!-- Les cannes défileront ici -->
+            </div>
+        </div>
+
+        <div class="main-action-container" style="margin-top: 30px;">
+            <button id="btn-open-crate" class="btn-primary btn-start" style="width: 300px; height: 80px;">Ouvrir le Coffre</button>
+            <button id="btn-back-menu-crate" class="btn-secondary" style="width: 200px; height: 60px; margin-top: 20px;">Retour</button>
+        </div>
+    </div>
+</div>
+
+            <!-- CARTE -->
+            <div id="screen-map" class="screen">
+                <div class="glass-card full-width" style="max-width: 800px;">
+                    <h1 class="title">Carte du Monde</h1>
+                    <div id="map-zones" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; width: 100%; margin-bottom: 30px;"></div>
+                    <button id="btn-back-menu-map" class="btn-secondary">Retour au Menu</button>
+                </div>
+            </div>
+
+            <!-- MAGASIN -->
+            <div id="screen-shop" class="screen">
+                <div class="glass-card full-width" style="max-width: 800px;">
+                    <h1 class="title">Boutique de Pêche</h1>
+                    <div id="shop-items-grid"></div>
+                    <button id="btn-back-menu-shop" class="btn-secondary">Retour au Menu</button>
+                </div>
+            </div>
+
+            <!-- ÉQUIPEMENT -->
+            <div id="screen-equipment" class="screen">
+                <div class="glass-card full-width" style="max-width: 500px;">
+                    <h1 class="title">Mon Matériel</h1>
+                    <div id="equipment-list"></div>
+                    <button id="btn-back-menu-eq" class="btn-secondary">Retour au Menu</button>
+                </div>
+            </div>
+
+            <!-- INVENTAIRE / AQUARIUM -->
+            <div id="screen-inventory" class="screen">
+                <div class="inventory-wrapper">
+                    <div class="aq-nav">
+                        <button id="prev-aq" class="nav-btn">◀</button>
+                        <div class="aq-info">
+                            <h1 id="aq-title">Aquarium 1</h1>
+                            <span id="aq-slots">Slots: 0/15</span>
+                        </div>
+                        <button id="next-aq" class="nav-btn">▶</button>
+                    </div>
+                    <div id="aquarium-container">
+                        <div id="aquarium-viewport">
+                            <div id="fish-layer"></div>
+                            <div id="aq-lock-screen" class="hidden">
+                                <div class="lock-card">
+                                    <p>Aquarium Verrouillé</p>
+                                    <button id="btn-buy-aq" class="btn-primary">Débloquer <span id="aq-cost">0</span> $</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="position: absolute; bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <button id="btn-sell-all-aq" class="btn-secondary" style="width: 200px; height: 60px; border: 2px solid var(--danger); color: var(--danger); font-size: 1.2rem;">Tout Vendre</button>
+                    <button id="btn-back-menu" class="btn-secondary">Retour au Menu</button>
+                </div>
+            </div>
+
+            <!-- JEU -->
+            <div id="screen-game" class="screen">
+                <div id="ui-bar">
+                    <div class="ui-item">Score : <span id="current-score">0</span></div>
+                    <div id="combo-display" class="ui-item hidden">Combo : <span id="combo-count">0</span></div>
+                    <div class="ui-item">💰 <span id="wallet-game">0</span> $</div>
+                    <div class="ui-item">⏱️ <span id="time-left">30</span>s</div>
+                </div>
+                <div id="ocean">
+                    <div id="bite-indicator">🌟 MORDU ! 🌟</div>
+                    <div id="fishing-rod-container"></div>
+                </div>
+                <div id="reel-container" class="hidden">
+                    <div class="reel-glass">
+                        <div id="reel-bar">
+                            <div id="fish-target"></div>
+                            <div id="player-cursor"></div>
+                        </div>
+                        <div id="progress-bar-container"><div id="progress-fill"></div></div>
+                        <p id="fish-name-display" class="rarity-text">Poisson</p>
+                        <div id="fish-visual"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIN DE PARTIE -->
+            <div id="screen-game-over" class="screen">
+                <div class="glass-card">
+                    <h1 class="title">Fin de Session</h1>
+                    <p>Votre récolte : <span id="final-score">0</span> points</p>
+                    <button id="btn-restart" class="btn-primary">Recommencer</button>
+                </div>
+            </div>
+
+            <!-- MODALS -->
+            <div id="profile-modal" class="screen">
+                <div id="modal-overlay"></div>
+                <div class="glass-card" style="max-width: 400px;">
+                    <h1 class="title">Mon Profil</h1>
+                    <div class="profile-stats-grid">
+                        <div class="p-stat"><span>Niveau :</span> <strong id="prof-level">1</strong></div>
+                        <div class="p-stat"><span>Prestige :</span> <strong id="prof-prestige">0</strong></div>
+                        <div class="p-stat"><span>Captures :</span> <strong id="prof-fishes">0</strong></div>
+                        <div class="p-stat"><span>Record Argent :</span> <strong id="prof-max-money">0 $</strong></div>
+                        <div class="p-stat"><span>XP Totale :</span> <strong id="prof-total-score">0</strong></div>
+                    </div>
+                    <button id="btn-close-profile" class="btn-secondary" style="margin-top: 20px;">Fermer</button>
+                </div>
+            </div>
+
+            <div id="fish-modal" class="screen">
+                <div id="modal-overlay"></div>
+                <div class="glass-card" style="max-width: 320px; position: relative; z-index: 4000;">
+                    <div id="modal-fish-visual"></div>
+                    <h2 id="modal-fish-name" class="rarity-text">Poisson</h2>
+                    <p id="modal-fish-rarity">Rareté</p>
+                    <div class="fish-price-tag" id="modal-fish-price">0.00 $</div>
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                        <button id="btn-move-fish" class="btn-secondary" style="width: 100%;">🔄 Déplacer</button>
+                        <button id="btn-sell-fish" class="btn-primary btn-danger" style="width: 100%;">Vendre</button>
+                        <button id="btn-close-fish" class="btn-secondary" style="width: 100%;">Fermer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="catch-modal" class="screen">
+                <div id="modal-overlay"></div>
+                <div class="glass-card">
+                    <h1 id="catch-title" class="title">SUCCÈS !</h1>
+                    <div id="catch-visual" style="margin: 20px 0;"></div>
+                    <p id="catch-text">Vous avez capturé un poisson !</p>
+                    <button id="btn-close-catch" class="btn-primary">Continuer</button>
+                </div>
+            </div>
+
+            <div id="screen-index" class="screen">
+                <div class="glass-card full-width" style="max-width: 900px; height: 80vh;">
+                    <h1 class="title">FishIndex</h1>
+                    <div id="index-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;"></div>
+                    <div id="index-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 20px; width: 100%; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 20px; border: 2px solid var(--wood-medium);"></div>
+                    <button id="btn-back-menu-index" class="btn-secondary" style="margin-top: 20px;">Retour</button>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <div id="discovery-toast" class="toast-notification">
+        <div class="toast-content">
+            <span class="toast-icon">🌟</span>
+            <span id="toast-text">Nouvelle découverte !</span>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
