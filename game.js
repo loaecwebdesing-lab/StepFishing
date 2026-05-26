@@ -199,11 +199,11 @@ const ZONE_DATA = [
         bgDawn: 'assets/background_dawn.png', 
         bgNight: 'assets/background_night.png',
         library: {
-            'commun': ['Carasin.png', 'Rosette.png', 'Vandoise.png', 'Ecrevise.png', 'Ablette.png', 'GobieSauteur.png', 'Carpe.png', 'Perche.png', 'Truite.png', 'Barbeau.png', 'Breme.png', 'Tanche.png', 'Goujon.png', 'Rotengle.png', 'Black_Bass.png', 'Gardon.png', 'Crapet.png'],
-            'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png'], 
-            'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png'], 
-            'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png'], 
-            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png'], 'mythique': [], 'divin': []
+            'commun': ['Carasin.png', 'Rosette.png', 'Vandoise.png', 'Ecrevise.png', 'Ablette.png', 'GobieSauteur.png', 'Carpe.png', 'Perche.png', 'Truite.png', 'Barbeau.png', 'Breme.png', 'Tanche.png', 'Goujon.png', 'Rotengle.png', 'Black_Bass.png', 'Gardon.png', 'Crapet.png', 'Spirlin.png','Coregone.png','Huchon.png','Bouviere.png','Blageon.png'],
+            'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png', 'Lamproie.png','Tilapia.png'], 
+            'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png','Pleco.png','Corydoras.png','Rasboa.png'], 
+            'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png','Pangasius.png','FlapJack.png'], 
+            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png','Arowana.png'], 'mythique': ['Esturgeon.png'], 'divin': []
         }
     },
     { 
@@ -217,7 +217,7 @@ const ZONE_DATA = [
             'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png'],
             'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png'], 
             'rare': ['Baracuda.png', 'Thon.png'], 
-            'epique': ['Espadon.png', 'MahiMahi.png'], 
+            'epique': ['Espadon.png', 'MahiMahi.png','Poulpi.png'], 
             'legendaire': ['Raiemanta.png'], 'mythique': [], 'divin': []
         }
     }
