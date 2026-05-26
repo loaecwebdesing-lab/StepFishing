@@ -35,6 +35,7 @@
         <div class="glass-card auth-card">
             <img src="assets/logo.png" class="main-logo auth-logo" alt="StepFishing">
             <p class="subtitle">Crée un compte pour sauvegarder ta progression en ligne</p>
+            <p id="auth-status" class="auth-status"></p>
             <div class="auth-tabs">
                 <button type="button" class="auth-tab active" data-tab="login">Connexion</button>
                 <button type="button" class="auth-tab" data-tab="register">Inscription</button>
@@ -42,13 +43,19 @@
             <div id="auth-message" class="auth-message"></div>
             <form id="auth-form-login" class="auth-form">
                 <input type="email" id="login-email" placeholder="Email" required autocomplete="username">
-                <input type="password" id="login-password" placeholder="Mot de passe" required autocomplete="current-password">
+                <div class="auth-password-row">
+                    <input type="password" id="login-password" placeholder="Mot de passe" required autocomplete="current-password">
+                    <button type="button" class="auth-show-pwd" data-target="login-password">👁</button>
+                </div>
                 <button type="submit" class="btn-primary btn-start">Se connecter</button>
             </form>
             <form id="auth-form-register" class="auth-form hidden">
                 <input type="text" id="register-pseudo" placeholder="Pseudo (3-20 caractères)" required minlength="3" maxlength="20" autocomplete="nickname">
                 <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
-                <input type="password" id="register-password" placeholder="Mot de passe (6+ caractères)" required minlength="6" autocomplete="new-password">
+                <div class="auth-password-row">
+                    <input type="password" id="register-password" placeholder="Mot de passe (6+ caractères)" required minlength="6" autocomplete="new-password">
+                    <button type="button" class="auth-show-pwd" data-target="register-password">👁</button>
+                </div>
                 <input type="password" id="register-password-confirm" placeholder="Confirmer le mot de passe" required autocomplete="new-password">
                 <button type="submit" class="btn-primary btn-start">Créer mon compte</button>
             </form>
@@ -314,6 +321,18 @@
     </div>
 
     <script src="config.js"></script>
+    <script>
+    (function () {
+        var fallback = {
+            supabaseUrl: 'https://rrlczghwqmzmyfmxgqil.supabase.co',
+            supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJybGN6Z2h3cW16bXlmbXhncWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NDE4NDQsImV4cCI6MjA5NTMxNzg0NH0.q1iSexsDCrQ2kUXZQBdEPgOBzTvDRiDGP4eeA58pKiA'
+        };
+        var cfg = window.STEPFISH_CONFIG || {};
+        if (!cfg.supabaseAnonKey || cfg.supabaseAnonKey.length < 80) {
+            window.STEPFISH_CONFIG = fallback;
+        }
+    })();
+    </script>
     <script src="auth.js"></script>
     <script src="game.js"></script>
 </body>

@@ -61,6 +61,13 @@
         });
     }
 
+    function setAuthStatus(text, ok) {
+        const el = document.getElementById('auth-status');
+        if (!el) return;
+        el.textContent = text || '';
+        el.className = 'auth-status' + (ok ? ' ok' : ok === false ? ' err' : '');
+    }
+
     function setAuthMessage(text, isError) {
         const el = document.getElementById('auth-message');
         if (!el) return;
@@ -108,7 +115,7 @@
             return 'Compte non confirmé — dans Supabase : Authentication → Users → supprime cet utilisateur et réinscris-toi.';
         }
         if (code === 'invalid_credentials' || msg.includes('invalid login credentials')) {
-            return 'Email ou mot de passe incorrect. Essaie un nouvel email, ou supprime l\'ancien compte dans Supabase → Users.';
+            return 'Mot de passe ou email incorrect. Utilise le même mot de passe qu\'à l\'inscription (bouton 👁 pour vérifier).';
         }
         if (code === 'weak_password' || msg.includes('weak password')) {
             return 'Mot de passe trop faible — minimum 6 caractères (8+ recommandé).';
@@ -150,6 +157,7 @@
             method: 'POST',
             headers: {
                 apikey: cfg.supabaseAnonKey,
+                Authorization: `Bearer ${cfg.supabaseAnonKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
@@ -310,14 +318,23 @@
             btn.addEventListener('click', () => switchAuthTab(btn.dataset.tab));
         });
 
+        document.querySelectorAll('.auth-show-pwd').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+            });
+        });
+
         document.getElementById('auth-form-login')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value;
             try {
                 await login(email, password);
                 if (readyResolve) { readyResolve(); readyResolve = null; }
             } catch (err) {
+                console.error('Login failed:', err);
                 setAuthMessage(formatAuthError(err), true);
             }
         });
@@ -325,7 +342,7 @@
         document.getElementById('auth-form-register')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const pseudoInput = document.getElementById('register-pseudo').value;
-            const email = document.getElementById('register-email').value.trim();
+            const email = document.getElementById('register-email').value.trim().toLowerCase();
             const password = document.getElementById('register-password').value;
             const confirm = document.getElementById('register-password-confirm').value;
             if (password !== confirm) {
@@ -352,6 +369,7 @@
 
         if (!isConfigured()) {
             console.warn('StepFishing : Supabase non configuré — mode local uniquement');
+            setAuthStatus('Config Supabase manquante', false);
             enterGuestMode();
             return;
         }
@@ -360,6 +378,7 @@
             await loadSupabase();
             const cfg = getConfig();
             await validateApiKey();
+            setAuthStatus('Serveur connecté ✓', true);
             supabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
                 auth: {
                     persistSession: true,
@@ -375,6 +394,7 @@
             }
         } catch (e) {
             console.warn('Auth indisponible', e);
+            setAuthStatus('Serveur injoignable', false);
             setAuthMessage(formatAuthError(e) || 'Serveur indisponible — mode invité possible', true);
         }
 
