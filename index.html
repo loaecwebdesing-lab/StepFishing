@@ -33,33 +33,64 @@
     <!-- ÉCRAN CONNEXION / INSCRIPTION -->
     <div id="screen-auth" class="screen auth-screen">
         <div class="glass-card auth-card">
-            <img src="assets/logo.png" class="main-logo auth-logo" alt="StepFishing">
-            <p class="subtitle">Crée un compte pour sauvegarder ta progression en ligne</p>
-            <p id="auth-status" class="auth-status"></p>
-            <div class="auth-tabs">
-                <button type="button" class="auth-tab active" data-tab="login">Connexion</button>
-                <button type="button" class="auth-tab" data-tab="register">Inscription</button>
+            <header class="auth-header">
+                <img src="assets/logo.png" class="auth-logo" alt="StepFishing">
+                <p class="auth-tagline">Sauvegarde ta progression en ligne</p>
+                <p id="auth-status" class="auth-status" aria-live="polite"></p>
+            </header>
+
+            <div class="auth-tabs" role="tablist">
+                <button type="button" class="auth-tab active" data-tab="login" role="tab">Connexion</button>
+                <button type="button" class="auth-tab" data-tab="register" role="tab">Inscription</button>
             </div>
-            <div id="auth-message" class="auth-message"></div>
-            <form id="auth-form-login" class="auth-form">
-                <input type="email" id="login-email" placeholder="Email" required autocomplete="username">
-                <div class="auth-password-row">
-                    <input type="password" id="login-password" placeholder="Mot de passe" required autocomplete="current-password">
-                    <button type="button" class="auth-show-pwd" data-target="login-password">👁</button>
-                </div>
-                <button type="submit" class="btn-primary btn-start">Se connecter</button>
-            </form>
-            <form id="auth-form-register" class="auth-form hidden">
-                <input type="text" id="register-pseudo" placeholder="Pseudo (3-20 caractères)" required minlength="3" maxlength="20" autocomplete="nickname">
-                <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
-                <div class="auth-password-row">
-                    <input type="password" id="register-password" placeholder="Mot de passe (6+ caractères)" required minlength="6" autocomplete="new-password">
-                    <button type="button" class="auth-show-pwd" data-target="register-password">👁</button>
-                </div>
-                <input type="password" id="register-password-confirm" placeholder="Confirmer le mot de passe" required autocomplete="new-password">
-                <button type="submit" class="btn-primary btn-start">Créer mon compte</button>
-            </form>
-            <button type="button" id="btn-auth-guest" class="btn-secondary auth-guest-btn">Jouer sans compte (progression locale)</button>
+
+            <div id="auth-message" class="auth-message" aria-live="polite"></div>
+
+            <div class="auth-body">
+                <form id="auth-form-login" class="auth-form">
+                    <label class="auth-field">
+                        <span class="auth-label">Email</span>
+                        <input type="email" id="login-email" placeholder="ton@email.com" required autocomplete="username">
+                    </label>
+                    <label class="auth-field auth-field-pwd">
+                        <span class="auth-label">Mot de passe</span>
+                        <div class="auth-password-row">
+                            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="auth-show-pwd" data-target="login-password" title="Afficher le mot de passe" aria-label="Afficher le mot de passe">👁</button>
+                        </div>
+                    </label>
+                    <button type="submit" class="auth-btn auth-btn-primary">Se connecter</button>
+                </form>
+
+                <form id="auth-form-register" class="auth-form hidden">
+                    <label class="auth-field">
+                        <span class="auth-label">Pseudo</span>
+                        <input type="text" id="register-pseudo" placeholder="PêcheurPro" required minlength="3" maxlength="20" autocomplete="nickname">
+                    </label>
+                    <label class="auth-field">
+                        <span class="auth-label">Email</span>
+                        <input type="email" id="register-email" placeholder="ton@email.com" required autocomplete="email">
+                    </label>
+                    <label class="auth-field auth-field-pwd">
+                        <span class="auth-label">Mot de passe</span>
+                        <div class="auth-password-row">
+                            <input type="password" id="register-password" placeholder="6 caractères min." required minlength="6" autocomplete="new-password">
+                            <button type="button" class="auth-show-pwd" data-target="register-password" title="Afficher le mot de passe" aria-label="Afficher le mot de passe">👁</button>
+                        </div>
+                    </label>
+                    <label class="auth-field">
+                        <span class="auth-label">Confirmation</span>
+                        <input type="password" id="register-password-confirm" placeholder="••••••••" required autocomplete="new-password">
+                    </label>
+                    <button type="submit" class="auth-btn auth-btn-primary">Créer mon compte</button>
+                </form>
+            </div>
+
+            <footer class="auth-footer">
+                <span class="auth-divider">ou</span>
+                <button type="button" id="btn-auth-guest" class="auth-btn auth-btn-guest">Jouer en invité</button>
+                <p class="auth-hint">Progression uniquement sur cet appareil</p>
+            </footer>
         </div>
     </div>
 
