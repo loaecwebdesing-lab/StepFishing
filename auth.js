@@ -15,7 +15,9 @@
         discoveredFishes: [],
         keys: 0,
         currentZone: 'lac',
-        bestFish: null
+        bestFish: null,
+        ownedCosmetics: ['default'],
+        equippedCosmetic: 'default'
     };
 
     let supabaseClient = null;
@@ -93,8 +95,13 @@
     }
 
     function updatePseudoDisplay() {
-        const el = document.getElementById('user-pseudo');
-        if (el) el.textContent = pseudo;
+        if (window.StepFishCosmetics?.refreshPseudoDisplays) {
+            window.StepFishCosmetics.refreshPseudoDisplays();
+        } else {
+            const el = document.getElementById('user-pseudo');
+            if (el) el.textContent = pseudo;
+        }
+        if (window.StepFishChat?.refreshAuthState) window.StepFishChat.refreshAuthState();
         const rank = document.getElementById('user-rank');
         if (rank) {
             if (session) rank.textContent = 'Compte en ligne';

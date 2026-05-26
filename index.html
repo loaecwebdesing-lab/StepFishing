@@ -171,6 +171,7 @@
     <button id="btn-index" class="btn-secondary">📖 FishIndex</button>
     <button id="btn-map" class="btn-secondary">🗺️ Carte</button>
     <button id="btn-leaderboard" class="btn-secondary">🏆 Classement</button>
+    <button id="btn-cosmetics" class="btn-secondary">✨ Cosmétiques</button>
     <button id="btn-crate" class="btn-primary">🔑 Caisse Mystère</button>
 </div>
 
@@ -293,6 +294,7 @@
                 <div id="modal-overlay"></div>
                 <div class="glass-card" style="max-width: 400px;">
                     <h1 class="title">Mon Profil</h1>
+                    <p id="prof-pseudo-display" class="prof-pseudo-display"></p>
                     <div class="profile-stats-grid">
                         <div class="p-stat"><span>Niveau :</span> <strong id="prof-level">1</strong></div>
                         <div class="p-stat"><span>Prestige :</span> <strong id="prof-prestige">0</strong></div>
@@ -330,6 +332,16 @@
                 </div>
             </div>
 
+            <div id="screen-cosmetics" class="screen">
+                <div class="glass-card full-width cosmetics-card">
+                    <h1 class="title">✨ Boutique Cosmétique</h1>
+                    <p class="subtitle">Styles de pseudo · visible dans le chat et le classement</p>
+                    <p id="cosmetics-status" class="cosmetics-status"></p>
+                    <div id="cosmetics-grid" class="cosmetics-grid"></div>
+                    <button id="btn-back-menu-cosmetics" class="btn-secondary">Retour au menu</button>
+                </div>
+            </div>
+
             <div id="screen-leaderboard" class="screen">
                 <div class="glass-card lb-card full-width">
                     <h1 class="lb-title">🏆 Classement</h1>
@@ -354,6 +366,17 @@
             </div>
         </main>
 
+        <div id="global-chat" class="global-chat">
+            <button type="button" id="chat-toggle" class="chat-toggle" title="Réduire le chat">▼</button>
+            <div class="chat-header">💬 Chat global</div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <p id="chat-status" class="chat-status-line"></p>
+            <form id="chat-form" class="chat-form">
+                <input type="text" id="chat-input" maxlength="200" placeholder="Écrire un message…" autocomplete="off">
+                <button type="submit" class="chat-send">➤</button>
+            </form>
+        </div>
+
     </div>
 
     <div id="discovery-toast" class="toast-notification">
@@ -377,6 +400,8 @@
     })();
     </script>
     <script src="auth.js"></script>
+    <script src="cosmetics.js"></script>
+    <script src="chat.js"></script>
     <script src="leaderboard.js"></script>
     <script src="game.js"></script>
 </body>

@@ -284,7 +284,9 @@ function getSavePayload() {
         discoveredFishes: state.discoveredFishes,
         keys: state.keys,
         currentZone: state.currentZone,
-        bestFish: state.bestFish || null
+        bestFish: state.bestFish || null,
+        ownedCosmetics: state.ownedCosmetics || ['default'],
+        equippedCosmetic: state.equippedCosmetic || 'default'
     };
 }
 
@@ -304,6 +306,8 @@ function persistGameLocal() {
     if (state.bestFish) {
         localStorage.setItem('stepFishingBestFish', JSON.stringify(state.bestFish));
     }
+    localStorage.setItem('stepFishingOwnedCosmetics', JSON.stringify(state.ownedCosmetics || ['default']));
+    localStorage.setItem('stepFishingEquippedCosmetic', state.equippedCosmetic || 'default');
 }
 
 let cloudSaveTimer = null;
@@ -330,6 +334,12 @@ function applySaveData(data) {
     state.keys = parseInt(data.keys, 10) || 0;
     state.currentZone = data.currentZone || 'lac';
     state.bestFish = data.bestFish || null;
+    if (window.StepFishCosmetics) {
+        window.StepFishCosmetics.loadFromSave(data);
+    } else {
+        state.ownedCosmetics = Array.isArray(data.ownedCosmetics) ? data.ownedCosmetics : ['default'];
+        state.equippedCosmetic = data.equippedCosmetic || 'default';
+    }
     if (!state.bestFish?.value) {
         const derived = findBestFishInInventory(state.inventory);
         if (derived) state.bestFish = derived;
@@ -373,7 +383,9 @@ let state = {
     discoveredFishes: safeParse('stepFishingDiscovered', []),
     bestFish: safeParse('stepFishingBestFish', null),
     currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
-    keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0
+    keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0,
+    ownedCosmetics: safeParse('stepFishingOwnedCosmetics', ['default']),
+    equippedCosmetic: localStorage.getItem('stepFishingEquippedCosmetic') || 'default'
 };
 
 const getEl = (id) => document.getElementById(id);
@@ -615,6 +627,7 @@ function addLog(message, type = 'normal') {
 
 function openProfile() {
     if(!elements.profLevel) return;
+    if (window.StepFishCosmetics?.refreshPseudoDisplays) window.StepFishCosmetics.refreshPseudoDisplays();
     elements.profLevel.innerText = state.level;
     elements.profPrestige.innerText = state.prestige;
     elements.profFishes.innerText = state.totalFishesCaught;
@@ -1444,6 +1457,9 @@ function init() {
         if (window.StepFishLeaderboard) StepFishLeaderboard.open();
         else showScreen('leaderboard');
     });
+    bind('btn-cosmetics', () => {
+        if (window.StepFishCosmetics) StepFishCosmetics.open();
+    });
     bind('btn-crate', () => { updateKeysDisplay(); showScreen('crate'); });
 
     // --- BOUTONS RETOUR & MODALS ---
@@ -1453,6 +1469,7 @@ function init() {
     bind('btn-back-menu-index', goToMenu);
     bind('btn-back-menu-map', goToMenu);
     bind('btn-back-menu-lb', goToMenu);
+    bind('btn-back-menu-cosmetics', goToMenu);
     bind('btn-close-fish', () => showScreen('inventory'));
     bind('btn-close-profile', goToMenu);
     bind('btn-logout', () => {
@@ -1577,6 +1594,7 @@ function openCrate() {
 }
 
 async function boot() {
+    window.__stepfishGetState = () => state;
     setupAudio();
     preloadAllAudio();
     if (window.StepFishAuth) await StepFishAuth.init();
@@ -1586,6 +1604,8 @@ async function boot() {
     init();
     if (window.StepFishAuth) StepFishAuth.updatePseudoDisplay();
     if (window.StepFishLeaderboard) StepFishLeaderboard.init();
+    if (window.StepFishCosmetics) StepFishCosmetics.init();
+    if (window.StepFishChat) StepFishChat.start();
 }
 
 boot();

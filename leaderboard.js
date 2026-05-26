@@ -115,12 +115,15 @@
         }
 
         const myPseudo = getMyPseudo();
+        const renderPseudo = window.StepFishCosmetics?.renderPseudoHTML
+            ? (p, c) => window.StepFishCosmetics.renderPseudoHTML(p, c || 'default')
+            : (p) => escapeHtml(p);
         list.innerHTML = rows.map((row, index) => {
             const rank = index + 1;
             const isMe = myPseudo && row.pseudo === myPseudo;
             return `<li class="lb-row${isMe ? ' lb-row-me' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
-                <span class="lb-pseudo">${escapeHtml(row.pseudo)}</span>
+                <span class="lb-pseudo">${renderPseudo(row.pseudo, row.cosmetic_id)}</span>
                 <span class="lb-value">${escapeHtml(formatValue(row, activeCategory))}</span>
             </li>`;
         }).join('');
@@ -148,7 +151,7 @@
 
         let query = client
             .from('leaderboard_stats')
-            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity')
+            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, cosmetic_id')
             .limit(LIMIT);
 
         cat.orders.forEach((order, i) => {
