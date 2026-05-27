@@ -4,7 +4,7 @@
  */
 
 /** Poids de tirage (Légendaire / Mythique / Divin très bas) */
-const RARITY_WEIGHTS = [100, 42, 16, 5, 0.85, 0.028, 0.005];
+const RARITY_WEIGHTS = [100, 42, 16, 5.45, 0.98, 0.028, 0.005];
 
 const RARITIES = [
     { name: 'Commun', folder: 'commun', color: '#BDBDBD', difficulty: 2, points: 1, speed: 2, class: 'rarity-0', minPrice: 0.1, maxPrice: 1 },
@@ -464,7 +464,7 @@ function rollFishRarityIndex(luck = 0) {
     for (let i = 0; i < RARITIES.length; i++) {
         if (i <= maxRarityAllowed) {
             let w = RARITY_WEIGHTS[i];
-            if (i >= 3 && i <= 4) w *= (1 + cappedLuck * 0.05);
+            if (i >= 3 && i <= 4) w *= (1 + cappedLuck * 0.058);
             weights.push(w);
             totalWeight += w;
         } else {
