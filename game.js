@@ -372,6 +372,7 @@ function persistGameLocal() {
     }
     localStorage.setItem('stepFishingOwnedCosmetics', JSON.stringify(state.ownedCosmetics || ['default']));
     localStorage.setItem('stepFishingEquippedCosmetic', state.equippedCosmetic || 'default');
+    updateAquariumCapacityHUD();
 }
 
 let cloudSaveTimer = null;
@@ -471,7 +472,7 @@ const elements = {
         index: getEl('screen-index'),
         map: getEl('screen-map')
     },
-    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual')
+    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), aqCapacityHud: getEl('aq-capacity-hud'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual')
 };
 
 function calculateFishValue(rarityIdx) {
@@ -902,6 +903,27 @@ const AQ_CONFIGS = [
     { name: "Palais d'Or", cost: 5000, bg: "assets/aquariums/aq3.png" },
     { name: "Nébuleuse", cost: 25000, bg: "assets/aquariums/aq4.png" }
 ];
+const AQ_SLOTS_PER_TANK = 15;
+
+function getAquariumCapacityStats() {
+    normalizeInventory();
+    const unlocked = normalizeUnlockedAquariums();
+    let used = 0;
+    let total = 0;
+    unlocked.forEach(idx => {
+        used += (state.inventory[`aq${idx}`] || []).length;
+        total += AQ_SLOTS_PER_TANK;
+    });
+    return { used, total };
+}
+
+function updateAquariumCapacityHUD() {
+    const el = elements.aqCapacityHud || document.getElementById('aq-capacity-hud');
+    if (!el) return;
+    const { used, total } = getAquariumCapacityStats();
+    el.textContent = `🐠 ${used}/${total}`;
+    el.classList.toggle('aq-capacity-full', total > 0 && used >= total);
+}
 
 function newFishUid() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -969,6 +991,7 @@ function normalizeInventory() {
 function refreshInventoryAfterCloudSync() {
     normalizeInventory();
     updateMoneyDisplay();
+    updateAquariumCapacityHUD();
     if (state.currentPhase === 'INVENTORY') {
         renderAquarium();
         animateFish();
@@ -995,7 +1018,7 @@ function placeFishInAquarium(fish) {
     for (let i = 0; i < AQ_CONFIGS.length; i++) {
         if (!unlocked.includes(i)) continue;
         const aqId = `aq${i}`;
-        if (state.inventory[aqId].length < 15) {
+        if (state.inventory[aqId].length < AQ_SLOTS_PER_TANK) {
             state.inventory[aqId].push(ensureFishUid({ ...fish, locked: Boolean(fish.locked) }));
             return { placed: true, aqIndex: i, aqId };
         }
@@ -1113,7 +1136,7 @@ function renderAquarium() {
     if (!elements.fishLayer) return;
     elements.fishLayer.innerHTML = '';
     const fishes = state.inventory[aqId] || [];
-    if (elements.aqSlots) elements.aqSlots.innerText = `Slots: ${fishes.length}/15`;
+    if (elements.aqSlots) elements.aqSlots.innerText = `Slots: ${fishes.length}/${AQ_SLOTS_PER_TANK}`;
     fishes.forEach((fish, index) => {
         const fDiv = document.createElement('div');
         const mutation = getMutationData(fish.mutation);
@@ -1315,7 +1338,7 @@ function moveFishFromAq(index, fromAqId) {
         alert("❌ Cet aquarium est verrouillé !"); return;
     }
     if (!state.inventory[targetAqId]) state.inventory[targetAqId] = [];
-    if (state.inventory[targetAqId].length >= 15) {
+    if (state.inventory[targetAqId].length >= AQ_SLOTS_PER_TANK) {
         alert("❌ L'aquarium est plein !"); return;
     }
     const [movedFish] = state.inventory[fromAqId].splice(index, 1);
@@ -1898,6 +1921,7 @@ function init() {
         updateMoneyDisplay(); 
         updateProgression();
         updateKeysDisplay();
+        updateAquariumCapacityHUD();
         updateZoneBackgrounds();
         startAutoDayNightCycle();
     } catch(e) { 
@@ -2092,6 +2116,7 @@ window.StepFishGameTrade = {
     getMutationData,
     applySaveData,
     refreshInventoryAfterCloudSync,
+    updateAquariumCapacityHUD,
     addLog,
     renderAquarium,
     showScreen
