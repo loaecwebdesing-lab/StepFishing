@@ -3,8 +3,10 @@
  * Version: 13.0.3 (Corrected Order)
  */
 
-/** Poids de tirage (Légendaire / Mythique / Divin très bas) */
-const RARITY_WEIGHTS = [100, 42, 16, 6.85, 0.98, 0.028, 0.005];
+/** Poids de tirage Commun → Épique (Lég./Myth./Divin = catchRates canne) */
+const RARITY_WEIGHTS = [100, 42, 18.5, 8.0, 0.98, 0.028, 0.005];
+/** Bonus global sur le % Légendaire des cannes (~+15 %) */
+const LEGENDARY_CATCH_MULT = 1.15;
 
 const RARITIES = [
     { name: 'Commun', folder: 'commun', color: '#BDBDBD', difficulty: 2, points: 1, speed: 2, class: 'rarity-0', minPrice: 0.1, maxPrice: 1 },
@@ -711,13 +713,13 @@ function rollMutation() {
 function getRodCatchRates(rod) {
     const luck = Math.min(Math.max(0, rod?.luck ?? 0), 100);
     const defaults = {
-        legendaire: 0.008 * (1 + luck * 0.09),
+        legendaire: 0.0092 * (1 + luck * 0.10),
         mythique: 0.003 * (1 + luck * 0.075),
         divin: 0.0008 * (1 + luck * 0.06)
     };
     const r = rod?.catchRates || {};
     return {
-        legendaire: Math.max(0, r.legendaire ?? defaults.legendaire),
+        legendaire: Math.max(0, (r.legendaire ?? defaults.legendaire) * LEGENDARY_CATCH_MULT),
         mythique: Math.max(0, r.mythique ?? defaults.mythique),
         divin: Math.max(0, r.divin ?? defaults.divin)
     };
@@ -754,7 +756,8 @@ function rollFishRarityIndex(rodOrLuck = 0) {
     const weights = [];
     for (let i = 0; i <= 3; i++) {
         let w = RARITY_WEIGHTS[i];
-        if (i === 3) w *= (1 + luck * 0.071);
+        if (i === 2) w *= (1 + luck * 0.038);
+        if (i === 3) w *= (1 + luck * 0.082);
         weights.push(w);
         totalWeight += w;
     }
@@ -2309,24 +2312,29 @@ function spawnOsuTarget() {
 
     const oceanWidth = elements.ocean.clientWidth;
     const oceanHeight = elements.ocean.clientHeight;
-    const targetSize = 70;
-    const marginX = Math.max(48, Math.round(oceanWidth * 0.14));
-    const marginY = Math.max(48, Math.round(oceanHeight * 0.16));
+    const targetSize = isMobileLayout() ? 58 : 70;
+    target.style.width = targetSize + 'px';
+    target.style.height = targetSize + 'px';
+    const marginX = Math.max(32, Math.round(oceanWidth * 0.1));
+    const marginY = Math.max(40, Math.round(oceanHeight * 0.12));
     const usableW = Math.max(0, oceanWidth - marginX * 2 - targetSize);
     const usableH = Math.max(0, oceanHeight - marginY * 2 - targetSize);
 
     target.style.left = (marginX + Math.random() * usableW) + 'px';
     target.style.top = (marginY + Math.random() * usableH) + 'px';
-    
-    target.addEventListener('mousedown', (e) => {
+
+    const onOsuHit = (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        if (state.currentPhase !== 'SIGHTING') return;
         state.combo++;
         window.StepFishAchievements?.onComboUpdate?.(state.combo);
-        elements.combo.innerText = state.combo;
-        target.remove(); 
+        if (elements.combo) elements.combo.innerText = state.combo;
+        target.remove();
         spawnOsuTarget();
         if (state.combo >= 5) setPhase('BITE');
-    });
+    };
+    target.addEventListener('pointerdown', onOsuHit);
     
     elements.ocean.appendChild(target);
     
@@ -2401,9 +2409,14 @@ function triggerCatch() {
 
 function startReelGame() {
     const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
+    const metrics = getReelBarMetrics();
+    state.reelBarHeight = metrics.height;
+    state.fishZoneHeight = metrics.fishH;
     state.reelProgress = 20;
-    state.fishPos = 150;
-    state.fishTargetY = Math.random() * 250;
+    state.fishPos = Math.max(0, (metrics.height - metrics.fishH) * 0.45);
+    state.fishTargetY = Math.random() * Math.max(1, metrics.height - metrics.fishH);
+    state.playerPos = metrics.height * 0.5;
+    if (elements.playerCursor) elements.playerCursor.style.top = state.playerPos + 'px';
 
     if(elements.progressFill) elements.progressFill.style.width = '20%';
     const difficulty = state.currentFish?.difficulty || 6;
@@ -2435,10 +2448,12 @@ function startReelGame() {
             const diff = state.fishTargetY - state.fishPos;
             state.fishPos += diff * (fishLerp + Math.random() * erraticFactor);
 
-            if (Math.abs(diff) < 10) state.fishTargetY = Math.random() * 250;
+            const barH = state.reelBarHeight || getReelBarMetrics().height;
+            const fishH = state.fishZoneHeight || elements.fishTarget?.offsetHeight || 50;
+            if (Math.abs(diff) < 10) state.fishTargetY = Math.random() * Math.max(1, barH - fishH);
             if(elements.fishTarget) elements.fishTarget.style.top = state.fishPos + 'px';
 
-            const isInside = state.playerPos >= state.fishPos && state.playerPos <= (state.fishPos + 50);
+            const isInside = state.playerPos >= state.fishPos && state.playerPos <= (state.fishPos + fishH);
 
             if (isInside) {
                 state.reelProgress += (1.2 * (currentRod.speed || 1));
@@ -2662,6 +2677,36 @@ function endGame() {
     goToMenu();
 }
 
+function isMobileLayout() {
+    return window.matchMedia('(max-width: 900px)').matches;
+}
+
+function closeMobileSidebar() {
+    document.getElementById('sidebar')?.classList.remove('sidebar-open');
+    document.getElementById('game-viewport')?.classList.remove('sidebar-open');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.setAttribute('aria-hidden', 'true');
+}
+
+function getReelBarMetrics() {
+    const bar = document.getElementById('reel-bar');
+    if (!bar) return { height: 300, fishH: 50 };
+    const fishH = elements.fishTarget?.offsetHeight || 50;
+    return { height: bar.clientHeight || 300, fishH };
+}
+
+function updateReelPlayerPos(clientY) {
+    const bar = document.getElementById('reel-bar');
+    if (!bar || state.currentPhase !== 'REELING') return;
+    const rect = bar.getBoundingClientRect();
+    const { height } = getReelBarMetrics();
+    state.reelBarHeight = height;
+    state.playerPos = Math.max(0, Math.min(height, clientY - rect.top));
+    if (elements.playerCursor) {
+        elements.playerCursor.style.top = state.playerPos + 'px';
+    }
+}
+
 function showScreen(screenName) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const kebab = screenName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
@@ -2674,6 +2719,8 @@ function showScreen(screenName) {
         console.warn('Écran introuvable :', screenName);
         document.getElementById('screen-menu')?.classList.add('active');
     }
+    document.body.classList.toggle('mobile-game-active', screenName === 'game');
+    if (isMobileLayout()) closeMobileSidebar();
     syncMenuRodBackdrop();
 }
 
@@ -3132,46 +3179,67 @@ function init() {
     bind('btn-sell-all-aq', sellAllFromAq);
     bind('btn-sell-all-global', sellAllFromAllAquariums);
 
-    // --- INPUTS SOURIS ---
-        window.addEventListener('mousemove', (e) => {
-        const bar = document.getElementById('reel-bar');
-        if(!bar) return;
-
-        const rect = bar.getBoundingClientRect();
-        // On calcule la position exacte de la souris à l'intérieur de la barre noire
-        let relativeY = e.clientY - rect.top;
-        
-        // On bloque la valeur entre 0 et 300 (la hauteur de la barre)
-        state.playerPos = Math.max(0, Math.min(300, relativeY));
-
-        if (state.currentPhase === 'REELING') {
-            if(elements.playerCursor) {
-                elements.playerCursor.style.top = state.playerPos + 'px';
-            }
-        }
+    // --- INPUTS souris / tactile ---
+    window.addEventListener('pointermove', (e) => {
+        if (state.currentPhase === 'REELING') updateReelPlayerPos(e.clientY);
     });
 
-        // GESTION DU CLIC "MORDU" (SÉCURISÉE)
-    window.addEventListener('mousedown', (e) => {
-        if (state.currentPhase === 'BITE') {
-            // On vérifie qu'on ne clique pas sur un bouton du menu
-            if (e.target.tagName !== 'BUTTON') {
-                triggerCatch();
-            }
-        }
-    });
-
-    // AJOUT : On permet aussi de cliquer DIRECTEMENT sur l'indicateur "Mordu"
-    if(elements.biteIndicator) {
-        elements.biteIndicator.addEventListener('mousedown', (e) => {
-            e.stopPropagation(); // Évite de déclencher deux fois le clic
-            triggerCatch();
+    const reelBar = document.getElementById('reel-bar');
+    if (reelBar) {
+        reelBar.addEventListener('pointerdown', (e) => {
+            if (state.currentPhase !== 'REELING') return;
+            reelBar.setPointerCapture(e.pointerId);
+            updateReelPlayerPos(e.clientY);
+        });
+        reelBar.addEventListener('pointermove', (e) => {
+            if (state.currentPhase !== 'REELING') return;
+            updateReelPlayerPos(e.clientY);
         });
     }
+
+    function onBiteAction(e) {
+        if (state.currentPhase !== 'BITE') return;
+        if (e.target.closest('button, a, input, textarea, select, label, #sidebar, .btn-sidebar-toggle')) return;
+        triggerCatch();
+    }
+    window.addEventListener('pointerdown', onBiteAction);
+
+    if (elements.biteIndicator) {
+        elements.biteIndicator.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            if (state.currentPhase === 'BITE') triggerCatch();
+        });
+    }
+
+    initMobileUI();
 
 
     // Canne à pêche
     updateFishingRodDisplay();
+}
+
+function initMobileUI() {
+    const toggle = document.getElementById('btn-sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const viewport = document.getElementById('game-viewport');
+    if (!toggle || !sidebar) return;
+
+    const overlay = document.getElementById('sidebar-overlay');
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = sidebar.classList.toggle('sidebar-open');
+        viewport?.classList.toggle('sidebar-open', open);
+        if (overlay) overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+    });
+
+    overlay?.addEventListener('click', closeMobileSidebar);
+
+    document.addEventListener('click', (e) => {
+        if (!isMobileLayout() || !sidebar.classList.contains('sidebar-open')) return;
+        if (sidebar.contains(e.target) || toggle.contains(e.target)) return;
+        closeMobileSidebar();
+    });
 }
 
 let isCrateOpening = false;

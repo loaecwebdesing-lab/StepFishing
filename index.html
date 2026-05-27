@@ -2,10 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>StepFishing | Pro Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Neko+One&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="Style.css?v=lb-cos">
+    <link rel="stylesheet" href="Style.css?v=mobile1">
     <link rel="preload" href="assets/Button.mp3?v=2" as="fetch" type="audio/mpeg">
     <script>
     window.__stepfishBgTracks = [
@@ -115,6 +117,8 @@
     </div>
 
     <div id="game-viewport">
+        <button type="button" id="btn-sidebar-toggle" class="btn-sidebar-toggle" aria-label="Ouvrir le menu latéral" title="Profil & stats">☰</button>
+        <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
         <div id="aq-hud-stack" class="aq-hud-stack">
             <div id="aq-capacity-hud" class="aq-capacity-hud" title="Poissons / places dans les aquariums débloqués" aria-live="polite">🐠 0/15</div>
             <button type="button" id="btn-sell-all-global" class="btn-sell-all-global" title="Vendre tous les poissons non verrouillés dans tous les aquariums">💰 Tout vendre</button>
