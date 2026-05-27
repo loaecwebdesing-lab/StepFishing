@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>StepFishing | Pro Edition</title>
-    <link rel="stylesheet" href="Style.css?v=modal-fit1">
+    <link rel="stylesheet" href="Style.css?v=mobile-scroll1">
     <link rel="preload" href="assets/Button.mp3?v=2" as="fetch" type="audio/mpeg">
     <script>
     window.__stepfishBgTracks = [
@@ -270,29 +270,35 @@
             </div>
 
             <!-- CARTE -->
-            <div id="screen-map" class="screen">
-                <div class="glass-card full-width" style="max-width: 800px;">
-                    <h1 class="title">Carte du Monde</h1>
-                    <div id="map-zones" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; width: 100%; margin-bottom: 30px;"></div>
-                    <button id="btn-back-menu-map" class="btn-secondary">Retour au Menu</button>
+            <div id="screen-map" class="screen screen-scroll">
+                <div class="screen-scroll-inner">
+                    <div class="glass-card screen-scroll-card">
+                        <h1 class="title screen-page-title">Carte du Monde</h1>
+                        <div id="map-zones" class="map-zones-grid"></div>
+                    </div>
+                    <button id="btn-back-menu-map" class="btn-secondary screen-back-btn">Retour au Menu</button>
                 </div>
             </div>
 
             <!-- MAGASIN -->
-            <div id="screen-shop" class="screen">
-                <div class="glass-card full-width" style="max-width: 800px;">
-                    <h1 class="title">Boutique de Pêche</h1>
-                    <div id="shop-items-grid"></div>
-                    <button id="btn-back-menu-shop" class="btn-secondary">Retour au Menu</button>
+            <div id="screen-shop" class="screen screen-scroll">
+                <div class="screen-scroll-inner">
+                    <div class="glass-card screen-scroll-card">
+                        <h1 class="title screen-page-title">Boutique de Pêche</h1>
+                        <div id="shop-items-grid"></div>
+                    </div>
+                    <button id="btn-back-menu-shop" class="btn-secondary screen-back-btn">Retour au Menu</button>
                 </div>
             </div>
 
             <!-- ÉQUIPEMENT -->
-            <div id="screen-equipment" class="screen">
-                <div class="glass-card full-width" style="max-width: 500px;">
-                    <h1 class="title">Mon Matériel</h1>
-                    <div id="equipment-list"></div>
-                    <button id="btn-back-menu-eq" class="btn-secondary">Retour au Menu</button>
+            <div id="screen-equipment" class="screen screen-scroll">
+                <div class="screen-scroll-inner">
+                    <div class="glass-card screen-scroll-card screen-scroll-card-narrow">
+                        <h1 class="title screen-page-title">Mon Matériel</h1>
+                        <div id="equipment-list"></div>
+                    </div>
+                    <button id="btn-back-menu-eq" class="btn-secondary screen-back-btn">Retour au Menu</button>
                 </div>
             </div>
 
@@ -576,13 +582,15 @@
                 </div>
             </div>
 
-            <div id="screen-index" class="screen">
-                <div class="glass-card full-width" style="max-width: 900px; height: 80vh;">
-                    <h1 class="title">FishIndex</h1>
-                    <div id="index-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;"></div>
-                    <div id="index-legend" class="index-legend" aria-label="Légende des zones"></div>
-                    <div id="index-grid" class="index-grid"></div>
-                    <button id="btn-back-menu-index" class="btn-secondary" style="margin-top: 20px;">Retour</button>
+            <div id="screen-index" class="screen screen-scroll">
+                <div class="screen-scroll-inner">
+                    <div class="glass-card screen-scroll-card screen-index-card">
+                        <h1 class="title screen-page-title">FishIndex</h1>
+                        <div id="index-tabs" class="index-tabs-row"></div>
+                        <div id="index-legend" class="index-legend" aria-label="Légende des zones"></div>
+                        <div id="index-grid" class="index-grid"></div>
+                    </div>
+                    <button id="btn-back-menu-index" class="btn-secondary screen-back-btn">Retour</button>
                 </div>
             </div>
         </main>
