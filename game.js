@@ -29,11 +29,11 @@ const ROD_DATA = [
 // 2. Ensuite on définit les cannes des coffres
 const ROD_IMG_V = 'v=2';
 const CRATE_RODS = [
-    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2 },
-    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3 },
-    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5 },
-    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10 },
-    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25 },
+    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1 },
+    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1 },
+    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2 },
+    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2 },
+    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4 },
 ];
 
 // 3. MAINTENANT on peut fusionner les deux (car les deux existent déjà)
@@ -499,10 +499,10 @@ function applySaveData(data) {
         if (derived) state.bestFish = derived;
     }
     ensureFishUidsInInventory();
+    updateProgression();
     persistGameLocal();
     updateMoneyDisplay();
     updateKeysDisplay();
-    updateProgression();
     ensureValidZone();
     updateZoneBackgrounds();
     updateFishingRodDisplay();
@@ -871,6 +871,26 @@ function getCrateItemHTML(loot) {
         <div class="rarity-tag" style="color:${loot.color}">${loot.rod.rarity}</div>`;
 }
 
+function getRodMinPrestige(rodId) {
+    const crateRod = CRATE_RODS.find(r => r.id === Number(rodId));
+    return crateRod?.minPrestige || 0;
+}
+
+function canEquipRod(rodId) {
+    const minP = getRodMinPrestige(rodId);
+    return (state.prestige || 0) >= minP;
+}
+
+function ensureValidEquippedRod() {
+    if (canEquipRod(state.equippedRod)) return;
+    const owned = state.ownedRods.map(Number).filter(id => canEquipRod(id));
+    const fallback = owned.length ? Math.max(...owned) : 0;
+    if (Number(state.equippedRod) !== fallback) {
+        state.equippedRod = fallback;
+        updateFishingRodDisplay();
+    }
+}
+
 function updateCrateUI() {
     const btn = document.getElementById('btn-open-crate');
     if (btn) {
@@ -891,10 +911,18 @@ function applyCrateReward(loot) {
     if (!state.ownedRods.includes(loot.rod.id)) {
         state.ownedRods.push(loot.rod.id);
     }
-    state.equippedRod = loot.rod.id;
-    persistGame();
-    updateFishingRodDisplay();
-    alert(`🎉 BRAVO ! Canne débloquée : ${loot.rod.name} (${loot.rod.rarity})`);
+    const minP = getRodMinPrestige(loot.rod.id);
+    if (canEquipRod(loot.rod.id)) {
+        state.equippedRod = loot.rod.id;
+        persistGame();
+        updateFishingRodDisplay();
+        alert(`🎉 BRAVO ! Canne débloquée et équipée : ${loot.rod.name} (${loot.rod.rarity})`);
+    } else {
+        ensureValidEquippedRod();
+        persistGame();
+        alert(`🎉 Canne débloquée : ${loot.rod.name} (${loot.rod.rarity})\n🔒 Équipable à partir du prestige ${minP} (actuel : ${state.prestige}).`);
+        addLog(`🔒 ${loot.rod.name} : équipable au prestige ${minP}.`, 'system');
+    }
 }
 
 let isTreasureOpening = false;
@@ -1117,6 +1145,7 @@ function updateProgression() {
     state.prestige = computePrestigeFromLevel(state.level);
     if(elements.userLevel) elements.userLevel.innerText = state.level;
     if(elements.userPrestige) elements.userPrestige.innerText = state.prestige;
+    ensureValidEquippedRod();
     ensureValidZone();
     persistGame();
     const xpFill = document.getElementById('xp-bar-fill');
@@ -2192,11 +2221,22 @@ function renderEquipment() {
         const item = document.createElement('div');
         item.className = `eq-item ${state.equippedRod === id ? 'equipped' : ''}`;
         item.style.borderColor = rod.color || 'var(--wood-medium)';
-        item.innerHTML = `<span style="font-family: 'Neko One', cursive;">${rod.name}</span>`;
+        const minP = rod.minPrestige || 0;
+        const locked = minP > 0 && !canEquipRod(id);
+        item.innerHTML = `<span style="font-family: 'Neko One', cursive;">${rod.name}</span>${
+            locked ? `<br><small style="color:#ffab91;">🔒 Prestige ${minP} requis</small>` : ''
+        }`;
         const btn = document.createElement('button');
         btn.className = 'btn-primary';
-        btn.innerText = state.equippedRod === id ? 'Équipé' : 'Équiper';
-        btn.onclick = () => equipRod(id);
+        if (state.equippedRod === id) {
+            btn.innerText = 'Équipé';
+        } else if (locked) {
+            btn.innerText = `Prestige ${minP}`;
+            btn.disabled = true;
+        } else {
+            btn.innerText = 'Équiper';
+        }
+        if (!locked) btn.onclick = () => equipRod(id);
         item.appendChild(btn);
         list.appendChild(item);
     });
@@ -2204,10 +2244,14 @@ function renderEquipment() {
 
 
 function equipRod(id) {
+    if (!canEquipRod(id)) {
+        const minP = getRodMinPrestige(id);
+        alert(`🔒 Cette canne nécessite le prestige ${minP} (vous êtes prestige ${state.prestige}).`);
+        return;
+    }
     state.equippedRod = id;
     persistGame();
     renderEquipment();
-    
     const rod = ALL_RODS.find(r => r.id === id);
     addLog(`Matériel changé : ${rod ? rod.name : 'Canne'} équipée.`);
     updateFishingRodDisplay();
@@ -2254,10 +2298,11 @@ function setupIndexTabs() {
 }
 
 function getEquippedRodData() {
+    ensureValidEquippedRod();
     const id = Number(state.equippedRod);
     const owned = state.ownedRods.map(Number);
     const rod = ALL_RODS.find(r => r.id === id);
-    if (!rod || !owned.includes(id)) return ALL_RODS[0];
+    if (!rod || !owned.includes(id) || !canEquipRod(id)) return ALL_RODS[0];
     return rod;
 }
 
