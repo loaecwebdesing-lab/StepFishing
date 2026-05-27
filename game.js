@@ -5,8 +5,8 @@
 
 /** Poids de tirage Commun → Épique (Lég./Myth./Divin = catchRates canne) */
 const RARITY_WEIGHTS = [58, 26, 26, 12, 0.98, 0.028, 0.005];
-/** Cible canne bambou : ~1 légendaire / 250 (0,4 % avant myth./divin) */
-const LEGENDARY_CATCH_MULT = 1;
+/** Cible canne bambou : ~1 légendaire / 230 (× LEGENDARY_CATCH_MULT sur toutes les cannes) */
+const LEGENDARY_CATCH_MULT = 1.1;
 const LEGENDARY_CHANCE_BAMBOO_PCT = 0.4;
 
 const RARITIES = [
