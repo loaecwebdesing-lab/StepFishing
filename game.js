@@ -1791,6 +1791,16 @@ function getMutationData(mutationName) {
     return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
 }
 
+/** Taille affichage poisson dans le modal capture (évite le débordement écran) */
+function getCatchRevealFishSize(fish) {
+    if (!fish) return 100;
+    if (fish.isKey || fish.isTreasureBox) return 110;
+    const base = aquariumFishWidthPx(fish.weight) + 18;
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
+    const scaled = base * (isMobile ? 1.35 : 1.1);
+    return Math.min(isMobile ? 150 : 130, Math.max(72, Math.round(scaled)));
+}
+
 function renderCatchReveal(fish) {
     const nameEl = document.getElementById('catch-fish-name');
     const rarityEl = document.getElementById('catch-fish-rarity');
@@ -1803,8 +1813,7 @@ function renderCatchReveal(fish) {
         if (visual) { visual.innerHTML = ''; visual.style.removeProperty('--catch-glow'); }
         return;
     }
-    const baseSize = (fish.isKey || fish.isTreasureBox) ? 150 : aquariumFishWidthPx(fish.weight) + 22;
-    const size = baseSize * 2;
+    const size = getCatchRevealFishSize(fish);
     if (visual) {
         visual.innerHTML = buildFishVisualHTML(fish, size);
         visual.style.setProperty('--catch-glow', fish.color || '#ffffff');

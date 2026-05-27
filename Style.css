@@ -554,46 +554,57 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 200px;
-    margin: 12px auto 6px;
-    padding: 12px;
-    border-radius: 20px;
-    overflow: visible;
+    min-height: 0;
+    max-height: 170px;
+    margin: 8px auto 4px;
+    padding: 6px 8px;
+    border-radius: 16px;
+    overflow: hidden;
     filter: drop-shadow(0 0 18px var(--catch-glow, rgba(255, 255, 255, 0.4)));
 }
 
 #catch-visual .fish-visual-wrap {
-    padding: 16px 12px;
+    padding: 4px 8px !important;
+    max-width: 100%;
+    max-height: 158px;
+    box-sizing: border-box;
 }
 
-#catch-visual .fish-mut-img {
-    max-width: 200px;
-    height: auto;
-}
-
+#catch-visual .fish-mut-img,
 #catch-visual .key-catch-img {
-    max-width: 160px;
-    height: auto;
+    width: auto !important;
+    max-width: 130px !important;
+    max-height: 150px !important;
+    height: auto !important;
+    object-fit: contain;
+}
+
+#catch-visual .key-catch-visual,
+#catch-visual .treasure-catch-visual {
+    width: auto !important;
+    height: auto !important;
+    max-width: 130px !important;
+    max-height: 150px !important;
 }
 
 .catch-fish-name {
-    margin: 0 0 6px;
-    font-size: 2rem !important;
+    margin: 0 0 4px;
+    font-size: 1.45rem !important;
     line-height: 1.15;
     text-align: center;
 }
 
 .catch-fish-rarity {
-    margin: 0 0 8px;
-    font-size: 1rem !important;
+    margin: 0 0 6px;
+    font-size: 0.9rem !important;
     font-weight: 700;
     text-align: center;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .catch-fish-price {
-    margin: 0 0 10px;
-    font-size: 1.35rem !important;
+    margin: 0 0 6px;
+    font-size: 1.1rem !important;
     font-weight: 800;
     color: var(--wood-gold) !important;
     text-align: center;
@@ -613,6 +624,17 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .catch-glass-card {
     position: relative;
     z-index: 1;
+    padding: 18px 22px 16px !important;
+    animation: none !important;
+    max-height: min(92vh, 640px);
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#catch-modal #catch-title.title {
+    font-size: 2.25rem !important;
+    line-height: 1.05;
+    margin: 0 0 4px;
 }
 
 .catch-lock-icon {
@@ -657,7 +679,12 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #fish-visual { display: flex; justify-content: center; align-items: center; overflow: visible; }
 .fish-mut-img { max-width: 180px; }
 #modal-fish-visual .fish-mut-img { max-width: 190px; }
-#fish-modal .glass-card, #catch-modal .glass-card { overflow: visible; }
+#fish-modal .glass-card,
+#catch-modal .glass-card {
+    overflow-x: hidden;
+    overflow-y: auto;
+    animation: none !important;
+}
 #aq-lock-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 50; }
 .lock-card { background: var(--glass); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid white; }
 
@@ -671,8 +698,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: none;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
-    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 16px 12px;
     box-sizing: border-box;
 }
 
@@ -681,16 +709,43 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #catch-modal .catch-glass-card {
     margin: auto;
     flex-shrink: 0;
-    width: auto;
-    max-width: min(420px, 92vw);
+    width: 100%;
+    max-width: 340px;
+    max-height: min(90vh, 620px);
 }
 
 #fish-modal .glass-card {
     max-width: 320px;
+    padding: 18px 20px 14px !important;
 }
 
 #catch-modal .catch-glass-card {
-    max-width: 380px;
+    max-width: 360px;
+}
+
+#catch-modal #btn-close-catch {
+    width: 100% !important;
+    max-width: 280px;
+    height: 56px !important;
+    margin-top: 4px;
+}
+
+#modal-fish-visual {
+    min-height: 0;
+    max-height: 150px;
+    margin: 0 auto 8px;
+}
+
+#modal-fish-visual .fish-mut-img {
+    max-width: 150px !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 140px !important;
+    object-fit: contain;
+}
+
+.fish-modal-btn {
+    height: 44px !important;
 }
 
 #fish-modal.active, #profile-modal.active, #catch-modal.active, #public-profile-modal.active {
