@@ -6,11 +6,24 @@
     <title>StepFishing | Pro Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Neko+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Style.css?v=lb-cos">
-    <link rel="preload" href="assets/Ambi.mp3" as="fetch" type="audio/mpeg">
     <link rel="preload" href="assets/Button.mp3?v=2" as="fetch" type="audio/mpeg">
     <script>
+    window.__stepfishBgTracks = [
+        'assets/Ambi.mp3',
+        'assets/Ambi2.mp3',
+        'assets/Ambi3.mp3',
+        'assets/Ambi4.mp3'
+    ];
     (function () {
-        var m = new Audio('assets/Ambi.mp3');
+        var tracks = window.__stepfishBgTracks;
+        var src = tracks[Math.floor(Math.random() * tracks.length)];
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = src;
+        link.as = 'fetch';
+        link.type = 'audio/mpeg';
+        document.head.appendChild(link);
+        var m = new Audio(src);
         m.loop = true;
         m.volume = 0.2;
         m.preload = 'auto';

@@ -120,8 +120,13 @@ const CRATE_ROD_WEIGHTS = { 'Rare': 45, 'Épique': 28, 'Légendaire': 15, 'Mythi
 const MUSIC_VOLUME = 0.2;
 const BUTTON_VOLUME = 0.9;
 const SFX_VOLUME = 0.35;
+const BG_MUSIC_TRACKS = [
+    'assets/Ambi.mp3',
+    'assets/Ambi2.mp3',
+    'assets/Ambi3.mp3',
+    'assets/Ambi4.mp3'
+];
 const AUDIO_FILES = {
-    ambi: 'assets/Ambi.mp3',
     splash: 'assets/Splash.mp3',
     chest: 'assets/Chest.mp3',
     button: 'assets/Button.mp3?v=2'
@@ -132,11 +137,26 @@ const audioBuffers = {};
 const sfxPools = {};
 let bgMusicEl = null;
 let lastButtonSfxAt = 0;
-function getBgMusic() {
-    if (!bgMusicEl) {
-        bgMusicEl = window.__stepfishBgMusic || document.getElementById('bg-music');
+
+function pickRandomBgMusicTrack() {
+    const tracks = window.__stepfishBgTracks || BG_MUSIC_TRACKS;
+    return tracks[Math.floor(Math.random() * tracks.length)];
+}
+
+function initBackgroundMusic() {
+    if (!window.__stepfishBgMusic) {
+        const music = new Audio(pickRandomBgMusicTrack());
+        music.loop = true;
+        music.preload = 'auto';
+        music.playsInline = true;
+        window.__stepfishBgMusic = music;
     }
+    bgMusicEl = window.__stepfishBgMusic;
     return bgMusicEl;
+}
+
+function getBgMusic() {
+    return initBackgroundMusic();
 }
 
 function getAudioContext() {
