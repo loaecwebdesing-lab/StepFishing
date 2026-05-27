@@ -517,7 +517,7 @@ const ZONE_DATA = [
         library: {
             'commun': ['Carasin.png', 'Rosette.png', 'Vandoise.png', 'Ecrevise.png', 'Ablette.png', 'GobieSauteur.png', 'Carpe.png', 'Perche.png', 'Truite.png', 'Barbeau.png', 'Breme.png', 'Tanche.png', 'Goujon.png', 'Rotengle.png', 'Black_Bass.png', 'Gardon.png', 'Crapet.png', 'Spirlin.png', 'Coregone.png', 'Huchon.png', 'Bouviere.png', 'Blageon.png', 'CarpeMiroir.png', 'Eppinochette.png', 'Lotte.png', 'Nasse.png', 'Tetra.png'],
             'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png', 'Lamproie.png', 'Tilapia.png', 'Chichlidé.png', 'Dojo.png', 'Killie.png', 'Melanotaeina.png', 'PoissonCouteau.png'],
-            'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png', 'Pleco.png', 'Corydoras.png', 'Rasboa.png', 'Discus.png', 'Lépistolé.png'],
+            'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png', 'Pleco.png', 'Corydoras.png', 'Rasboa.png', 'Discus.png', 'Lépistolé.png', 'Kiksus.png'],
             'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png', 'Pangasius.png', 'FlapJack.png', 'Skelleton.png', 'Chratica.png'],
             'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png', 'Arowana.png', 'ArowanaR.png', 'ArowanaS.png', 'Yoyonus.png'],
             'mythique': ['Esturgeon.png', 'Nimphonius.png', 'ArowanaChrome.png', 'ArowanaLN.png', 'ArowanaN.png'],
