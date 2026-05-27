@@ -28,6 +28,11 @@
             id: 'best_fish',
             label: '🏆 Meilleur poisson',
             orders: [{ column: 'best_fish_value', ascending: false }]
+        },
+        {
+            id: 'common_streak',
+            label: '📉 Série Commun',
+            orders: [{ column: 'best_common_streak', ascending: false }]
         }
     ];
 
@@ -71,6 +76,17 @@
                 return `${row.fishes_caught} poisson${row.fishes_caught > 1 ? 's' : ''}`;
             case 'best_fish':
                 return '';
+            case 'common_streak': {
+                let n = row.best_common_streak || 0;
+                const myPseudo = getMyPseudo();
+                if (myPseudo && row.pseudo === myPseudo) {
+                    const local = window.__stepfishGetState?.()?.commonStreakBest;
+                    if (typeof local === 'number' && local > n) n = local;
+                }
+                return n > 0
+                    ? `${n} commun${n > 1 ? 's' : ''} d'affilée`
+                    : '—';
+            }
             default:
                 return '';
         }
@@ -250,7 +266,7 @@
 
         let query = client
             .from('leaderboard_stats')
-            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, cosmetic_id, achievement_title_id, achievement_color_id')
+            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, best_common_streak, cosmetic_id, achievement_title_id, achievement_color_id')
             .limit(LIMIT);
 
         cat.orders.forEach((order, i) => {

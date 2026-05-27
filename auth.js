@@ -17,7 +17,9 @@
         currentZone: 'lac',
         bestFish: null,
         ownedCosmetics: ['default'],
-        equippedCosmetic: 'default'
+        equippedCosmetic: 'default',
+        commonStreakCurrent: 0,
+        commonStreakBest: 0
     };
 
     let supabaseClient = null;

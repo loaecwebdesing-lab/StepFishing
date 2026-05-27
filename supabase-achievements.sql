@@ -32,6 +32,7 @@ begin
         id, pseudo, money, total_score, level, prestige,
         fishes_caught, best_fish_value, best_fish_name, best_fish_rarity,
         best_fish_img, best_fish_mutation, best_fish_class,
+        best_common_streak,
         cosmetic_id, achievement_title_id, achievement_color_id, updated_at
     ) values (
         new.id,
@@ -47,6 +48,7 @@ begin
         coalesce(bf->>'img', ''),
         coalesce(bf->>'mutation', 'Normal'),
         coalesce(bf->>'class', ''),
+        coalesce((sd->>'commonStreakBest')::integer, 0),
         coalesce(sd->>'equippedCosmetic', 'default'),
         nullif(sd->>'equippedTitleId', ''),
         nullif(sd->>'equippedColorId', ''),
@@ -65,6 +67,7 @@ begin
         best_fish_img = excluded.best_fish_img,
         best_fish_mutation = excluded.best_fish_mutation,
         best_fish_class = excluded.best_fish_class,
+        best_common_streak = excluded.best_common_streak,
         cosmetic_id = excluded.cosmetic_id,
         achievement_title_id = excluded.achievement_title_id,
         achievement_color_id = excluded.achievement_color_id,

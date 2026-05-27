@@ -67,6 +67,7 @@ create table if not exists public.leaderboard_stats (
     best_fish_value numeric not null default 0,
     best_fish_name text not null default '',
     best_fish_rarity text not null default '',
+    best_common_streak integer not null default 0,
     cosmetic_id text not null default 'default',
     updated_at timestamptz not null default now()
 );
@@ -75,11 +76,13 @@ alter table public.leaderboard_stats add column if not exists cosmetic_id text n
 alter table public.leaderboard_stats add column if not exists best_fish_img text not null default '';
 alter table public.leaderboard_stats add column if not exists best_fish_mutation text not null default '';
 alter table public.leaderboard_stats add column if not exists best_fish_class text not null default '';
+alter table public.leaderboard_stats add column if not exists best_common_streak integer not null default 0;
 
 create index if not exists leaderboard_money_idx on public.leaderboard_stats (money desc);
 create index if not exists leaderboard_level_idx on public.leaderboard_stats (prestige desc, level desc, total_score desc);
 create index if not exists leaderboard_fishes_idx on public.leaderboard_stats (fishes_caught desc);
 create index if not exists leaderboard_best_fish_idx on public.leaderboard_stats (best_fish_value desc);
+create index if not exists leaderboard_common_streak_idx on public.leaderboard_stats (best_common_streak desc);
 
 alter table public.leaderboard_stats enable row level security;
 

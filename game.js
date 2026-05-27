@@ -799,7 +799,9 @@ function getSavePayload() {
         ownedColorIds: state.ownedColorIds || [],
         equippedTitleId: state.equippedTitleId || null,
         equippedColorId: state.equippedColorId || null,
-        achievementStats: state.achievementStats || null
+        achievementStats: state.achievementStats || null,
+        commonStreakCurrent: state.commonStreakCurrent || 0,
+        commonStreakBest: state.commonStreakBest || 0
     };
 }
 
@@ -829,6 +831,8 @@ function persistGameLocal() {
     localStorage.setItem('stepFishingEquippedAchTitle', state.equippedTitleId || '');
     localStorage.setItem('stepFishingEquippedAchColor', state.equippedColorId || '');
     localStorage.setItem('stepFishingAchStats', JSON.stringify(state.achievementStats || {}));
+    localStorage.setItem('stepFishingCommonStreakCur', String(state.commonStreakCurrent || 0));
+    localStorage.setItem('stepFishingCommonStreakBest', String(state.commonStreakBest || 0));
     updateAquariumCapacityHUD();
 }
 
@@ -874,6 +878,8 @@ function applySaveData(data) {
         state.equippedColorId = data.equippedColorId || null;
         state.achievementStats = data.achievementStats || null;
     }
+    state.commonStreakCurrent = parseInt(data.commonStreakCurrent, 10) || 0;
+    state.commonStreakBest = parseInt(data.commonStreakBest, 10) || 0;
     if (!state.bestFish?.value) {
         const derived = findBestFishInInventory(state.inventory);
         if (derived) state.bestFish = derived;
@@ -929,7 +935,9 @@ let state = {
     ownedColorIds: safeParse('stepFishingAchColors', []),
     equippedTitleId: localStorage.getItem('stepFishingEquippedAchTitle') || null,
     equippedColorId: localStorage.getItem('stepFishingEquippedAchColor') || null,
-    achievementStats: safeParse('stepFishingAchStats', null)
+    achievementStats: safeParse('stepFishingAchStats', null),
+    commonStreakCurrent: parseInt(localStorage.getItem('stepFishingCommonStreakCur'), 10) || 0,
+    commonStreakBest: parseInt(localStorage.getItem('stepFishingCommonStreakBest'), 10) || 0
 };
 
 const getEl = (id) => document.getElementById(id);
@@ -1005,6 +1013,35 @@ function aquariumFishWidthPx(kg) {
 function getRarityNameFromClass(className) {
     const r = RARITIES.find(x => x.class === className);
     return r ? r.name : 'Inconnu';
+}
+
+/** Poisson « Commun » (rarity-0), hors clé / coffre. */
+function isCommonCatchFish(fish) {
+    if (!fish || fish.isKey || fish.isTreasureBox) return false;
+    return fish.id === 0 || fish.class === 'rarity-0';
+}
+
+/** Série de Communs pêchés d'affilée (échec ou autre rareté = reset). */
+function recordCommonCatchStreak(fish, success) {
+    const prevCur = state.commonStreakCurrent || 0;
+    const prevBest = state.commonStreakBest || 0;
+    if (!success) {
+        state.commonStreakCurrent = 0;
+    } else if (isCommonCatchFish(fish)) {
+        state.commonStreakCurrent = prevCur + 1;
+        if (state.commonStreakCurrent > prevBest) {
+            state.commonStreakBest = state.commonStreakCurrent;
+        }
+    } else {
+        state.commonStreakCurrent = 0;
+    }
+    if (state.commonStreakCurrent !== prevCur || state.commonStreakBest !== prevBest) {
+        persistGameLocal();
+        if (window.StepFishAuth?.isLoggedIn()) {
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = setTimeout(() => StepFishAuth.saveToCloud(getSavePayload()), 1000);
+        }
+    }
 }
 
 function computeLevelFromScore(totalScore) {
@@ -2536,6 +2573,8 @@ function startReelGame() {
 
 
 function catchFish(success) {
+    recordCommonCatchStreak(state.currentFish, success);
+
     if (success && state.currentFish?.isKey) {
         state.keys++;
         window.StepFishAchievements?.onKeyFound?.();
