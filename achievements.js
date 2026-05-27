@@ -375,13 +375,22 @@
         const total = ACHIEVEMENTS.length;
         const filter = activeAchFilter;
 
+        const globalPct = total ? Math.round((unlocked.length / total) * 100) : 0;
+        const globalPctEl = document.getElementById('achievements-global-pct');
+        if (globalPctEl) globalPctEl.textContent = `${globalPct}%`;
+
         if (summary) {
-            const parts = CATEGORIES.map(cat => {
+            summary.textContent = `${unlocked.length} / ${total} trophées débloqués`;
+        }
+
+        const legend = document.getElementById('achievements-legend');
+        if (legend) {
+            legend.innerHTML = CATEGORIES.map(cat => {
                 const items = ACHIEVEMENTS.filter(a => a.cat === cat.id);
                 const done = items.filter(a => unlocked.includes(a.id)).length;
-                return `${cat.icon} ${done}/${items.length}`;
-            });
-            summary.textContent = `${unlocked.length} / ${total} trophées · ${parts.join(' · ')}`;
+                const pct = items.length ? Math.round((done / items.length) * 100) : 0;
+                return `<span class="ach-legend-item ach-legend-${cat.id}"><span class="ach-legend-icon">${cat.icon}</span><span class="ach-legend-label">${escapeHtml(cat.label)}</span><strong>${done}/${items.length}</strong><span class="ach-legend-pct">${pct}%</span></span>`;
+            }).join('');
         }
 
         document.querySelectorAll('.ach-tab').forEach(tab => {
@@ -390,29 +399,37 @@
 
         const list = filterAchievements(filter, unlocked);
 
+        function renderSection(cat, items, showHead = true) {
+            if (!items.length) return '';
+            const doneInCat = items.filter(a => unlocked.includes(a.id)).length;
+            const sectionPct = Math.round((doneInCat / items.length) * 100);
+            const head = showHead ? `<header class="ach-section-head">
+                <h2 class="ach-section-title"><span class="ach-section-icon">${cat.icon}</span> ${escapeHtml(cat.label)}</h2>
+                <span class="ach-section-meta">${doneInCat} / ${items.length} · ${sectionPct}%</span>
+            </header>
+            <div class="ach-section-bar"><div class="ach-section-bar-fill" style="width:${sectionPct}%"></div></div>` : '';
+            return `<section class="ach-section ach-section-${cat.id}" data-cat="${cat.id}">
+                ${head}
+                <div class="ach-section-scroll" tabindex="0">
+                    <div class="ach-section-track">${items.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>
+                </div>
+            </section>`;
+        }
+
         if (filter === 'all') {
             grid.className = 'achievements-grid achievements-grid-sectioned';
-            grid.innerHTML = CATEGORIES.map(cat => {
-                const items = list.filter(a => a.cat === cat.id);
-                if (!items.length) return '';
-                const doneInCat = items.filter(a => unlocked.includes(a.id)).length;
-                const sectionPct = Math.round((doneInCat / items.length) * 100);
-                return `<section class="ach-section" data-cat="${cat.id}">
-                    <header class="ach-section-head">
-                        <h2 class="ach-section-title"><span class="ach-section-icon">${cat.icon}</span> ${escapeHtml(cat.label)}</h2>
-                        <span class="ach-section-meta">${doneInCat} / ${items.length} · ${sectionPct}%</span>
-                    </header>
-                    <div class="ach-section-bar"><div class="ach-section-bar-fill" style="width:${sectionPct}%"></div></div>
-                    <div class="ach-section-grid">${items.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>
-                </section>`;
-            }).join('');
+            grid.innerHTML = CATEGORIES.map(cat => renderSection(cat, list.filter(a => a.cat === cat.id))).join('');
+        } else if (filter === 'done' || filter === 'todo') {
+            grid.className = 'achievements-grid achievements-grid-sectioned';
+            grid.innerHTML = renderSection(
+                { id: filter, icon: filter === 'done' ? '✓' : '⏳', label: filter === 'done' ? 'Débloqués' : 'En cours' },
+                list,
+                false
+            );
         } else {
-            grid.className = 'achievements-grid';
-            const catInfo = CATEGORIES.find(c => c.id === filter);
-            const header = catInfo && filter !== 'done' && filter !== 'todo'
-                ? `<div class="ach-flat-head"><h2>${catInfo.icon} ${escapeHtml(catInfo.label)}</h2></div>`
-                : '';
-            grid.innerHTML = `${header}<div class="ach-section-grid">${list.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>`;
+            const cat = CATEGORIES.find(c => c.id === filter) || { id: filter, icon: '🏅', label: 'Succès' };
+            grid.className = 'achievements-grid achievements-grid-sectioned';
+            grid.innerHTML = renderSection(cat, list);
         }
 
         bindEquipButtons(grid);

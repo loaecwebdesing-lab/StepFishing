@@ -464,24 +464,28 @@
             <div id="screen-achievements" class="screen">
                 <div class="glass-card achievements-card full-width">
                     <header class="achievements-header">
-                        <h1 class="achievements-title">🏅 Succès & Trophées</h1>
+                        <div class="ach-header-row">
+                            <h1 class="achievements-title title">🏅 Succès & Trophées</h1>
+                            <div id="achievements-global-pct" class="ach-global-pct" aria-hidden="true">0%</div>
+                        </div>
                         <p id="achievements-summary" class="achievements-summary">0 / 0 débloqués</p>
+                        <div id="achievements-legend" class="achievements-legend" aria-label="Progression par catégorie"></div>
                         <div id="achievements-tabs" class="achievements-tabs" role="tablist">
-                            <button type="button" class="ach-tab active" data-filter="all" role="tab">Tous</button>
-                            <button type="button" class="ach-tab" data-filter="peche" role="tab">🎣 Pêche</button>
-                            <button type="button" class="ach-tab" data-filter="coll" role="tab">📖 Collection</button>
-                            <button type="button" class="ach-tab" data-filter="eco" role="tab">💰 Économie</button>
-                            <button type="button" class="ach-tab" data-filter="prog" role="tab">⭐ Progression</button>
-                            <button type="button" class="ach-tab" data-filter="social" role="tab">💬 Social</button>
-                            <button type="button" class="ach-tab" data-filter="todo" role="tab">En cours</button>
-                            <button type="button" class="ach-tab" data-filter="done" role="tab">✓ Débloqués</button>
+                            <button type="button" class="ach-tab index-tab-style active" data-filter="all" role="tab">Tous</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="peche" role="tab">🎣 Pêche</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="coll" role="tab">📖 Collection</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="eco" role="tab">💰 Économie</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="prog" role="tab">⭐ Progression</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="social" role="tab">💬 Social</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="todo" role="tab">En cours</button>
+                            <button type="button" class="ach-tab index-tab-style" data-filter="done" role="tab">✓ Débloqués</button>
                         </div>
                     </header>
                     <div id="achievements-scroll" class="achievements-scroll">
                         <div id="achievements-grid" class="achievements-grid"></div>
                     </div>
                     <footer class="achievements-footer">
-                        <p class="achievements-hint">Récompenses : préfixes devant le pseudo et couleurs simples (équipables ici). Les styles boutique restent dans Cosmétiques.</p>
+                        <p class="achievements-hint">← → Fais défiler chaque rangée · Récompenses : préfixes & couleurs de pseudo</p>
                         <button id="btn-back-menu-achievements" class="btn-secondary achievements-back-btn">Retour au menu</button>
                     </footer>
                 </div>

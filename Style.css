@@ -3801,68 +3801,134 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     justify-content: flex-start;
 }
 
-.achievements-card {
-    max-width: 920px;
-    width: 95%;
-    max-height: 92vh;
+#screen-achievements .achievements-card {
+    width: 92% !important;
+    max-width: 960px !important;
+    height: 82vh;
+    max-height: 82vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding: 22px 20px 16px;
+    text-align: center;
 }
 
 .achievements-header {
-    text-align: center;
-    margin-bottom: 8px;
     flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.ach-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 6px;
 }
 
 .achievements-title {
-    margin: 0 0 6px;
+    margin: 0;
+}
+
+.ach-global-pct {
+    min-width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 3px solid var(--wood-gold);
+    background: rgba(255, 202, 40, 0.15);
+    color: var(--wood-gold);
+    font-size: 0.95rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 14px rgba(255, 202, 40, 0.25);
 }
 
 .achievements-summary {
-    margin: 0 0 10px;
-    color: var(--wood-gold);
+    margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 700;
-    font-size: 0.82rem;
-    line-height: 1.35;
+    font-size: 0.95rem;
 }
+
+.achievements-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.ach-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 2px solid rgba(141, 110, 99, 0.6);
+    background: rgba(0, 0, 0, 0.35);
+    font-size: 0.78rem;
+}
+
+.ach-legend-item strong {
+    color: var(--wood-gold);
+}
+
+.ach-legend-pct {
+    opacity: 0.85;
+    font-size: 0.72rem;
+}
+
+.ach-legend-peche { border-color: rgba(79, 195, 247, 0.45); background: rgba(79, 195, 247, 0.1); }
+.ach-legend-coll { border-color: rgba(167, 139, 250, 0.45); background: rgba(124, 92, 191, 0.15); }
+.ach-legend-eco { border-color: rgba(255, 202, 40, 0.45); background: rgba(255, 202, 40, 0.1); }
+.ach-legend-prog { border-color: rgba(255, 183, 77, 0.45); background: rgba(255, 152, 0, 0.1); }
+.ach-legend-social { border-color: rgba(129, 199, 132, 0.45); background: rgba(129, 199, 132, 0.1); }
 
 .achievements-tabs {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px;
-    margin-bottom: 4px;
+    gap: 8px;
+    margin-bottom: 0;
 }
 
-.ach-tab {
-    font-family: inherit;
-    font-size: 0.78rem;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 2px solid var(--wood-medium);
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--white);
+.ach-tab.index-tab-style {
+    padding: 10px 18px;
+    border-radius: 15px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    border: 2px solid var(--wood-medium);
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    font-family: 'Neko One', cursive;
+    font-size: 0.95rem;
+    transition: 0.25s;
 }
 
-.ach-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
+.ach-tab.index-tab-style:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
 }
 
-.ach-tab.active {
+.ach-tab.index-tab-style.active {
+    background: var(--wood-gold);
+    color: #333;
+    transform: scale(1.06);
     border-color: var(--wood-gold);
-    background: rgba(255, 202, 40, 0.22);
-    color: var(--wood-gold);
+    box-shadow: 0 4px 12px rgba(255, 202, 40, 0.35);
 }
 
 .achievements-scroll {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 2px 4px 8px;
+    overflow-x: hidden;
+    padding: 8px 4px 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border-radius: 18px;
+    border: 2px solid var(--wood-medium);
+    text-align: left;
 }
 
 .achievements-grid {
@@ -3872,27 +3938,35 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .achievements-grid-sectioned {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
+    padding: 4px 2px;
 }
 
 .ach-section {
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.32);
     border: 2px solid rgba(141, 110, 99, 0.55);
     border-radius: 16px;
-    padding: 12px 12px 14px;
+    padding: 10px 10px 12px;
 }
+
+.ach-section-peche { border-color: rgba(79, 195, 247, 0.35); }
+.ach-section-coll { border-color: rgba(167, 139, 250, 0.35); }
+.ach-section-eco { border-color: rgba(255, 202, 40, 0.35); }
+.ach-section-prog { border-color: rgba(255, 183, 77, 0.35); }
+.ach-section-social { border-color: rgba(129, 199, 132, 0.35); }
 
 .ach-section-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    padding: 0 4px;
 }
 
 .ach-section-title {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     color: var(--wood-gold);
     display: flex;
     align-items: center;
@@ -3900,22 +3974,22 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .ach-section-icon {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
 }
 
 .ach-section-meta {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.85);
     white-space: nowrap;
 }
 
 .ach-section-bar {
-    height: 5px;
+    height: 4px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 999px;
     overflow: hidden;
-    margin-bottom: 12px;
+    margin: 0 4px 10px;
 }
 
 .ach-section-bar-fill {
@@ -3925,32 +3999,48 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     transition: width 0.3s ease;
 }
 
-.ach-section-grid,
-.achievements-grid .ach-section-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
+.ach-section-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 4px 12px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-gold) rgba(0, 0, 0, 0.3);
 }
 
-.ach-flat-head {
-    margin-bottom: 10px;
-    text-align: left;
+.ach-section-scroll::-webkit-scrollbar {
+    height: 8px;
 }
 
-.ach-flat-head h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: var(--wood-gold);
+.ach-section-scroll::-webkit-scrollbar-thumb {
+    background: var(--wood-gold);
+    border-radius: 999px;
+}
+
+.ach-section-track {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    width: max-content;
+    min-height: 100%;
+    padding: 2px 6px 4px;
 }
 
 .ach-card {
-    background: rgba(0, 0, 0, 0.35);
+    flex: 0 0 248px;
+    width: 248px;
+    max-width: 248px;
+    scroll-snap-align: start;
+    background: linear-gradient(165deg, rgba(50, 40, 30, 0.9), rgba(20, 15, 10, 0.85));
     border: 2px solid var(--wood-medium);
     border-radius: 14px;
     padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .ach-card-top {
@@ -3980,15 +4070,18 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .ach-card h3 {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1rem;
     color: var(--wood-gold);
+    line-height: 1.15;
 }
 
 .ach-card-desc {
     margin: 0;
-    font-size: 0.88rem;
-    opacity: 0.9;
-    line-height: 1.3;
+    font-size: 0.82rem;
+    opacity: 0.88;
+    line-height: 1.28;
+    flex: 1;
+    min-height: 2.6em;
 }
 
 .ach-rewards {
@@ -4036,13 +4129,14 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .ach-equip-btn {
     font-family: inherit;
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    font-size: 0.72rem;
+    padding: 5px 8px;
     border-radius: 8px;
     border: 2px solid var(--wood-medium);
     background: rgba(255, 255, 255, 0.08);
     color: var(--white);
     cursor: pointer;
+    width: 100%;
 }
 
 .ach-equip-btn.equipped {
@@ -4058,18 +4152,19 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .achievements-footer {
-    margin-top: 10px;
+    margin-top: 12px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .achievements-hint {
-    font-size: 0.82rem;
-    opacity: 0.8;
+    font-size: 0.8rem;
+    opacity: 0.75;
     margin: 0 0 10px;
 }
 
 .achievements-back-btn {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 #screen-leaderboard .ach-player-title,
@@ -4078,23 +4173,37 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 @media (max-width: 720px) {
-    .achievements-summary {
-        font-size: 0.75rem;
+    #screen-achievements .achievements-card {
+        width: 96% !important;
+        height: 88vh;
+        padding: 16px 12px 12px;
     }
 
-    .ach-tab {
-        font-size: 0.72rem;
-        padding: 5px 8px;
+    .ach-global-pct {
+        min-width: 44px;
+        height: 44px;
+        font-size: 0.82rem;
     }
 
-    .ach-section-grid,
-    .achievements-grid .ach-section-grid {
-        grid-template-columns: 1fr;
+    .ach-tab.index-tab-style {
+        font-size: 0.82rem;
+        padding: 8px 12px;
+    }
+
+    .ach-card {
+        flex: 0 0 220px;
+        width: 220px;
+        max-width: 220px;
     }
 
     .ach-section-head {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .ach-legend-item {
+        font-size: 0.72rem;
+        padding: 5px 8px;
     }
 }
 
