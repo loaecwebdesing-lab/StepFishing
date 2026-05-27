@@ -344,6 +344,12 @@ function rollPrefixTierIndex(fishRarityIdx) {
     return 0;
 }
 
+/** Préfixe du même tier que le poisson = ×1 (prix inchangé par le préfixe). */
+function getPrefixValueMult(fishRarityIdx, prefixIdx) {
+    if (prefixIdx === fishRarityIdx) return 1;
+    return PREFIX_VALUE_MULT[prefixIdx] ?? 1;
+}
+
 function rollFishPrefix(fishRarityIdx) {
     const prefixIdx = rollPrefixTierIndex(fishRarityIdx);
     const tierName = RARITIES[prefixIdx].name;
@@ -351,7 +357,7 @@ function rollFishPrefix(fishRarityIdx) {
     const prefixWord = words[Math.floor(Math.random() * words.length)];
     return {
         prefixTier: tierName,
-        prefixMult: PREFIX_VALUE_MULT[prefixIdx],
+        prefixMult: getPrefixValueMult(fishRarityIdx, prefixIdx),
         prefixWord
     };
 }
