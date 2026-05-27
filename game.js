@@ -4,9 +4,10 @@
  */
 
 /** Poids de tirage Commun → Épique (Lég./Myth./Divin = catchRates canne) */
-const RARITY_WEIGHTS = [100, 42, 18.5, 8.0, 0.98, 0.028, 0.005];
-/** Bonus global sur le % Légendaire des cannes */
-const LEGENDARY_CATCH_MULT = 1.38;
+const RARITY_WEIGHTS = [58, 26, 26, 12, 0.98, 0.028, 0.005];
+/** Cible canne bambou : ~1 légendaire / 250 (0,4 % avant myth./divin) */
+const LEGENDARY_CATCH_MULT = 1;
+const LEGENDARY_CHANCE_BAMBOO_PCT = 0.4;
 
 const RARITIES = [
     { name: 'Commun', folder: 'commun', color: '#BDBDBD', difficulty: 2, points: 1, speed: 2, class: 'rarity-0', minPrice: 0.1, maxPrice: 1 },
@@ -21,9 +22,9 @@ const RARITIES = [
 // 1. D'abord on définit les cannes du shop
 /** Chances de pêche en % (Légendaire / Mythique / Divin) — toutes cannes peuvent les obtenir. */
 const ROD_DATA = [
-    { id: 0, name: "Canne en Bambou", cost: 0, luck: 0, speed: 1, time: 0, img: "assets/rods/rod0.png", moneyBuff: 1, catchRates: { legendaire: 0.01, mythique: 0.003, divin: 0.0008 } },
-    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1, catchRates: { legendaire: 0.024, mythique: 0.008, divin: 0.0015 } },
-    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1, catchRates: { legendaire: 0.074, mythique: 0.025, divin: 0.004 } },
+    { id: 0, name: "Canne en Bambou", cost: 0, luck: 0, speed: 1, time: 0, img: "assets/rods/rod0.png", moneyBuff: 1, catchRates: { legendaire: 0.4, mythique: 0.003, divin: 0.0008 } },
+    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1, catchRates: { legendaire: 0.065, mythique: 0.008, divin: 0.0015 } },
+    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1, catchRates: { legendaire: 0.12, mythique: 0.025, divin: 0.004 } },
     { id: 3, name: "Canne en Carbone", cost: 10000, luck: 4, speed: 2.0, time: 15, img: "assets/rods/rod3.png", moneyBuff: 1.1, catchRates: { legendaire: 0.43, mythique: 0.08, divin: 0.006 } },
     { id: 4, name: "Canne Pro", cost: 50000, luck: 7, speed: 2.5, time: 20, img: "assets/rods/rod4.png", moneyBuff: 1.2, catchRates: { legendaire: 0.52, mythique: 0.10, divin: 0.012 } },
     { id: 5, name: "Canne ProMax", cost: 100000, luck: 8, speed: 2.9, time: 25, img: "assets/rods/rod5.png", moneyBuff: 1.5, catchRates: { legendaire: 0.62, mythique: 0.12, divin: 0.015 } }
@@ -713,7 +714,7 @@ function rollMutation() {
 function getRodCatchRates(rod) {
     const luck = Math.min(Math.max(0, rod?.luck ?? 0), 100);
     const defaults = {
-        legendaire: 0.0115 * (1 + luck * 0.13),
+        legendaire: LEGENDARY_CHANCE_BAMBOO_PCT * (1 + luck * 0.12),
         mythique: 0.003 * (1 + luck * 0.075),
         divin: 0.0008 * (1 + luck * 0.06)
     };
@@ -756,8 +757,8 @@ function rollFishRarityIndex(rodOrLuck = 0) {
     const weights = [];
     for (let i = 0; i <= 3; i++) {
         let w = RARITY_WEIGHTS[i];
-        if (i === 2) w *= (1 + luck * 0.038);
-        if (i === 3) w *= (1 + luck * 0.082);
+        if (i === 2) w *= (1 + luck * 0.045);
+        if (i === 3) w *= (1 + luck * 0.095);
         weights.push(w);
         totalWeight += w;
     }
