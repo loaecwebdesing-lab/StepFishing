@@ -2404,35 +2404,49 @@ function equipRod(id) {
 }
 
 
+const FISH_INDEX_ZONE_LEGEND = [
+    { id: 'lac', label: 'Lac Calme', className: 'zone-lac' },
+    { id: 'ocean', label: 'Haute Mer', className: 'zone-ocean' },
+    { id: 'abyss', label: 'Abysse', className: 'zone-abyss' }
+];
+
+function setupIndexLegend() {
+    const legend = document.getElementById('index-legend');
+    if (!legend || legend.dataset.ready) return;
+    legend.innerHTML = FISH_INDEX_ZONE_LEGEND.map(z =>
+        `<span class="index-legend-item ${z.className}"><i aria-hidden="true"></i>${z.label}</span>`
+    ).join('');
+    legend.dataset.ready = '1';
+}
+
 function renderIndex(selectedRarityFolder = 'commun') {
     const grid = document.getElementById('index-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    const allFishes = {};
     ZONE_DATA.forEach(zone => {
         const folderFishes = zone.library[selectedRarityFolder] || [];
-        folderFishes.forEach(f => {
-            if(!allFishes[f]) allFishes[f] = f;
+        const zoneClass = `zone-${zone.id}`;
+        folderFishes.forEach(fileName => {
+            const imgPath = `assets/fish/${selectedRarityFolder}/${fileName}`;
+            const isUnlocked = state.discoveredFishes.includes(imgPath);
+            const speciesName = fileName.replace('.png', '').replace(/_/g, ' ');
+            const slot = document.createElement('div');
+            slot.className = `fish-slot ${zoneClass} ${isUnlocked ? 'unlocked' : 'locked'}`;
+            slot.title = `${zone.name} · ${isUnlocked ? speciesName : 'Non découvert'}`;
+            slot.innerHTML = `<img src="${imgPath}" alt=""><span>${isUnlocked ? speciesName : '???'}</span>`;
+            grid.appendChild(slot);
         });
-    });
-    Object.values(allFishes).forEach(fileName => {
-        const imgPath = `assets/fish/${selectedRarityFolder}/${fileName}`;
-        const isUnlocked = state.discoveredFishes.includes(imgPath);
-        const speciesName = fileName.replace('.png', '').replace('_', ' ');
-        const slot = document.createElement('div');
-        slot.className = `fish-slot ${isUnlocked ? 'unlocked' : 'locked'}`;
-        slot.innerHTML = `<img src="${imgPath}"><span>${isUnlocked ? speciesName : '???'}</span>`;
-        grid.appendChild(slot);
     });
 }
 
 function setupIndexTabs() {
     const tabsContainer = document.getElementById('index-tabs');
     if (!tabsContainer) return;
+    setupIndexLegend();
     tabsContainer.innerHTML = '';
-    RARITIES.forEach(rarity => {
+    RARITIES.forEach((rarity, idx) => {
         const tab = document.createElement('div');
-        tab.className = 'index-tab';
+        tab.className = 'index-tab' + (idx === 0 ? ' active' : '');
         tab.innerText = rarity.name;
         tab.onclick = () => {
             document.querySelectorAll('.index-tab').forEach(t => t.classList.remove('active'));
