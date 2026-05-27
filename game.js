@@ -505,6 +505,12 @@ function formatCatchRatePct(pct) {
     return pct.toFixed(3) + '%';
 }
 
+function formatFishSellPrice(value) {
+    const v = Number(value);
+    if (!Number.isFinite(v)) return '0 $';
+    return v + ' $';
+}
+
 /**
  * Tirage de rareté : d'abord % Lég./Myth./Divin de la canne, sinon pool Commun → Épique (luck = bonus Épique).
  */
@@ -685,7 +691,7 @@ const elements = {
         index: getEl('screen-index'),
         map: getEl('screen-map')
     },
-    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), aqCapacityHud: getEl('aq-capacity-hud'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual')
+    score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), aqCapacityHud: getEl('aq-capacity-hud'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual'), catchFishPrice: getEl('catch-fish-price')
 };
 
 function calculateFishValue(rarityIdx) {
@@ -1486,10 +1492,12 @@ function getMutationData(mutationName) {
 function renderCatchReveal(fish) {
     const nameEl = document.getElementById('catch-fish-name');
     const rarityEl = document.getElementById('catch-fish-rarity');
+    const priceEl = elements.catchFishPrice;
     const visual = elements.catchVisual;
     if (!fish) {
         if (nameEl) { nameEl.textContent = ''; nameEl.className = 'rarity-text catch-fish-name'; }
         if (rarityEl) rarityEl.textContent = '';
+        if (priceEl) { priceEl.innerHTML = ''; priceEl.classList.add('hidden'); }
         if (visual) { visual.innerHTML = ''; visual.style.removeProperty('--catch-glow'); }
         return;
     }
@@ -1514,6 +1522,15 @@ function renderCatchReveal(fish) {
             const mutation = getMutationData(fish.mutation);
             rarityEl.innerHTML = `${escapeHtml(getRarityNameFromClass(fish.class))}${buildPrefixNoteHTML(fish)} · ${escapeHtml(formatFishWeight(fish.weight))} · ${escapeHtml(mutation.name)}`;
             rarityEl.style.color = fish.color || '';
+        }
+    }
+    if (priceEl) {
+        if (fish.isKey || fish.isTreasureBox) {
+            priceEl.innerHTML = '';
+            priceEl.classList.add('hidden');
+        } else {
+            priceEl.innerHTML = `Valeur de vente : <strong>${escapeHtml(formatFishSellPrice(fish.value))}</strong>`;
+            priceEl.classList.remove('hidden');
         }
     }
 }
@@ -1893,7 +1910,7 @@ function openFishModal(index, aqId) {
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
     const mutation = getMutationData(fish.mutation);
     elements.modalFishRarity.innerHTML = `${escapeHtml(rarityInfo ? rarityInfo.name : 'Inconnu')}${buildPrefixNoteHTML(fish)} · ${escapeHtml(formatFishWeight(weightKg))} · Mutation : ${escapeHtml(mutation.name)}`;
-    elements.modalFishPrice.innerText = fish.value + " $";
+    elements.modalFishPrice.innerText = formatFishSellPrice(fish.value);
     const lockHint = document.getElementById('modal-fish-lock-hint');
     if (lockHint) {
         lockHint.textContent = locked

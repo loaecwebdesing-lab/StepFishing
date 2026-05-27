@@ -515,11 +515,25 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 .catch-fish-rarity {
-    margin: 0 0 12px;
+    margin: 0 0 8px;
     font-size: 1rem !important;
     font-weight: 700;
     text-align: center;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.catch-fish-price {
+    margin: 0 0 10px;
+    font-size: 1.35rem !important;
+    font-weight: 800;
+    color: var(--wood-gold) !important;
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.catch-fish-price strong {
+    font-size: 1.55rem;
+    color: var(--wood-gold);
 }
 
 #catch-modal #catch-text {
