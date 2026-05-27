@@ -667,8 +667,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     align-items: center;
     flex-shrink: 0;
     width: 100%;
-    min-height: 200px;
-    max-height: 230px;
+    min-height: 320px;
+    max-height: min(42vh, 420px);
     margin: 0 0 14px;
     padding: 14px 12px;
     border-radius: 18px;
@@ -682,15 +682,15 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #catch-visual .fish-visual-wrap {
     padding: 6px 10px !important;
     max-width: 100%;
-    max-height: 210px;
+    max-height: min(40vh, 400px);
     box-sizing: border-box;
 }
 
 #catch-visual .fish-mut-img,
 #catch-visual .key-catch-img {
     width: auto !important;
-    max-width: 168px !important;
-    max-height: 200px !important;
+    max-width: min(336px, 88vw) !important;
+    max-height: min(40vh, 400px) !important;
     height: auto !important;
     object-fit: contain;
 }
@@ -699,8 +699,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #catch-visual .treasure-catch-visual {
     width: auto !important;
     height: auto !important;
-    max-width: 168px !important;
-    max-height: 200px !important;
+    max-width: min(336px, 88vw) !important;
+    max-height: min(40vh, 400px) !important;
 }
 
 .catch-details {
@@ -841,9 +841,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #catch-modal .catch-glass-card {
     margin: auto;
     flex-shrink: 0;
-    width: min(420px, 94vw);
-    max-width: 420px;
-    max-height: min(94vh, 720px);
+    width: min(480px, 96vw);
+    max-width: 480px;
+    max-height: min(96vh, 820px);
 }
 
 #fish-modal .glass-card {
@@ -852,8 +852,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 #catch-modal .catch-glass-card {
-    max-width: 420px;
-    width: min(420px, 94vw);
+    max-width: 480px;
+    width: min(480px, 96vw);
 }
 
 .game-over-card {
@@ -4792,16 +4792,26 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
     #catch-visual,
     .catch-visual-panel {
-        min-height: 170px;
-        max-height: 200px;
+        min-height: 280px;
+        max-height: min(50vh, 380px);
         margin: 0 0 12px;
         padding: 10px;
     }
 
+    #catch-visual .fish-visual-wrap {
+        max-height: min(48vh, 360px);
+    }
+
     #catch-visual .fish-mut-img,
     #catch-visual .key-catch-img {
-        max-width: 150px !important;
-        max-height: 180px !important;
+        max-width: min(300px, 92vw) !important;
+        max-height: min(48vh, 360px) !important;
+    }
+
+    #catch-visual .key-catch-visual,
+    #catch-visual .treasure-catch-visual {
+        max-width: min(300px, 92vw) !important;
+        max-height: min(48vh, 360px) !important;
     }
 
     .catch-title,

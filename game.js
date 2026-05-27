@@ -1791,14 +1791,16 @@ function getMutationData(mutationName) {
     return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
 }
 
-/** Taille affichage poisson dans le modal capture (évite le débordement écran) */
+/** Taille affichage poisson dans le modal capture (×2 visuel) */
 function getCatchRevealFishSize(fish) {
-    if (!fish) return 100;
-    if (fish.isKey || fish.isTreasureBox) return 110;
-    const base = aquariumFishWidthPx(fish.weight) + 18;
+    if (!fish) return 200;
+    const base = (fish.isKey || fish.isTreasureBox)
+        ? 110
+        : aquariumFishWidthPx(fish.weight) + 18;
     const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
     const scaled = base * (isMobile ? 1.42 : 1.22);
-    return Math.min(isMobile ? 168 : 158, Math.max(84, Math.round(scaled)));
+    const capped = Math.min(isMobile ? 168 : 158, Math.max(84, Math.round(scaled)));
+    return capped * 2;
 }
 
 function renderCatchReveal(fish) {
