@@ -394,9 +394,34 @@ function rollFishPrefix(fishRarityIdx) {
     const prefixWord = words[Math.floor(Math.random() * words.length)];
     return {
         prefixTier: tierName,
+        prefixTierClass: RARITIES[prefixIdx].class,
         prefixMult: getPrefixValueMult(fishRarityIdx, prefixIdx),
         prefixWord
     };
+}
+
+function getRarityClassFromTierName(tierName) {
+    const r = RARITIES.find(x => x.name === tierName);
+    return r?.class || 'rarity-0';
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/** HTML : seul le nom du tier du préfixe est coloré (rarity-0 … rarity-6). */
+function buildPrefixNoteHTML(fish) {
+    const pMult = getFishPrefixMult(fish);
+    if (fish?.prefixTier) {
+        const tierClass = fish.prefixTierClass || getRarityClassFromTierName(fish.prefixTier);
+        return ` · Préfixe <span class="prefix-tier-label rarity-text ${tierClass}">${escapeHtml(fish.prefixTier)}</span> (×${pMult})`;
+    }
+    if (pMult !== 1) return ` · Préfixe (×${pMult})`;
+    return '';
 }
 
 function getFishPrefixMult(fish) {
@@ -1480,9 +1505,7 @@ function renderCatchReveal(fish) {
             rarityEl.style.color = fish.color || '#8BC34A';
         } else {
             const mutation = getMutationData(fish.mutation);
-            const pMult = getFishPrefixMult(fish);
-            const pNote = fish.prefixTier ? ` · Préfixe ${fish.prefixTier} (×${pMult})` : '';
-            rarityEl.textContent = `${getRarityNameFromClass(fish.class)}${pNote} · ${formatFishWeight(fish.weight)} · ${mutation.name}`;
+            rarityEl.innerHTML = `${escapeHtml(getRarityNameFromClass(fish.class))}${buildPrefixNoteHTML(fish)} · ${escapeHtml(formatFishWeight(fish.weight))} · ${escapeHtml(mutation.name)}`;
             rarityEl.style.color = fish.color || '';
         }
     }
@@ -1773,11 +1796,7 @@ function openFishModal(index, aqId) {
     elements.modalFishName.className = `rarity-text ${fish.class}`;
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
     const mutation = getMutationData(fish.mutation);
-    const prefixMult = getFishPrefixMult(fish);
-    const prefixNote = fish.prefixTier
-        ? ` · Préfixe ${fish.prefixTier} (×${prefixMult})`
-        : (prefixMult !== 1 ? ` · Préfixe ×${prefixMult}` : '');
-    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'}${prefixNote} · ${formatFishWeight(weightKg)} · Mutation : ${mutation.name}`;
+    elements.modalFishRarity.innerHTML = `${escapeHtml(rarityInfo ? rarityInfo.name : 'Inconnu')}${buildPrefixNoteHTML(fish)} · ${escapeHtml(formatFishWeight(weightKg))} · Mutation : ${escapeHtml(mutation.name)}`;
     elements.modalFishPrice.innerText = fish.value + " $";
     const lockHint = document.getElementById('modal-fish-lock-hint');
     if (lockHint) {
@@ -1954,6 +1973,7 @@ function triggerCatch() {
         id: rIdx,
         name: naming.name,
         prefixTier: naming.prefixTier,
+        prefixTierClass: naming.prefixTierClass,
         prefixMult: naming.prefixMult,
         img: selectedImg,
         weight,
@@ -2246,6 +2266,7 @@ function generateProceduralName(fishRarityIdx, speciesName) {
     return {
         name: `${speciesName} ${rolled.prefixWord}`,
         prefixTier: rolled.prefixTier,
+        prefixTierClass: rolled.prefixTierClass,
         prefixMult: rolled.prefixMult
     };
 }
@@ -2275,6 +2296,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
         id: rIdx,
         name: naming.name,
         prefixTier: naming.prefixTier,
+        prefixTierClass: naming.prefixTierClass,
         prefixMult: naming.prefixMult,
         img: `assets/fish/${rData.folder}/${randomFishFile}`,
         weight,

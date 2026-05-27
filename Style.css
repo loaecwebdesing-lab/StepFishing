@@ -689,6 +689,7 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .rarity-5 { color: #F44336; }
 .rarity-6 { color: #4B0082; }
 .rarity-text { font-weight: 800; text-shadow: 1px 1px 2px black; }
+.prefix-tier-label { font-weight: 800; text-shadow: 1px 1px 2px black; }
 
 .btn-danger { filter: hue-rotate(320deg) brightness(0.8) contrast(1.2) !important; color: #ffcccc !important; }
 .btn-danger:hover { filter: hue-rotate(320deg) brightness(1.1) contrast(1.2) !important; }
