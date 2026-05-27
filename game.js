@@ -1521,7 +1521,6 @@ function clearCatchReveal() {
 
 function updateCatchLockUI() {
     const btn = document.getElementById('btn-lock-catch');
-    const hint = document.getElementById('catch-lock-hint');
     if (!btn) return;
 
     const fish = state.currentFish;
@@ -1529,20 +1528,17 @@ function updateCatchLockUI() {
 
     if (!loc) {
         btn.classList.add('hidden');
-        if (hint) hint.classList.add('hidden');
         return;
     }
 
     const locked = isFishLocked(loc.fish);
     btn.classList.remove('hidden');
-    btn.textContent = locked ? '🔓 Déverrouiller' : '🔒 Verrouiller ce poisson';
-    btn.classList.toggle('fish-lock-active', locked);
-    if (hint) {
-        hint.classList.remove('hidden');
-        hint.textContent = locked
-            ? '🔒 Protégé : il ne sera pas vendu avec « Tout vendre ».'
-            : 'Protège ce poisson du « Tout vendre » avant de continuer.';
-    }
+    btn.textContent = locked ? '🔒' : '🔓';
+    btn.classList.toggle('catch-lock-icon-locked', locked);
+    btn.setAttribute('aria-label', locked ? 'Poisson verrouillé — cliquer pour déverrouiller' : 'Verrouiller ce poisson');
+    btn.title = locked
+        ? 'Verrouillé — protégé du « Tout vendre »'
+        : 'Cliquer pour verrouiller';
 }
 
 function toggleLockFromCatchModal() {
