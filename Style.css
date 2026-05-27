@@ -341,13 +341,59 @@ body, html {
     justify-content: center;
 }
 
-.screen-index-card {
-    width: min(96vw, 900px) !important;
-    max-width: 96vw !important;
+/* FishIndex — mise en page PC (centrée, grille dans la carte) */
+#screen-index {
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 0;
 }
 
-.screen-index-card .index-grid {
+#screen-index .index-card {
+    width: min(900px, 90%) !important;
+    max-width: 900px !important;
+    height: 80vh;
+    max-height: 80vh;
+    margin: 0;
+    padding: 28px 28px 22px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: float 4s infinite ease-in-out;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#screen-index .index-card .title {
+    flex-shrink: 0;
+    margin: 0 0 12px !important;
+    font-size: 3.5rem !important;
+}
+
+#screen-index .index-tabs-row {
+    flex-shrink: 0;
+    margin-bottom: 14px;
+}
+
+#screen-index .index-legend {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+}
+
+#screen-index .index-grid {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     max-height: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#screen-index .index-back-btn {
+    flex-shrink: 0;
+    margin-top: 16px !important;
+    width: 280px !important;
+    height: 60px !important;
 }
 
 .glass-card { background: rgba(40, 30, 20, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 4px solid var(--wood-medium); border-radius: 30px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; animation: float 4s infinite ease-in-out; z-index: 10; }
@@ -4724,6 +4770,45 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     #equipment-list {
         max-height: none !important;
         overflow-y: visible !important;
+    }
+
+    /* FishIndex — scroll tactile sur mobile uniquement */
+    #screen-index {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        padding: max(10px, env(safe-area-inset-top, 0px)) 8px max(16px, env(safe-area-inset-bottom, 12px));
+    }
+
+    #screen-index .index-card {
+        width: min(96vw, 800px) !important;
+        max-width: 96vw !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 auto !important;
+        padding: 16px 14px !important;
+        animation: none !important;
+        overflow: visible;
+    }
+
+    #screen-index .index-card .title {
+        font-size: clamp(1.6rem, 6.5vw, 2.2rem) !important;
+    }
+
+    #screen-index .index-grid {
+        flex: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    #screen-index .index-back-btn {
+        width: min(300px, 92vw) !important;
+        height: 56px !important;
+        margin: 14px auto 10px !important;
     }
 
     .title {
