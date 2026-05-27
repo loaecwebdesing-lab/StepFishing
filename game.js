@@ -173,21 +173,84 @@ const sfxPools = {};
 let bgMusicEl = null;
 let lastButtonSfxAt = 0;
 const sfxBaseVolumes = {};
+/** Max. de fois la même piste peut enchaîner avant d’être forcée à changer (pas 6× d’affilée). */
+const BG_MUSIC_MAX_SAME_STREAK = 5;
+let bgMusicCurrentTrack = null;
+let bgMusicSameStreak = 1;
+let bgMusicEndedBound = false;
+
+function getBgMusicTrackList() {
+    return window.__stepfishBgTracks || BG_MUSIC_TRACKS;
+}
 
 function pickRandomBgMusicTrack() {
-    const tracks = window.__stepfishBgTracks || BG_MUSIC_TRACKS;
+    const tracks = getBgMusicTrackList();
+    if (!tracks.length) return 'assets/Ambi.mp3';
     return tracks[Math.floor(Math.random() * tracks.length)];
+}
+
+function resolveTrackPathFromAudioSrc(src) {
+    const tracks = getBgMusicTrackList();
+    if (!src) return null;
+    for (const t of tracks) {
+        const file = t.split('/').pop();
+        if (src.includes(file) || src.endsWith(t)) return t;
+    }
+    return null;
+}
+
+function pickNextBgMusicTrack(previousTrack, sameStreak) {
+    const tracks = getBgMusicTrackList();
+    if (!tracks.length) return 'assets/Ambi.mp3';
+    if (tracks.length === 1) return tracks[0];
+    const mustChange = previousTrack && sameStreak >= BG_MUSIC_MAX_SAME_STREAK;
+    if (mustChange) {
+        const others = tracks.filter((t) => t !== previousTrack);
+        return others[Math.floor(Math.random() * others.length)];
+    }
+    return tracks[Math.floor(Math.random() * tracks.length)];
+}
+
+function onBgMusicEnded() {
+    const music = getBgMusic();
+    if (!music) return;
+    const next = pickNextBgMusicTrack(bgMusicCurrentTrack, bgMusicSameStreak);
+    if (next === bgMusicCurrentTrack) bgMusicSameStreak++;
+    else bgMusicSameStreak = 1;
+    bgMusicCurrentTrack = next;
+    music.src = next;
+    music.load();
+    music.muted = volumeMuted || masterVolume <= 0;
+    music.volume = getScaledMusicVolume();
+    music.play().catch(() => {});
+}
+
+window.__stepfishOnBgMusicEnded = onBgMusicEnded;
+
+function bindBgMusicEndedHandler(music) {
+    if (!music || bgMusicEndedBound) return;
+    music.loop = false;
+    music.addEventListener('ended', onBgMusicEnded);
+    bgMusicEndedBound = true;
 }
 
 function initBackgroundMusic() {
     if (!window.__stepfishBgMusic) {
-        const music = new Audio(pickRandomBgMusicTrack());
-        music.loop = true;
+        const track = pickRandomBgMusicTrack();
+        const music = new Audio(track);
+        music.loop = false;
         music.preload = 'auto';
         music.playsInline = true;
         window.__stepfishBgMusic = music;
+        bgMusicCurrentTrack = track;
+        bgMusicSameStreak = 1;
     }
     bgMusicEl = window.__stepfishBgMusic;
+    bindBgMusicEndedHandler(bgMusicEl);
+    if (!bgMusicCurrentTrack) {
+        bgMusicCurrentTrack = resolveTrackPathFromAudioSrc(bgMusicEl.src) || pickRandomBgMusicTrack();
+        bgMusicSameStreak = 1;
+    }
     return bgMusicEl;
 }
 
@@ -317,7 +380,9 @@ function updateVolumeBarUI() {
     if (pctEl) pctEl.textContent = `${pct}%`;
     if (muteBtn) {
         muteBtn.textContent = pct === 0 ? '🔇' : pct < 45 ? '🔉' : '🔊';
-        muteBtn.title = pct === 0 ? 'Activer le son' : 'Couper le son';
+        muteBtn.title = pct === 0
+            ? 'Activer le son — survoler pour régler'
+            : 'Couper le son — survoler pour régler';
         muteBtn.setAttribute('aria-label', muteBtn.title);
     }
 }
@@ -360,6 +425,24 @@ function setupVolumeControl() {
         e.stopPropagation();
         setMasterVolumeFromPct(Math.min(100, Math.round(masterVolume * 100) + 10));
     });
+
+    const dock = document.getElementById('volume-bar');
+    if (dock) {
+        let closeTimer = null;
+        const openDock = () => {
+            clearTimeout(closeTimer);
+            dock.classList.add('is-open');
+        };
+        const scheduleCloseDock = () => {
+            closeTimer = setTimeout(() => dock.classList.remove('is-open'), 300);
+        };
+        dock.addEventListener('pointerenter', openDock);
+        dock.addEventListener('pointerleave', scheduleCloseDock);
+        dock.addEventListener('focusin', openDock);
+        dock.addEventListener('focusout', (e) => {
+            if (!dock.contains(e.relatedTarget)) scheduleCloseDock();
+        });
+    }
 }
 
 function setupAudio() {
