@@ -64,6 +64,7 @@ const TREASURE_BOXES = [
         id: 'coffre_leger',
         name: 'Coffre léger',
         catchChance: 1 / 125,
+        keyBonusChance: 0.05,
         img: 'assets/PetitCoffre.png',
         color: '#03A9F4',
         difficulty: 7,
@@ -79,6 +80,7 @@ const TREASURE_BOXES = [
         id: 'coffre_moyen',
         name: 'Coffre moyen',
         catchChance: 1 / 270,
+        keyBonusChance: 0.10,
         img: 'assets/CoffreMoyen.png',
         color: '#9C27B0',
         difficulty: 9,
@@ -945,11 +947,26 @@ function runTreasureReelSpin(listEl, strip, winIndex, durationMs) {
     });
 }
 
+function rollTreasureBonusKey(boxId) {
+    const chance = TREASURE_BOX_BY_ID[boxId]?.keyBonusChance;
+    return typeof chance === 'number' && chance > 0 && Math.random() < chance;
+}
+
 function applyTreasureReward(reward, box) {
     state.money += reward.amount;
     updateMoneyDisplay();
+
+    const wonKey = rollTreasureBonusKey(box.id);
+    if (wonKey) {
+        state.keys = (parseInt(state.keys, 10) || 0) + 1;
+        updateKeysDisplay();
+    }
+
     persistGame();
-    addLog(`📦 ${box.name} : ${reward.detailLabel} !`, 'epic');
+
+    const keyLine = wonKey ? '\n🔑 +1 clé mystérieuse !' : '';
+    addLog(`📦 ${box.name} : ${reward.detailLabel}${wonKey ? ' + 1 clé mystérieuse' : ''} !`, 'epic');
+
     const sub = document.getElementById('treasure-roll-subtitle');
     const resultEl = document.getElementById('treasure-roll-result');
     const closeBtn = document.getElementById('btn-treasure-close');
@@ -957,12 +974,12 @@ function applyTreasureReward(reward, box) {
     if (sub) sub.textContent = 'Ouverture terminée';
     if (phase) phase.classList.add('hidden');
     if (resultEl) {
-        resultEl.textContent = `💰 ${reward.detailLabel}`;
+        resultEl.innerHTML = `💰 ${reward.detailLabel}${wonKey ? '<br>🔑 +1 clé mystérieuse' : ''}`;
         resultEl.style.color = reward.color || box.color;
         resultEl.classList.remove('hidden');
     }
     if (closeBtn) closeBtn.classList.remove('hidden');
-    alert(`💰 ${box.name}\n${reward.detailLabel}`);
+    alert(`💰 ${box.name}\n${reward.detailLabel}${keyLine}`);
 }
 
 function finishTreasureRoll(reward, box) {
