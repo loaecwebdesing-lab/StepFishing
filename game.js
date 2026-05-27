@@ -1508,24 +1508,88 @@ function buildFishVisualHTML(fish, width) {
     </div>`;
 }
 
-function spawnFishParticle(fishEl) {
+function spawnFishParticleInLayer(fishEl, layerEl) {
     const mutationName = fishEl.dataset.mutation;
     if (!mutationName || mutationName === 'Normal') return;
     if (Math.random() > 0.04) return;
 
     const mut = getMutationData(mutationName);
-    const layer = elements.fishLayer;
-    if (!layer) return;
+    if (!layerEl) return;
 
     const fishRect = fishEl.getBoundingClientRect();
-    const layerRect = layer.getBoundingClientRect();
+    const layerRect = layerEl.getBoundingClientRect();
     const particle = document.createElement('div');
     particle.className = `fish-particle particle-${mut.effect}`;
     particle.style.background = mut.color;
     particle.style.left = (fishRect.left - layerRect.left + fishRect.width * (0.3 + Math.random() * 0.4)) + 'px';
     particle.style.top = (fishRect.top - layerRect.top + fishRect.height * (0.3 + Math.random() * 0.4)) + 'px';
-    layer.appendChild(particle);
+    layerEl.appendChild(particle);
     setTimeout(() => particle.remove(), 800);
+}
+
+function spawnFishParticle(fishEl) {
+    spawnFishParticleInLayer(fishEl, elements.fishLayer);
+}
+
+let _aqPreviewAnimToken = 0;
+
+function renderAquariumFishLayer(layerEl, fishes) {
+    if (!layerEl) return;
+    layerEl.innerHTML = '';
+    const list = Array.isArray(fishes) ? fishes : [];
+    list.forEach((fish) => {
+        const fDiv = document.createElement('div');
+        const mutation = getMutationData(fish.mutation);
+        fDiv.classList.add('aq-fish');
+        if (mutation.effect !== 'none') fDiv.classList.add(`mut-${mutation.effect}`);
+        fDiv.dataset.mutation = mutation.name;
+        fDiv.style.setProperty('--mut-color', mutation.color);
+        const weightKg = getFishWeightKg(fish);
+        const finalWidth = aquariumFishWidthPx(weightKg);
+        const locked = Boolean(fish.locked);
+        if (locked) fDiv.classList.add('aq-fish-locked');
+        const pMult = getFishPrefixMult(fish);
+        const pNote = fish.prefixTier ? ` · Préfixe ${fish.prefixTier} (×${pMult})` : '';
+        fDiv.title = `${fish.name} · ${getRarityNameFromClass(fish.class)}${pNote} · ${formatFishWeight(weightKg)} · ${mutation.name}${locked ? ' · 🔒' : ''}`;
+        fDiv.innerHTML = `${locked ? '<span class="aq-fish-lock-badge" aria-hidden="true">🔒</span>' : ''}<img src="${fish.img}" class="aq-fish-img" style="width:${finalWidth}px" alt="">`;
+        fDiv.style.left = Math.random() * 80 + 5 + '%';
+        fDiv.style.top = Math.random() * 75 + 5 + '%';
+        fDiv.dataset.fishData = JSON.stringify({ target: null, speed: 0 });
+        layerEl.appendChild(fDiv);
+    });
+}
+
+function startAquariumFishAnimation(layerEl) {
+    stopAquariumFishAnimation();
+    const token = ++_aqPreviewAnimToken;
+    const loop = () => {
+        if (token !== _aqPreviewAnimToken || !layerEl?.isConnected) return;
+        layerEl.querySelectorAll('.aq-fish').forEach(fish => {
+            const data = JSON.parse(fish.dataset.fishData || '{"target":null,"speed":0}');
+            if (!data.target) {
+                data.target = { x: 5 + Math.random() * 80, y: 5 + Math.random() * 75 };
+                data.speed = 0.005 + Math.random() * 0.01;
+            }
+            const curX = parseFloat(fish.style.left) || 0;
+            const curY = parseFloat(fish.style.top) || 0;
+            const newX = curX + (data.target.x - curX) * data.speed;
+            const newY = curY + (data.target.y - curY) * data.speed;
+            fish.style.left = newX + '%';
+            fish.style.top = newY + '%';
+            fish.style.transform = `scaleX(${newX > curX ? -1 : 1})`;
+            if (Math.abs(newX - data.target.x) < 1) {
+                data.target = { x: 5 + Math.random() * 80, y: 5 + Math.random() * 75 };
+            }
+            fish.dataset.fishData = JSON.stringify(data);
+            spawnFishParticleInLayer(fish, layerEl);
+        });
+        requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+}
+
+function stopAquariumFishAnimation() {
+    _aqPreviewAnimToken++;
 }
 
 let isAnimating = false;
@@ -2708,12 +2772,28 @@ window.StepFishGameTrade = {
     getFishWeightKg,
     formatFishWeight,
     getMutationData,
+    getRarityNameFromClass,
+    getFishPrefixMult,
+    aquariumFishWidthPx,
     applySaveData,
     refreshInventoryAfterCloudSync,
     updateAquariumCapacityHUD,
     addLog,
     renderAquarium,
     showScreen
+};
+
+window.StepFishAquariumPreview = {
+    renderAquariumFishLayer,
+    startAquariumFishAnimation,
+    stopAquariumFishAnimation,
+    buildFishVisualHTML,
+    getFishWeightKg,
+    formatFishWeight,
+    getMutationData,
+    getRarityNameFromClass,
+    getFishPrefixMult,
+    aquariumFishWidthPx
 };
 
 boot();

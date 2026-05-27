@@ -15,6 +15,10 @@
     let currentAqIndex = 0;
     let loading = false;
 
+    function getPreview() {
+        return window.StepFishAquariumPreview || window.StepFishGameTrade || {};
+    }
+
     function getClient() {
         return window.StepFishAuth?.getSupabaseClient?.() || null;
     }
@@ -34,47 +38,11 @@
         }) + ' $';
     }
 
-    function getHelpers() {
-        return window.StepFishGameTrade || {};
-    }
-
-    function getMutationData(name) {
-        const h = getHelpers();
-        if (h.getMutationData) return h.getMutationData(name);
-        return { name: name || 'Normal', effect: 'none', color: 'transparent' };
-    }
-
-    function formatFishWeight(kg) {
-        const h = getHelpers();
-        if (h.formatFishWeight) return h.formatFishWeight(kg);
-        return `${Number(kg || 0).toFixed(2)} kg`;
-    }
-
-    function getFishWeightKg(fish) {
-        const h = getHelpers();
-        if (h.getFishWeightKg) return h.getFishWeightKg(fish);
-        return Number(fish?.weight) || 1;
-    }
-
-    function aquariumFishWidthPx(kg) {
-        const w = Math.min(120, Math.max(36, 28 + (Number(kg) || 1) * 4));
-        return Math.round(w);
-    }
-
-    function getRarityLabel(fish) {
-        if (fish?.rarity) return fish.rarity;
-        const cls = fish?.class || '';
-        const map = {
-            'rarity-0': 'Commun', 'rarity-1': 'Peu Commun', 'rarity-2': 'Rare',
-            'rarity-3': 'Épique', 'rarity-4': 'Légendaire', 'rarity-5': 'Mythique', 'rarity-6': 'Divin'
-        };
-        return map[cls] || 'Poisson';
-    }
-
     function buildFishThumbHTML(fish) {
+        const p = getPreview();
         if (!fish?.img) return '<span class="pp-fish-placeholder">🐟</span>';
+        const w = p.aquariumFishWidthPx ? p.aquariumFishWidthPx(p.getFishWeightKg?.(fish) ?? fish.weight) : 64;
         const mut = escapeHtml(fish.mutation || 'Normal');
-        const w = aquariumFishWidthPx(getFishWeightKg(fish));
         return `<span class="pp-fish-thumb" data-mutation="${mut}">
             <img src="${escapeHtml(fish.img)}" alt="" loading="lazy" style="width:${w}px">
         </span>`;
@@ -97,15 +65,32 @@
         el.className = 'pp-status' + (isError ? ' pp-status-error' : text ? ' pp-status-ok' : '');
     }
 
+    function stopAquariumAnim() {
+        window.StepFishAquariumPreview?.stopAquariumFishAnimation?.();
+    }
+
+    function setCardAquariumMode(on) {
+        document.querySelector('.pp-card')?.classList.toggle('pp-card-aq', on);
+        document.getElementById('public-profile-modal')?.classList.toggle('pp-modal-aq', on);
+    }
+
     function showModal(view) {
         const modal = document.getElementById('public-profile-modal');
         if (!modal) return;
         modal.classList.add('active');
+        setCardAquariumMode(view === 'aq');
         document.getElementById('pp-stats-view')?.classList.toggle('hidden', view !== 'stats');
         document.getElementById('pp-aq-view')?.classList.toggle('hidden', view !== 'aq');
+        if (view !== 'aq') {
+            stopAquariumAnim();
+            hideFishInfo();
+        }
     }
 
     function closeModal() {
+        stopAquariumAnim();
+        setCardAquariumMode(false);
+        hideFishInfo();
         document.getElementById('public-profile-modal')?.classList.remove('active');
         currentProfile = null;
     }
@@ -157,9 +142,59 @@
         return inv && typeof inv === 'object' ? inv : {};
     }
 
+    function hideFishInfo() {
+        const el = document.getElementById('pp-fish-info');
+        if (el) {
+            el.classList.add('hidden');
+            el.innerHTML = '';
+        }
+    }
+
+    function showFishInfo(fish) {
+        const el = document.getElementById('pp-fish-info');
+        const p = getPreview();
+        if (!el || !fish) return;
+        const weightKg = p.getFishWeightKg ? p.getFishWeightKg(fish) : fish.weight;
+        const mut = p.getMutationData ? p.getMutationData(fish.mutation) : { name: fish.mutation || 'Normal' };
+        const rarity = p.getRarityNameFromClass ? p.getRarityNameFromClass(fish.class) : 'Poisson';
+        const pMult = p.getFishPrefixMult ? p.getFishPrefixMult(fish) : 1;
+        const pNote = fish.prefixTier ? ` · Préfixe ${fish.prefixTier} (×${pMult})` : '';
+        const visual = p.buildFishVisualHTML
+            ? p.buildFishVisualHTML(fish, (p.aquariumFishWidthPx?.(weightKg) || 64) + 28)
+            : buildFishThumbHTML(fish);
+
+        el.classList.remove('hidden');
+        el.innerHTML = `<div class="pp-fish-info-inner">
+            <div class="pp-fish-info-visual">${visual}</div>
+            <div class="pp-fish-info-text">
+                <strong class="rarity-text ${escapeHtml(fish.class || '')}">${escapeHtml(fish.name || 'Poisson')}</strong>
+                <span>${escapeHtml(rarity)}${escapeHtml(pNote)} · ${p.formatFishWeight ? p.formatFishWeight(weightKg) : weightKg + ' kg'}</span>
+                <span>Mutation : ${escapeHtml(mut.name)} · ${formatMoney(fish.value)}</span>
+            </div>
+        </div>`;
+    }
+
+    function bindPublicFishClicks(layerEl, fishes) {
+        if (!layerEl) return;
+        layerEl.querySelectorAll('.aq-fish').forEach((node, index) => {
+            node.style.cursor = 'pointer';
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showFishInfo(fishes[index]);
+            });
+        });
+    }
+
     function renderAquariumView() {
         const p = currentProfile;
         if (!p) return;
+
+        const preview = window.StepFishAquariumPreview;
+        if (!preview?.renderAquariumFishLayer) {
+            setStatus('Aquarium indisponible — recharge la page.', true);
+            return;
+        }
+
         const unlocked = normalizeUnlocked(p.unlocked_aquariums);
         if (!unlocked.includes(currentAqIndex)) {
             currentAqIndex = unlocked[0] ?? 0;
@@ -172,41 +207,34 @@
 
         const title = document.getElementById('pp-aq-title');
         const slots = document.getElementById('pp-aq-slots');
-        const grid = document.getElementById('pp-aq-fish-grid');
-        const bg = document.getElementById('pp-aq-preview');
-        const lock = document.getElementById('pp-aq-locked');
+        const container = document.getElementById('pp-aquarium-container');
+        const layer = document.getElementById('pp-fish-layer');
+        const lock = document.getElementById('pp-aq-lock-screen');
+        const empty = document.getElementById('pp-aq-empty');
 
         if (title) title.textContent = cfg?.name || 'Aquarium';
-        if (bg && cfg) {
-            bg.style.backgroundImage = `url('${cfg.bg}')`;
+        if (slots) {
+            slots.textContent = isUnlocked
+                ? `Slots: ${fishes.length}/${AQ_SLOTS}`
+                : '🔒 Verrouillé';
         }
-        if (slots) slots.textContent = isUnlocked ? `${fishes.length} / ${AQ_SLOTS} poissons` : 'Aquarium non débloqué';
+        if (container && cfg) {
+            container.style.backgroundImage = `url('${cfg.bg}')`;
+        }
         if (lock) lock.classList.toggle('hidden', isUnlocked);
-        if (!grid) return;
+        if (empty) empty.classList.toggle('hidden', !isUnlocked || fishes.length > 0);
 
-        if (!isUnlocked) {
-            grid.innerHTML = '';
-            return;
-        }
+        stopAquariumAnim();
+        hideFishInfo();
 
-        if (!fishes.length) {
-            grid.innerHTML = '<p class="pp-muted pp-aq-empty">Ce bac est vide.</p>';
-            return;
-        }
+        if (!layer) return;
+        layer.innerHTML = '';
 
-        grid.innerHTML = fishes.map(fish => {
-            const mut = getMutationData(fish.mutation);
-            const pMult = fish.prefixMult > 0 ? fish.prefixMult : 1;
-            const pNote = fish.prefixTier ? ` · Préfixe ${escapeHtml(fish.prefixTier)} (×${pMult})` : '';
-            const locked = fish.locked ? ' · 🔒' : '';
-            return `<article class="pp-aq-fish-card${mut.effect !== 'none' ? ` mut-${mut.effect}` : ''}" data-mutation="${escapeHtml(mut.name)}">
-                ${fish.locked ? '<span class="pp-aq-lock">🔒</span>' : ''}
-                ${buildFishThumbHTML(fish)}
-                <strong class="rarity-text ${escapeHtml(fish.class || '')}">${escapeHtml(fish.name || 'Poisson')}</strong>
-                <span class="pp-aq-fish-meta">${escapeHtml(getRarityLabel(fish))}${pNote}<br>${escapeHtml(mut.name)} · ${formatFishWeight(getFishWeightKg(fish))}${locked}</span>
-                <span class="pp-aq-fish-val">${formatMoney(fish.value)}</span>
-            </article>`;
-        }).join('');
+        if (!isUnlocked) return;
+
+        preview.renderAquariumFishLayer(layer, fishes);
+        bindPublicFishClicks(layer, fishes);
+        preview.startAquariumFishAnimation(layer);
     }
 
     function showStatsView() {
@@ -306,6 +334,10 @@
             idx = idx < 0 || idx >= unlocked.length - 1 ? 0 : idx + 1;
             currentAqIndex = unlocked[idx] ?? 0;
             renderAquariumView();
+        });
+        document.getElementById('pp-aquarium-viewport')?.addEventListener('click', (e) => {
+            if (e.target.closest('.aq-fish')) return;
+            hideFishInfo();
         });
     }
 

@@ -564,54 +564,106 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .lb-pseudo-link { display: inline-flex; max-width: 100%; }
 .chat-pseudo-link { display: inline; }
 .pp-aq-owner-label { text-align: center; margin: 0 0 12px; opacity: 0.9; }
-.pp-aq-nav-center { text-align: center; min-width: 140px; }
-.pp-aq-slots { display: block; font-size: 0.85rem; opacity: 0.85; }
-.pp-aq-preview {
-    width: 100%;
-    height: 120px;
-    border-radius: 16px;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid var(--wood-medium);
-    position: relative;
-    margin-bottom: 14px;
+.pp-aq-view-wrap { width: 100%; }
+.pp-card.pp-card-aq {
+    max-width: min(96vw, 1140px);
+    width: min(96vw, 1140px);
+    max-height: 92vh;
 }
-.pp-aq-locked {
+#public-profile-modal.pp-modal-aq .pp-card {
+    padding: 24px 20px 20px;
+}
+.pp-aq-nav-center { text-align: center; min-width: 160px; }
+.pp-aq-slots { display: block; font-size: 0.85rem; opacity: 0.85; }
+.pp-aquarium-container {
+    width: 100%;
+    max-width: 1100px;
+    height: min(58vh, 520px);
+    min-height: 320px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 40px;
+    border: 8px solid white;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    background-size: cover !important;
+    margin: 0 auto 12px;
+}
+.pp-aquarium-viewport {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.pp-fish-layer {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+.pp-fish-layer .aq-fish {
+    pointer-events: auto;
+    max-width: 38%;
+}
+.pp-aq-lock-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.55);
-    border-radius: 14px;
-    font-weight: bold;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
 }
-.pp-aq-fish-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+.pp-aq-lock-screen .lock-card {
+    background: rgba(40, 30, 20, 0.9);
+    border: 3px solid var(--wood-gold);
+    border-radius: 20px;
+    padding: 24px 32px;
+    text-align: center;
+}
+.pp-aq-empty-msg {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+.pp-fish-info {
     width: 100%;
-    max-height: 42vh;
-    overflow-y: auto;
-    padding: 4px;
+    max-width: 1100px;
+    margin: 0 auto 10px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid var(--wood-medium);
 }
-.pp-aq-fish-card {
+.pp-fish-info-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.pp-fish-info-visual { line-height: 0; }
+.pp-fish-info-text {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 10px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    text-align: center;
-    position: relative;
+    gap: 4px;
+    text-align: left;
+    font-size: 0.9rem;
 }
-.pp-aq-fish-card strong { font-size: 0.85rem; line-height: 1.2; }
-.pp-aq-fish-meta { font-size: 0.72rem; opacity: 0.9; line-height: 1.35; }
-.pp-aq-fish-val { font-size: 0.8rem; color: var(--wood-gold); font-weight: bold; }
-.pp-aq-lock { position: absolute; top: 6px; right: 8px; font-size: 0.85rem; }
-.pp-aq-empty { grid-column: 1 / -1; }
+.pp-fish-info-text strong { font-size: 1.05rem; }
 #modal-overlay { position: absolute !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8) !important; backdrop-filter: blur(10px); z-index: -1; }
 .fish-price-tag { font-size: 2rem !important; font-weight: 800; color: var(--wood-gold) !important; margin: 20px 0; text-align: center; }
 

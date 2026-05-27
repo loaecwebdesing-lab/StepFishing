@@ -374,21 +374,29 @@
                             <button type="button" id="btn-pp-close" class="btn-secondary">Fermer</button>
                         </div>
                     </div>
-                    <div id="pp-aq-view" class="hidden">
+                    <div id="pp-aq-view" class="hidden pp-aq-view-wrap">
                         <h1 class="title">Aquariums</h1>
                         <p id="pp-aq-owner" class="pp-aq-owner-label"></p>
                         <div class="pp-aq-nav aq-nav">
-                            <button type="button" id="btn-pp-aq-prev" class="btn-secondary" aria-label="Aquarium précédent">◀</button>
-                            <div class="pp-aq-nav-center">
+                            <button type="button" id="btn-pp-aq-prev" class="nav-btn" aria-label="Aquarium précédent">◀</button>
+                            <div class="pp-aq-nav-center aq-info">
                                 <strong id="pp-aq-title">Bac</strong>
                                 <span id="pp-aq-slots" class="pp-aq-slots"></span>
                             </div>
-                            <button type="button" id="btn-pp-aq-next" class="btn-secondary" aria-label="Aquarium suivant">▶</button>
+                            <button type="button" id="btn-pp-aq-next" class="nav-btn" aria-label="Aquarium suivant">▶</button>
                         </div>
-                        <div id="pp-aq-preview" class="pp-aq-preview">
-                            <p id="pp-aq-locked" class="pp-aq-locked hidden">🔒 Aquarium non débloqué par ce joueur</p>
+                        <div id="pp-aquarium-container" class="pp-aquarium-container">
+                            <div id="pp-aquarium-viewport" class="pp-aquarium-viewport">
+                                <div id="pp-fish-layer" class="pp-fish-layer"></div>
+                                <p id="pp-aq-empty" class="pp-aq-empty-msg hidden">Ce bac est vide.</p>
+                                <div id="pp-aq-lock-screen" class="pp-aq-lock-screen hidden">
+                                    <div class="lock-card">
+                                        <p>🔒 Aquarium non débloqué</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="pp-aq-fish-grid" class="pp-aq-fish-grid"></div>
+                        <div id="pp-fish-info" class="pp-fish-info hidden" aria-live="polite"></div>
                         <div class="pp-actions">
                             <button type="button" id="btn-pp-back-stats" class="btn-secondary">← Retour au profil</button>
                             <button type="button" id="btn-pp-close-aq" class="btn-secondary">Fermer</button>
