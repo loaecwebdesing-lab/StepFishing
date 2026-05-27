@@ -320,17 +320,21 @@ const ZONE_DATA = [
         bgDay: 'assets/abyss_day.png',
         bgDawn: 'assets/abyss_dawn.png',
         bgNight: 'assets/abyss_night.png',
+        /** Aucune espèce pour l'instant — zone visitable, pêche normale désactivée. */
         library: {
-            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png', 'Liche.png', 'Pagre.png', 'Tacaud.png', 'Aglefin.png', 'Atherine.png', 'Cabillaud.png', 'Chapon.png', 'Girelle.png', 'Perca.png', 'Sprat.png', 'Vielle.png'],
-            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png', 'SaintPierre.png', 'Napoleon.png', 'Albacore.png', 'Baliste.png', 'Carangue.png', 'Denti.png', 'Orphie.png', 'PoissonHache.png', 'Sar.png', 'Seriole.png', 'Trachinote.png'],
-            'rare': ['Baracuda.png', 'Thon.png', 'Turbot.png', 'Papillon.png'],
-            'epique': ['Espadon.png', 'MahiMahi.png', 'Poulpi.png', 'PoissonGlobe.png'],
-            'legendaire': ['Raiemanta.png', 'Mako.png', 'Voilier.png', 'Hippocampe.png'],
-            'mythique': ['Krakenor.png', 'Chronos.png'],
-            'divin': ['Abysellion.png']
+            'commun': [],
+            'peu_commun': [],
+            'rare': [],
+            'epique': [],
+            'legendaire': [],
+            'mythique': [],
+            'divin': []
         }
     }
 ];
+
+/** Multiplicateur de valeur de base selon la zone (Abysse = +50 % vs océan/lac). */
+const ZONE_FISH_VALUE_MULT = { abyss: 1.5 };
 
 const FISH_DATA = {
     prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
@@ -384,8 +388,13 @@ function getFishPrefixMult(fish) {
     return 1;
 }
 
-function computeFishSellValue(rarityIdx, mutationMult, prefixMult) {
-    return parseFloat((calculateFishValue(rarityIdx) * mutationMult * prefixMult).toFixed(2));
+function getZoneFishValueMult(zoneId) {
+    return ZONE_FISH_VALUE_MULT[zoneId] || 1;
+}
+
+function computeFishSellValue(rarityIdx, mutationMult, prefixMult, zoneId = state.currentZone) {
+    const zoneMult = getZoneFishValueMult(zoneId);
+    return parseFloat((calculateFishValue(rarityIdx) * zoneMult * mutationMult * prefixMult).toFixed(2));
 }
 
 const MUTATION_ROLL_CHANCE = 1 / 15;
@@ -697,6 +706,11 @@ function computePrestigeFromLevel(level) {
 
 function getZoneMinLevel(zone) {
     return zone?.minLevel || 1;
+}
+
+function zoneHasCatchableFish(zone) {
+    if (!zone?.library) return false;
+    return Object.keys(zone.library).some(folder => (zone.library[folder] || []).length > 0);
 }
 
 function getZoneFishImagePaths(zoneId) {
@@ -1829,6 +1843,11 @@ function triggerCatch() {
     const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
     const activeZone = zone || ZONE_DATA[0];
+
+    if (!zoneHasCatchableFish(activeZone)) {
+        addLog('Aucune espèce à pêcher ici pour le moment.', 'system');
+        return;
+    }
     const rIdx = rollFishRarityIndex(currentRod.luck || 0);
     let rData = RARITIES[rIdx];
     let possibleFishes = activeZone.library[rData.folder];
@@ -1858,7 +1877,7 @@ function triggerCatch() {
         prefixMult: naming.prefixMult,
         img: selectedImg,
         weight,
-        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult),
+        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult, state.currentZone),
         mutation: mutation.name
     });
     setPhase('REELING');
@@ -2070,6 +2089,10 @@ function startGame() {
     
     showScreen('game');
     updateFishingRodDisplay();
+    const zone = ZONE_DATA.find(z => z.id === state.currentZone);
+    if (zone && !zoneHasCatchableFish(zone)) {
+        addLog(`${zone.name} : pas encore d'espèces — exploration uniquement.`, 'system');
+    }
     
     setTimeout(() => {
         setPhase('SIGHTING');
@@ -2175,7 +2198,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
         prefixMult: naming.prefixMult,
         img: `assets/fish/${rData.folder}/${randomFishFile}`,
         weight,
-        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult),
+        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult, zoneId),
         mutation: mutation.name
     });
 }
