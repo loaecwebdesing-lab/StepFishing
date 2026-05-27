@@ -1516,6 +1516,47 @@ function renderCatchReveal(fish) {
 
 function clearCatchReveal() {
     renderCatchReveal(null);
+    updateCatchLockUI();
+}
+
+function updateCatchLockUI() {
+    const btn = document.getElementById('btn-lock-catch');
+    const hint = document.getElementById('catch-lock-hint');
+    if (!btn) return;
+
+    const fish = state.currentFish;
+    const loc = (fish?.uid && !fish.isKey && !fish.isTreasureBox) ? findFishByUid(fish.uid) : null;
+
+    if (!loc) {
+        btn.classList.add('hidden');
+        if (hint) hint.classList.add('hidden');
+        return;
+    }
+
+    const locked = isFishLocked(loc.fish);
+    btn.classList.remove('hidden');
+    btn.textContent = locked ? '🔓 Déverrouiller' : '🔒 Verrouiller ce poisson';
+    btn.classList.toggle('fish-lock-active', locked);
+    if (hint) {
+        hint.classList.remove('hidden');
+        hint.textContent = locked
+            ? '🔒 Protégé : il ne sera pas vendu avec « Tout vendre ».'
+            : 'Protège ce poisson du « Tout vendre » avant de continuer.';
+    }
+}
+
+function toggleLockFromCatchModal() {
+    const loc = findFishByUid(state.currentFish?.uid);
+    if (!loc) return;
+    loc.fish.locked = !loc.fish.locked;
+    persistGame();
+    updateCatchLockUI();
+    addLog(
+        loc.fish.locked
+            ? `🔒 ${loc.fish.name} protégé du « Tout vendre ».`
+            : `🔓 ${loc.fish.name} peut être vendu en masse.`,
+        'system'
+    );
 }
 
 function buildFishVisualHTML(fish, width) {
@@ -2109,6 +2150,7 @@ function catchFish(success) {
         elements.catchTitle.innerText = 'CLÉ TROUVÉE !';
         elements.catchText.innerText = 'Utilisez-la pour ouvrir le coffre mystère.';
         renderCatchReveal(state.currentFish);
+        updateCatchLockUI();
         showScreen('catch-modal');
         addLog('🔑 Clé mystérieuse récupérée !', 'epic');
         updateProgression();
@@ -2149,6 +2191,7 @@ function catchFish(success) {
         elements.catchTitle.innerText = "SUCCÈS !";
         elements.catchText.innerText = 'Ajouté à votre aquarium !';
         renderCatchReveal(state.currentFish);
+        updateCatchLockUI();
         showScreen('catch-modal');
         if (!state.discoveredFishes.includes(state.currentFish.img)) {
             state.discoveredFishes.push(state.currentFish.img);
@@ -2173,6 +2216,7 @@ function catchFish(success) {
             elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
         }
         clearCatchReveal();
+        updateCatchLockUI();
         showScreen('catch-modal');
         addLog(
             state.currentFish?.isKey ? 'La clé mystérieuse a filé...'
@@ -2704,6 +2748,7 @@ function init() {
         }
     });
     bind('btn-close-catch', goToMenu);
+    bind('btn-lock-catch', toggleLockFromCatchModal);
     bind('user-pseudo', openProfile);
     bind('btn-buy-aq', buyAquarium);
     bind('btn-open-crate', openCrate);
