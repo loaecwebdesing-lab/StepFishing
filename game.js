@@ -5,8 +5,8 @@
 
 /** Poids de tirage Commun → Épique (Lég./Myth./Divin = catchRates canne) */
 const RARITY_WEIGHTS = [100, 42, 18.5, 8.0, 0.98, 0.028, 0.005];
-/** Bonus global sur le % Légendaire des cannes (~+15 %) */
-const LEGENDARY_CATCH_MULT = 1.15;
+/** Bonus global sur le % Légendaire des cannes */
+const LEGENDARY_CATCH_MULT = 1.38;
 
 const RARITIES = [
     { name: 'Commun', folder: 'commun', color: '#BDBDBD', difficulty: 2, points: 1, speed: 2, class: 'rarity-0', minPrice: 0.1, maxPrice: 1 },
@@ -713,7 +713,7 @@ function rollMutation() {
 function getRodCatchRates(rod) {
     const luck = Math.min(Math.max(0, rod?.luck ?? 0), 100);
     const defaults = {
-        legendaire: 0.0092 * (1 + luck * 0.10),
+        legendaire: 0.0115 * (1 + luck * 0.13),
         mythique: 0.003 * (1 + luck * 0.075),
         divin: 0.0008 * (1 + luck * 0.06)
     };
