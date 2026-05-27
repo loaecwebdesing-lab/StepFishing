@@ -780,8 +780,50 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .shop-item h3 { color: var(--wood-gold); margin: 10px 0; }
 .shop-item .stats { font-size: 0.9rem; color: #ccc; margin-bottom: 15px; }
 
-.eq-item { background: rgba(255, 255, 255, 0.1); border: 2px solid var(--wood-medium); border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.3s; }
+.eq-item {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--wood-medium);
+    border-radius: 15px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    transition: 0.3s;
+}
 .eq-item.equipped { background: rgba(255, 215, 0, 0.2); border-color: var(--wood-gold); }
+.eq-item-info { flex: 1; min-width: 0; text-align: left; }
+.eq-item-name {
+    display: block;
+    font-family: 'Neko One', cursive;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    color: #fff;
+}
+.eq-item-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.88);
+}
+.eq-item-stats strong { color: var(--wood-gold); font-weight: 700; }
+.eq-rod-rarity { color: #ffe082; }
+.eq-prestige-lock {
+    display: block;
+    margin-top: 8px;
+    color: #ffab91;
+    font-size: 0.78rem;
+}
+.eq-item .btn-primary {
+    flex-shrink: 0;
+    align-self: center;
+    min-width: 88px;
+    height: 42px;
+    font-size: 0.85rem !important;
+}
 
 .index-tab { padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid var(--wood-medium); background: rgba(0,0,0,0.4); color: white; font-family: 'Neko One', cursive; transition: 0.3s; }
 .index-tab.active { background: var(--wood-gold); color: #333; transform: scale(1.1); }

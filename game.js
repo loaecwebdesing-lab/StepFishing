@@ -2561,6 +2561,33 @@ function buyRod(id) {
     } else { alert("Pas assez d'argent !"); }
 }
 
+function getRodMaxRarityLabel(luck) {
+    const idx = getMaxRarityFromLuck(luck);
+    return RARITIES[idx]?.name || 'Commun';
+}
+
+function formatRodStatsHTML(rod) {
+    const luck = rod.luck ?? 0;
+    const speed = Number(rod.speed || 1);
+    const moneyBuff = rod.moneyBuff || 1;
+    const lines = [
+        `<span>🍀 Luck <strong>${luck}</strong> · rareté max <strong>${getRodMaxRarityLabel(luck)}</strong></span>`,
+        `<span>⚡ Remontage <strong>×${speed.toFixed(1)}</strong></span>`
+    ];
+    if (rod.time > 0) {
+        lines.push(`<span>⏱ Durée partie <strong>+${rod.time}s</strong> (30s base)</span>`);
+    } else {
+        lines.push(`<span>⏱ Durée partie <strong>30s</strong></span>`);
+    }
+    if (moneyBuff > 1) {
+        lines.push(`<span>💰 Valeur vente <strong>×${moneyBuff}</strong></span>`);
+    }
+    if (rod.rarity) {
+        lines.push(`<span class="eq-rod-rarity">✨ Canne <strong>${rod.rarity}</strong></span>`);
+    }
+    return lines.join('');
+}
+
 function renderEquipment() {
     const list = document.getElementById('equipment-list');
     if (!list) return;
@@ -2573,9 +2600,13 @@ function renderEquipment() {
         item.style.borderColor = rod.color || 'var(--wood-medium)';
         const minP = rod.minPrestige || 0;
         const locked = minP > 0 && !canEquipRod(id);
-        item.innerHTML = `<span style="font-family: 'Neko One', cursive;">${rod.name}</span>${
-            locked ? `<br><small style="color:#ffab91;">🔒 Prestige ${minP} requis</small>` : ''
+        const info = document.createElement('div');
+        info.className = 'eq-item-info';
+        info.innerHTML = `<span class="eq-item-name">${rod.name}</span>
+            <div class="eq-item-stats">${formatRodStatsHTML(rod)}</div>${
+            locked ? `<small class="eq-prestige-lock">🔒 Prestige ${minP} requis (tu es P${state.prestige})</small>` : ''
         }`;
+        item.appendChild(info);
         const btn = document.createElement('button');
         btn.className = 'btn-primary';
         if (state.equippedRod === id) {
