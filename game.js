@@ -5,8 +5,8 @@
 
 /** Poids de tirage Commun → Épique (Lég./Myth./Divin = catchRates canne) */
 const RARITY_WEIGHTS = [58, 26, 26, 12, 0.98, 0.028, 0.005];
-/** Cible canne bambou : ~1 légendaire / 230 (× LEGENDARY_CATCH_MULT sur toutes les cannes) */
-const LEGENDARY_CATCH_MULT = 1.1;
+/** Cible canne bambou : ~1 légendaire / 140 (× LEGENDARY_CATCH_MULT sur toutes les cannes) */
+const LEGENDARY_CATCH_MULT = 1.8;
 const LEGENDARY_CHANCE_BAMBOO_PCT = 0.4;
 
 const RARITIES = [
@@ -714,7 +714,7 @@ function rollMutation() {
 function getRodCatchRates(rod) {
     const luck = Math.min(Math.max(0, rod?.luck ?? 0), 100);
     const defaults = {
-        legendaire: LEGENDARY_CHANCE_BAMBOO_PCT * (1 + luck * 0.12),
+        legendaire: LEGENDARY_CHANCE_BAMBOO_PCT * (1 + luck * 0.16),
         mythique: 0.003 * (1 + luck * 0.075),
         divin: 0.0008 * (1 + luck * 0.06)
     };
