@@ -319,6 +319,52 @@ const FISH_DATA = {
     prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
 };
 
+/** Multiplicateur de valeur selon le tier du préfixe (indépendant de la rareté du poisson). */
+const PREFIX_VALUE_MULT = [0.5, 0.65, 0.8, 1.0, 1.5, 2.0, 3.0];
+
+/** Poids de tirage : ligne = rareté du poisson, colonne = tier du préfixe (Table 2). */
+const PREFIX_ROLL_WEIGHTS = [
+    [4000, 1200, 350, 80, 25, 8, 1],
+    [600, 3500, 900, 200, 50, 12, 2],
+    [120, 500, 3200, 700, 150, 30, 4],
+    [40, 150, 450, 2800, 600, 80, 8],
+    [15, 50, 120, 400, 2500, 350, 15],
+    [8, 20, 45, 100, 300, 2200, 40],
+    [25, 40, 60, 90, 120, 200, 1800]
+];
+
+function rollPrefixTierIndex(fishRarityIdx) {
+    const row = PREFIX_ROLL_WEIGHTS[fishRarityIdx] || PREFIX_ROLL_WEIGHTS[0];
+    const total = row.reduce((a, b) => a + b, 0);
+    let roll = Math.random() * total;
+    for (let i = 0; i < row.length; i++) {
+        roll -= row[i];
+        if (roll <= 0) return i;
+    }
+    return 0;
+}
+
+function rollFishPrefix(fishRarityIdx) {
+    const prefixIdx = rollPrefixTierIndex(fishRarityIdx);
+    const tierName = RARITIES[prefixIdx].name;
+    const words = FISH_DATA.prefixes[tierName] || FISH_DATA.prefixes['Commun'];
+    const prefixWord = words[Math.floor(Math.random() * words.length)];
+    return {
+        prefixTier: tierName,
+        prefixMult: PREFIX_VALUE_MULT[prefixIdx],
+        prefixWord
+    };
+}
+
+function getFishPrefixMult(fish) {
+    if (typeof fish?.prefixMult === 'number' && fish.prefixMult > 0) return fish.prefixMult;
+    return 1;
+}
+
+function computeFishSellValue(rarityIdx, mutationMult, prefixMult) {
+    return parseFloat((calculateFishValue(rarityIdx) * mutationMult * prefixMult).toFixed(2));
+}
+
 const MUTATION_ROLL_CHANCE = 1 / 15;
 const MUTATION_BONUS_BY_CYCLE = { 0: 0, 1: 0.03, 2: 0.05 };
 
@@ -1344,7 +1390,9 @@ function renderCatchReveal(fish) {
             rarityEl.style.color = fish.color || '#8BC34A';
         } else {
             const mutation = getMutationData(fish.mutation);
-            rarityEl.textContent = `${getRarityNameFromClass(fish.class)} · ${formatFishWeight(fish.weight)} · ${mutation.name}`;
+            const pMult = getFishPrefixMult(fish);
+            const pNote = fish.prefixTier ? ` · Préfixe ${fish.prefixTier} (×${pMult})` : '';
+            rarityEl.textContent = `${getRarityNameFromClass(fish.class)}${pNote} · ${formatFishWeight(fish.weight)} · ${mutation.name}`;
             rarityEl.style.color = fish.color || '';
         }
     }
@@ -1571,7 +1619,11 @@ function openFishModal(index, aqId) {
     elements.modalFishName.className = `rarity-text ${fish.class}`;
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
     const mutation = getMutationData(fish.mutation);
-    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'} · ${formatFishWeight(weightKg)} · Mutation : ${mutation.name}`;
+    const prefixMult = getFishPrefixMult(fish);
+    const prefixNote = fish.prefixTier
+        ? ` · Préfixe ${fish.prefixTier} (×${prefixMult})`
+        : (prefixMult !== 1 ? ` · Préfixe ×${prefixMult}` : '');
+    elements.modalFishRarity.innerText = `${rarityInfo ? rarityInfo.name : 'Inconnu'}${prefixNote} · ${formatFishWeight(weightKg)} · Mutation : ${mutation.name}`;
     elements.modalFishPrice.innerText = fish.value + " $";
     const lockHint = document.getElementById('modal-fish-lock-hint');
     if (lockHint) {
@@ -1737,13 +1789,16 @@ function triggerCatch() {
 
     const mutation = rollMutation();
     const weight = rollFishWeight(rIdx);
+    const naming = generateProceduralName(rIdx, fishSpecies);
     state.currentFish = ensureFishUid({
         ...rData,
         id: rIdx,
-        name: generateProceduralName(rData.name, fishSpecies),
+        name: naming.name,
+        prefixTier: naming.prefixTier,
+        prefixMult: naming.prefixMult,
         img: selectedImg,
         weight,
-        value: calculateFishValue(rIdx) * mutation.multiplier,
+        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult),
         mutation: mutation.name
     });
     setPhase('REELING');
@@ -2020,10 +2075,13 @@ function syncMenuRodBackdrop() {
 }
 window.__stepfishSyncMenuRod = syncMenuRodBackdrop;
 
-function generateProceduralName(rarityName, speciesName) {
-    const prefixes = FISH_DATA.prefixes[rarityName];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    return `${speciesName} ${prefix}`;
+function generateProceduralName(fishRarityIdx, speciesName) {
+    const rolled = rollFishPrefix(fishRarityIdx);
+    return {
+        name: `${speciesName} ${rolled.prefixWord}`,
+        prefixTier: rolled.prefixTier,
+        prefixMult: rolled.prefixMult
+    };
 }
 
 function rollRandomMutation() {
@@ -2045,13 +2103,16 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
     const fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
     const mutation = rollRandomMutation();
     const weight = rollFishWeight(rIdx);
+    const naming = generateProceduralName(rIdx, fishSpecies);
     return ensureFishUid({
         ...rData,
         id: rIdx,
-        name: generateProceduralName(rData.name, fishSpecies),
+        name: naming.name,
+        prefixTier: naming.prefixTier,
+        prefixMult: naming.prefixMult,
         img: `assets/fish/${rData.folder}/${randomFishFile}`,
         weight,
-        value: parseFloat((calculateFishValue(rIdx) * mutation.multiplier).toFixed(2)),
+        value: computeFishSellValue(rIdx, mutation.multiplier, naming.prefixMult),
         mutation: mutation.name
     });
 }
