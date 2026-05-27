@@ -3809,33 +3809,47 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 }
 
 #screen-achievements .achievements-card {
-    width: min(960px, 96vw) !important;
-    max-width: 960px !important;
+    width: min(920px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
     max-height: min(90vh, 860px);
     margin: auto;
-    overflow: visible;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 18px 18px 14px;
+    align-items: stretch;
+    padding: 18px 16px 14px;
     text-align: center;
     animation: none;
+    box-sizing: border-box;
 }
 
 .achievements-header {
     flex-shrink: 0;
     margin-bottom: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .ach-header-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 10px 16px;
     margin-bottom: 6px;
+    width: 100%;
+    max-width: 100%;
 }
 
-.achievements-title {
+#screen-achievements .achievements-title.title {
     margin: 0;
+    font-size: clamp(1.5rem, 4.5vw, 2.5rem) !important;
+    line-height: 1.1;
+    flex: 1;
+    min-width: 0;
 }
 
 .ach-global-pct {
@@ -3866,6 +3880,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     gap: 8px 10px;
     justify-content: center;
     margin-bottom: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .ach-legend-item {
@@ -3896,50 +3913,56 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .achievements-tabs {
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    gap: 6px;
     margin-bottom: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 2px 8px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    width: 100%;
+    max-width: 100%;
+    padding: 2px 0 6px;
+    box-sizing: border-box;
 }
 
 .ach-tab.index-tab-style {
-    flex: 0 0 auto;
-    padding: 10px 18px;
-    border-radius: 15px;
+    flex: 0 1 auto;
+    max-width: 100%;
+    padding: 8px 12px;
+    border-radius: 12px;
     cursor: pointer;
     border: 2px solid var(--wood-medium);
     background: rgba(0, 0, 0, 0.4);
     color: white;
     font-family: 'Neko One', cursive;
-    font-size: 0.95rem;
-    transition: 0.25s;
+    font-size: 0.82rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    box-sizing: border-box;
 }
 
 .ach-tab.index-tab-style:hover {
     background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-1px);
 }
 
 .ach-tab.index-tab-style.active {
     background: var(--wood-gold);
     color: #333;
-    transform: scale(1.06);
     border-color: var(--wood-gold);
-    box-shadow: 0 4px 12px rgba(255, 202, 40, 0.35);
+    box-shadow: 0 2px 8px rgba(255, 202, 40, 0.35);
 }
 
 .achievements-scroll {
     flex: 1;
     min-height: 200px;
     max-height: min(52vh, 480px);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 10px 12px 14px;
+    box-sizing: border-box;
     background: rgba(0, 0, 0, 0.22);
     border-radius: 18px;
     border: 2px solid var(--wood-medium);
@@ -4155,6 +4178,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     margin-top: 12px;
     text-align: center;
     flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .ach-empty-msg {
@@ -4173,6 +4199,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .achievements-back-btn {
     margin-top: 2px;
+    width: min(280px, 100%);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 #screen-leaderboard .ach-player-title,
@@ -4182,7 +4211,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 @media (max-width: 720px) {
     #screen-achievements .achievements-card {
-        width: 96% !important;
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
         max-height: none;
         padding: 14px 10px 12px;
     }
@@ -4203,8 +4233,12 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     }
 
     .ach-tab.index-tab-style {
-        font-size: 0.82rem;
-        padding: 8px 12px;
+        font-size: 0.76rem;
+        padding: 7px 10px;
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        white-space: normal;
+        text-align: center;
     }
 
     .ach-section-head {
