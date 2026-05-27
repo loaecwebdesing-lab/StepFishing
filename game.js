@@ -120,6 +120,41 @@ const CRATE_ROD_WEIGHTS = { 'Rare': 45, 'Épique': 28, 'Légendaire': 15, 'Mythi
 const MUSIC_VOLUME = 0.2;
 const BUTTON_VOLUME = 0.9;
 const SFX_VOLUME = 0.35;
+const VOLUME_STORAGE_KEY = 'stepfish_master_volume';
+const DEFAULT_MASTER_VOLUME = 1;
+
+function loadMasterVolume() {
+    try {
+        const raw = localStorage.getItem(VOLUME_STORAGE_KEY);
+        if (raw === null) return DEFAULT_MASTER_VOLUME;
+        const v = parseFloat(raw);
+        if (!Number.isFinite(v)) return DEFAULT_MASTER_VOLUME;
+        return Math.max(0, Math.min(1, v));
+    } catch {
+        return DEFAULT_MASTER_VOLUME;
+    }
+}
+
+function saveMasterVolume() {
+    try {
+        localStorage.setItem(VOLUME_STORAGE_KEY, String(masterVolume));
+    } catch { /* ignore */ }
+}
+
+let masterVolume = loadMasterVolume();
+let volumeMuted = false;
+let masterVolumeBeforeMute = DEFAULT_MASTER_VOLUME;
+
+function getScaledMusicVolume() {
+    if (volumeMuted || masterVolume <= 0) return 0;
+    return MUSIC_VOLUME * masterVolume;
+}
+
+function getScaledSfxVolume(base = SFX_VOLUME) {
+    if (volumeMuted || masterVolume <= 0) return 0;
+    return base * masterVolume;
+}
+
 const BG_MUSIC_TRACKS = [
     'assets/Ambi.mp3',
     'assets/Ambi2.mp3',
@@ -137,6 +172,7 @@ const audioBuffers = {};
 const sfxPools = {};
 let bgMusicEl = null;
 let lastButtonSfxAt = 0;
+const sfxBaseVolumes = {};
 
 function pickRandomBgMusicTrack() {
     const tracks = window.__stepfishBgTracks || BG_MUSIC_TRACKS;
@@ -186,16 +222,45 @@ function decodeAudioFile(src) {
     });
 }
 
-function initSfxPool(key, src, size, volume = SFX_VOLUME) {
-    if (sfxPools[key]?.length) return;
+function initSfxPool(key, src, size, baseVolume = SFX_VOLUME) {
+    sfxBaseVolumes[key] = baseVolume;
+    if (sfxPools[key]?.length) {
+        applySfxPoolVolumes();
+        return;
+    }
     sfxPools[key] = [];
     for (let i = 0; i < size; i++) {
         const audio = new Audio(src);
         audio.preload = 'auto';
-        audio.volume = volume;
+        audio.volume = getScaledSfxVolume(baseVolume);
         audio.load();
         sfxPools[key].push(audio);
     }
+}
+
+function applySfxPoolVolumes() {
+    Object.keys(sfxPools).forEach((key) => {
+        const vol = getScaledSfxVolume(sfxBaseVolumes[key] ?? SFX_VOLUME);
+        sfxPools[key].forEach((audio) => { audio.volume = vol; });
+    });
+}
+
+function applyMasterVolume() {
+    const music = getBgMusic();
+    if (music) {
+        music.muted = volumeMuted || masterVolume <= 0;
+        music.volume = getScaledMusicVolume();
+    }
+    applySfxPoolVolumes();
+    updateVolumeBarUI();
+}
+
+function setMasterVolumeFromPct(pct) {
+    masterVolume = Math.max(0, Math.min(1, pct / 100));
+    volumeMuted = masterVolume <= 0;
+    if (masterVolume > 0) masterVolumeBeforeMute = masterVolume;
+    saveMasterVolume();
+    applyMasterVolume();
 }
 
 function playBufferSrc(src, volume = SFX_VOLUME) {
@@ -206,7 +271,7 @@ function playBufferSrc(src, volume = SFX_VOLUME) {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const gain = ctx.createGain();
-    gain.gain.value = volume;
+    gain.gain.value = getScaledSfxVolume(volume);
     source.connect(gain);
     gain.connect(ctx.destination);
     source.start(0);
@@ -218,12 +283,13 @@ function playSfxHtml(key, volume = SFX_VOLUME) {
     if (!pool?.length) return;
     const sound = pool.find(a => a.paused || a.ended) || pool[0];
     sound.currentTime = 0;
-    sound.volume = volume;
+    sound.volume = getScaledSfxVolume(volume);
     sound.play().catch(() => {});
 }
 
 function playButtonSound() {
-    if (!playBufferSrc(AUDIO_FILES.button, BUTTON_VOLUME)) playSfxHtml('button', BUTTON_VOLUME);
+    const vol = BUTTON_VOLUME;
+    if (!playBufferSrc(AUDIO_FILES.button, vol)) playSfxHtml('button', vol);
 }
 
 function playSplashSound() {
@@ -237,16 +303,71 @@ function playChestSound() {
 function startBackgroundMusic() {
     const music = getBgMusic();
     if (!music) return;
-    music.muted = false;
-    music.volume = MUSIC_VOLUME;
+    music.muted = volumeMuted || masterVolume <= 0;
+    music.volume = getScaledMusicVolume();
     music.play().catch(() => {});
 }
 
+function updateVolumeBarUI() {
+    const slider = document.getElementById('volume-slider');
+    const muteBtn = document.getElementById('btn-volume-mute');
+    const pctEl = document.getElementById('volume-pct');
+    const pct = volumeMuted ? 0 : Math.round(masterVolume * 100);
+    if (slider) slider.value = String(pct);
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    if (muteBtn) {
+        muteBtn.textContent = pct === 0 ? '🔇' : pct < 45 ? '🔉' : '🔊';
+        muteBtn.title = pct === 0 ? 'Activer le son' : 'Couper le son';
+        muteBtn.setAttribute('aria-label', muteBtn.title);
+    }
+}
+
+function setupVolumeControl() {
+    const slider = document.getElementById('volume-slider');
+    const muteBtn = document.getElementById('btn-volume-mute');
+    const downBtn = document.getElementById('btn-volume-down');
+    const upBtn = document.getElementById('btn-volume-up');
+    if (!slider) return;
+
+    volumeMuted = masterVolume <= 0;
+    updateVolumeBarUI();
+    applyMasterVolume();
+
+    slider.addEventListener('input', () => {
+        setMasterVolumeFromPct(Number(slider.value));
+    });
+
+    muteBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (volumeMuted || masterVolume <= 0) {
+            volumeMuted = false;
+            masterVolume = masterVolumeBeforeMute > 0 ? masterVolumeBeforeMute : 0.5;
+        } else {
+            masterVolumeBeforeMute = masterVolume;
+            volumeMuted = true;
+            masterVolume = 0;
+        }
+        saveMasterVolume();
+        applyMasterVolume();
+    });
+
+    downBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setMasterVolumeFromPct(Math.max(0, Math.round(masterVolume * 100) - 10));
+    });
+
+    upBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setMasterVolumeFromPct(Math.min(100, Math.round(masterVolume * 100) + 10));
+    });
+}
+
 function setupAudio() {
+    setupVolumeControl();
     document.addEventListener('pointerdown', (e) => {
         startBackgroundMusic();
         const btn = e.target.closest('button');
-        if (!btn || btn.id === 'btn-open-crate') return;
+        if (!btn || btn.id === 'btn-open-crate' || btn.closest('#volume-bar')) return;
         const now = performance.now();
         if (now - lastButtonSfxAt < 40) return;
         lastButtonSfxAt = now;
@@ -2941,6 +3062,8 @@ function openCrate() {
 
 async function boot() {
     window.__stepfishGetState = () => state;
+    masterVolume = loadMasterVolume();
+    volumeMuted = masterVolume <= 0;
     setupAudio();
     preloadAllAudio();
     if (window.StepFishAuth) await StepFishAuth.init();

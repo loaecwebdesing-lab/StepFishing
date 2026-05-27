@@ -29,9 +29,16 @@
         m.preload = 'auto';
         m.playsInline = true;
         window.__stepfishBgMusic = m;
+        function getSavedVol() {
+            try {
+                var v = parseFloat(localStorage.getItem('stepfish_master_volume'));
+                return isNaN(v) ? 1 : Math.max(0, Math.min(1, v));
+            } catch (e) { return 1; }
+        }
+        var masterVol = getSavedVol();
         function playBg() {
-            m.muted = false;
-            m.volume = 0.2;
+            m.muted = masterVol <= 0;
+            m.volume = 0.2 * masterVol;
             m.play().catch(function () {});
         }
         playBg();
@@ -546,6 +553,14 @@
             </div>
         </main>
 
+    </div>
+
+    <div id="volume-bar" class="volume-bar" role="group" aria-label="Volume du jeu">
+        <button type="button" id="btn-volume-mute" class="volume-bar-btn" title="Couper le son" aria-label="Couper le son">🔊</button>
+        <button type="button" id="btn-volume-down" class="volume-step-btn" title="Baisser le volume" aria-label="Baisser le volume">−</button>
+        <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="100" step="5" aria-label="Volume">
+        <button type="button" id="btn-volume-up" class="volume-step-btn" title="Augmenter le volume" aria-label="Augmenter le volume">+</button>
+        <span id="volume-pct" class="volume-pct" aria-hidden="true">100%</span>
     </div>
 
     <div id="discovery-toast" class="toast-notification">
