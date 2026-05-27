@@ -6,8 +6,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>StepFishing | Pro Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Neko+One&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="Style.css?v=mobile1">
+    <link rel="stylesheet" href="Style.css?v=mobile2">
     <link rel="preload" href="assets/Button.mp3?v=2" as="fetch" type="audio/mpeg">
     <script>
     window.__stepfishBgTracks = [
@@ -320,10 +322,10 @@
                         </div>
                     </div>
                 </div>
-                <div style="position: absolute; bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                    <button id="btn-sell-all-aq" class="btn-secondary" style="width: 200px; height: 60px; border: 2px solid var(--danger); color: var(--danger); font-size: 1.2rem;">Tout Vendre</button>
-                    <button id="btn-back-menu" class="btn-secondary">Retour au Menu</button>
-                </div>
+                <footer class="inventory-footer">
+                    <button id="btn-sell-all-aq" class="btn-secondary inventory-sell-all-btn">Tout Vendre</button>
+                    <button id="btn-back-menu" class="btn-secondary inventory-back-btn">Retour au Menu</button>
+                </footer>
             </div>
 
             <!-- JEU -->
