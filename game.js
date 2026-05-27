@@ -291,8 +291,8 @@ const ZONE_DATA = [
             'peu_commun': ['Loche.png', 'Pseudorasboa.png', 'Epinoche.png', 'Anguille.png', 'Brochet.png', 'Apron.png', 'Omble.png', 'Lamproie.png', 'Tilapia.png', 'Chichlidé.png', 'Dojo.png', 'Killie.png', 'Melanotaeina.png', 'PoissonCouteau.png'],
             'rare': ['Carpe_Koi.png', 'Piranha.png', 'Channa.png', 'Oscar.png', 'Hotu.png', 'Axolotl.png', 'AxolotlA.png', 'Pleco.png', 'Corydoras.png', 'Rasboa.png', 'Discus.png', 'Lépistolé.png'],
             'epique': ['Silure.png', 'SnakeHead.png', 'Bichir.png', 'AxolotlB.png', 'Pangasius.png', 'FlapJack.png', 'Skelleton.png', 'Chratica.png'],
-            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png', 'Arowana.png', 'ArowanaR.png', 'ArowanaC.png', 'Yoyonus.png'],
-            'mythique': ['Esturgeon.png', 'Nimphonius.png'],
+            'legendaire': ['Arapaima.png', 'GarAligator.png', 'AxolotlG.png', 'Arowana.png', 'ArowanaR.png', 'ArowanaS.png', 'Yoyonus.png'],
+            'mythique': ['Esturgeon.png', 'Nimphonius.png', 'ArowanaChrome.png', 'ArowanaLN.png', 'ArowanaN.png'],
             'divin': ['Silencius.png']
         }
     },
