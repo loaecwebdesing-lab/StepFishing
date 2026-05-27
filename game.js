@@ -41,6 +41,68 @@ const ALL_RODS = [...ROD_DATA, ...CRATE_RODS];
 
 const KEY_CATCH_CHANCE = 1 / 150;
 const KEY_IMG = 'assets/Key.png?v=1';
+const CHEST_IMG = 'assets/chest.png';
+
+/** Coffres / bourses pêchables : ouverture directe en mini-jeu roll (argent uniquement). */
+const TREASURE_BOXES = [
+    {
+        id: 'bourse',
+        name: 'Bourse',
+        catchChance: 1 / 75,
+        img: 'assets/Bourse.png',
+        color: '#8BC34A',
+        difficulty: 5,
+        points: 18,
+        loot: [
+            { amount: 1, weight: 700, label: '1 $', color: '#BDBDBD' },
+            { amount: 10, weight: 200, label: '10 $', color: '#4CAF50' },
+            { amount: 20, weight: 80, label: '20 $', color: '#2196F3' },
+            { amount: 50, weight: 20, label: '50 $', color: '#FF9800' }
+        ]
+    },
+    {
+        id: 'coffre_leger',
+        name: 'Coffre léger',
+        catchChance: 1 / 125,
+        img: 'assets/PetitCoffre.png',
+        color: '#03A9F4',
+        difficulty: 7,
+        points: 28,
+        loot: [
+            { amount: 10, weight: 450, label: '10 $', color: '#BDBDBD' },
+            { amount: 20, weight: 300, label: '20 $', color: '#4CAF50' },
+            { amount: 50, weight: 180, label: '50 $', color: '#2196F3' },
+            { amount: 100, weight: 70, label: '100 $', color: '#FF9800' }
+        ]
+    },
+    {
+        id: 'coffre_moyen',
+        name: 'Coffre moyen',
+        catchChance: 1 / 270,
+        img: 'assets/CoffreMoyen.png',
+        color: '#9C27B0',
+        difficulty: 9,
+        points: 40,
+        baseLoot: [
+            { amount: 10, weight: 200, label: '10 $', color: '#BDBDBD' },
+            { amount: 20, weight: 180, label: '20 $', color: '#4CAF50' },
+            { amount: 50, weight: 150, label: '50 $', color: '#2196F3' },
+            { amount: 100, weight: 120, label: '100 $', color: '#03A9F4' },
+            { amount: 150, weight: 80, label: '150 $', color: '#FF9800' },
+            { amount: 200, weight: 50, label: '200 $', color: '#E91E63' }
+        ],
+        multipliers: [
+            { mult: 0.1, weight: 220, label: '×0,1', color: '#9E9E9E' },
+            { mult: 0.2, weight: 180, label: '×0,2', color: '#BDBDBD' },
+            { mult: 0.5, weight: 160, label: '×0,5', color: '#4CAF50' },
+            { mult: 1, weight: 140, label: '×1', color: '#2196F3' },
+            { mult: 2, weight: 100, label: '×2', color: '#FF9800' },
+            { mult: 3, weight: 60, label: '×3', color: '#E91E63' },
+            { mult: 5, weight: 30, label: '×5', color: '#9C27B0' }
+        ]
+    }
+];
+const TREASURE_BOX_BY_ID = Object.fromEntries(TREASURE_BOXES.map(b => [b.id, b]));
 
 const CRATE_MONEY_LOOT = [
     { type: 'money', amount: 100, weight: 420, label: '100 $', color: '#BDBDBD' },
@@ -189,6 +251,29 @@ const KEY_FISH = {
     value: 0,
     mutation: 'Normal'
 };
+
+function rollTreasureBoxCatch() {
+    if (Math.random() < TREASURE_BOXES[2].catchChance) return TREASURE_BOXES[2];
+    if (Math.random() < TREASURE_BOXES[1].catchChance) return TREASURE_BOXES[1];
+    if (Math.random() < TREASURE_BOXES[0].catchChance) return TREASURE_BOXES[0];
+    return null;
+}
+
+function makeTreasureCatchFish(box) {
+    return {
+        isTreasureBox: true,
+        boxId: box.id,
+        id: -2,
+        name: box.name,
+        img: box.img,
+        points: box.points,
+        color: box.color,
+        difficulty: box.difficulty,
+        class: 'rarity-3',
+        value: 0,
+        mutation: 'Normal'
+    };
+}
 
 const ZONE_DATA = [
     // ... (ton code de zones reste identique)
@@ -729,6 +814,9 @@ function renderCrateLootInfo() {
     if (!el) return;
     const p = getCrateProbabilities();
     const keyChanceLabel = `1 chance sur ${Math.round(1 / KEY_CATCH_CHANCE)} par poisson pêché`;
+    const treasureHints = TREASURE_BOXES.map(b =>
+        `${b.name} : 1/${Math.round(1 / b.catchChance)}`
+    ).join(' · ');
 
     const moneyRows = p.money.map(m => `
         <li class="crate-loot-row">
@@ -746,6 +834,7 @@ function renderCrateLootInfo() {
 
     el.innerHTML = `
         <p class="crate-loot-hint">Clé mystère : ${keyChanceLabel}</p>
+        <p class="crate-loot-hint">Coffres pêchables : ${treasureHints}</p>
         <div class="crate-loot-cols">
             <section class="crate-loot-section">
                 <h3 class="crate-loot-heading">💰 Argent <span class="crate-loot-pool-pct">${formatCratePercent(p.moneyPoolPct)}</span></h3>
@@ -804,6 +893,154 @@ function applyCrateReward(loot) {
     persistGame();
     updateFishingRodDisplay();
     alert(`🎉 BRAVO ! Canne débloquée : ${loot.rod.name} (${loot.rod.rarity})`);
+}
+
+let isTreasureOpening = false;
+
+function formatTreasureMoney(n) {
+    const v = Number(n) || 0;
+    if (Number.isInteger(v)) return String(v);
+    return v.toFixed(2).replace('.', ',');
+}
+
+function buildTreasureReelStrip(pool, winEntry, count = 50, winIndex = 45) {
+    const strip = [];
+    for (let i = 0; i < count; i++) {
+        strip.push(i === winIndex ? winEntry : pickWeightedLoot(pool));
+    }
+    return strip;
+}
+
+function getTreasureReelItemHTML(entry) {
+    const tag = entry.tag || 'Argent';
+    return `<div class="crate-money-display" style="color:${entry.color}">${entry.label}</div>
+        <div class="rarity-tag" style="color:${entry.color}">${tag}</div>`;
+}
+
+function runTreasureReelSpin(listEl, strip, winIndex, durationMs) {
+    return new Promise(resolve => {
+        if (!listEl) {
+            resolve();
+            return;
+        }
+        listEl.style.transition = 'none';
+        listEl.style.transform = 'translateX(0)';
+        listEl.innerHTML = '';
+        strip.forEach(entry => {
+            const div = document.createElement('div');
+            div.className = 'crate-item';
+            div.style.borderColor = entry.color;
+            div.innerHTML = getTreasureReelItemHTML(entry);
+            listEl.appendChild(div);
+        });
+        setTimeout(() => {
+            listEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.15, 0, 0.05, 1)`;
+            const itemWidth = 136;
+            const centerOffset = (800 / 2) - (itemWidth / 2);
+            listEl.style.transform = `translateX(-${winIndex * itemWidth - centerOffset}px)`;
+            setTimeout(resolve, durationMs + 100);
+        }, 50);
+    });
+}
+
+function applyTreasureReward(reward, box) {
+    state.money += reward.amount;
+    updateMoneyDisplay();
+    persistGame();
+    addLog(`📦 ${box.name} : ${reward.detailLabel} !`, 'epic');
+    const sub = document.getElementById('treasure-roll-subtitle');
+    const resultEl = document.getElementById('treasure-roll-result');
+    const closeBtn = document.getElementById('btn-treasure-close');
+    const phase = document.getElementById('treasure-roll-phase');
+    if (sub) sub.textContent = 'Ouverture terminée';
+    if (phase) phase.classList.add('hidden');
+    if (resultEl) {
+        resultEl.textContent = `💰 ${reward.detailLabel}`;
+        resultEl.style.color = reward.color || box.color;
+        resultEl.classList.remove('hidden');
+    }
+    if (closeBtn) closeBtn.classList.remove('hidden');
+    alert(`💰 ${box.name}\n${reward.detailLabel}`);
+}
+
+function finishTreasureRoll(reward, box) {
+    applyTreasureReward(reward, box);
+    isTreasureOpening = false;
+}
+
+async function startTreasureRollMinigame(boxId) {
+    if (isTreasureOpening) return;
+    const box = TREASURE_BOX_BY_ID[boxId];
+    if (!box) return;
+
+    isTreasureOpening = true;
+    const title = document.getElementById('treasure-roll-title');
+    const sub = document.getElementById('treasure-roll-subtitle');
+    const phase = document.getElementById('treasure-roll-phase');
+    const resultEl = document.getElementById('treasure-roll-result');
+    const closeBtn = document.getElementById('btn-treasure-close');
+    const list = document.getElementById('treasure-list');
+
+    const headerImg = document.getElementById('treasure-roll-img');
+    if (title) title.textContent = box.name;
+    if (headerImg) {
+        headerImg.src = box.img;
+        headerImg.alt = box.name;
+    }
+    if (sub) sub.textContent = 'Mini-jeu d\'ouverture…';
+    if (phase) phase.classList.add('hidden');
+    if (resultEl) {
+        resultEl.classList.add('hidden');
+        resultEl.textContent = '';
+    }
+    if (closeBtn) closeBtn.classList.add('hidden');
+
+    showScreen('treasure-roll');
+    playChestSound();
+
+    try {
+        if (boxId === 'coffre_moyen') {
+            const baseWin = pickWeightedLoot(box.baseLoot);
+            const baseStrip = buildTreasureReelStrip(box.baseLoot, baseWin).map(e => ({ ...e, tag: 'Base' }));
+            if (phase) {
+                phase.textContent = 'Tour 1 — Montant de base';
+                phase.classList.remove('hidden');
+            }
+            await runTreasureReelSpin(list, baseStrip, 45, 4200);
+            await new Promise(r => setTimeout(r, 700));
+
+            const multWin = pickWeightedLoot(box.multipliers);
+            const multStrip = buildTreasureReelStrip(box.multipliers, multWin).map(e => ({ ...e, tag: 'Multi' }));
+            if (phase) phase.textContent = 'Tour 2 — Multiplicateur (×0,1 à ×5)';
+            await runTreasureReelSpin(list, multStrip, 45, 4200);
+
+            const amount = Math.max(1, Math.round(baseWin.amount * multWin.mult * 100) / 100);
+            finishTreasureRoll({
+                type: 'money',
+                amount,
+                label: `${formatTreasureMoney(amount)} $`,
+                detailLabel: `${baseWin.label} ${multWin.label} = ${formatTreasureMoney(amount)} $`,
+                color: box.color
+            }, box);
+            return;
+        }
+
+        const win = pickWeightedLoot(box.loot);
+        const strip = buildTreasureReelStrip(box.loot, win).map(e => ({ ...e, tag: 'Gain' }));
+        if (phase) phase.classList.add('hidden');
+        await runTreasureReelSpin(list, strip, 45, 5000);
+        finishTreasureRoll({
+            type: 'money',
+            amount: win.amount,
+            label: win.label,
+            detailLabel: win.label,
+            color: win.color
+        }, box);
+    } catch (e) {
+        console.error('Erreur mini-jeu coffre :', e);
+        isTreasureOpening = false;
+        goToMenu();
+    }
 }
 
 const TIME_CYCLES = [
@@ -946,7 +1183,7 @@ function ensureFishUidsInInventory() {
 }
 
 function canTradeFish(fish) {
-    return Boolean(fish && !fish.isKey && !isFishLocked(fish) && fish.uid);
+    return Boolean(fish && !fish.isKey && !fish.isTreasureBox && !isFishLocked(fish) && fish.uid);
 }
 
 function findFishByUid(uid) {
@@ -1040,7 +1277,7 @@ function renderCatchReveal(fish) {
         if (visual) { visual.innerHTML = ''; visual.style.removeProperty('--catch-glow'); }
         return;
     }
-    const baseSize = fish.isKey ? 150 : aquariumFishWidthPx(fish.weight) + 22;
+    const baseSize = (fish.isKey || fish.isTreasureBox) ? 150 : aquariumFishWidthPx(fish.weight) + 22;
     const size = baseSize * 2;
     if (visual) {
         visual.innerHTML = buildFishVisualHTML(fish, size);
@@ -1054,6 +1291,9 @@ function renderCatchReveal(fish) {
         if (fish.isKey) {
             rarityEl.textContent = 'Clé mystérieuse';
             rarityEl.style.color = fish.color || '#ffca28';
+        } else if (fish.isTreasureBox) {
+            rarityEl.textContent = 'Coffre pêché — ouverture au remontage';
+            rarityEl.style.color = fish.color || '#8BC34A';
         } else {
             const mutation = getMutationData(fish.mutation);
             rarityEl.textContent = `${getRarityNameFromClass(fish.class)} · ${formatFishWeight(fish.weight)} · ${mutation.name}`;
@@ -1067,11 +1307,13 @@ function clearCatchReveal() {
 }
 
 function buildFishVisualHTML(fish, width) {
-    if (fish.isKey) {
+    if (fish.isKey || fish.isTreasureBox) {
         const img = fish.img || KEY_IMG;
         const size = Math.round(width * 0.88);
-        return `<div class="fish-visual-wrap key-catch-visual" style="width:${width}px;height:${width}px;">
-            <img src="${img}" class="key-catch-img" style="width:${size}px;height:${size}px" alt="Clé mystérieuse">
+        const glow = fish.color || '#ffca28';
+        const alt = fish.isKey ? 'Clé mystérieuse' : fish.name;
+        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual" style="width:${width}px;height:${width}px;--catch-glow:${glow}">
+            <img src="${img}" class="key-catch-img" style="width:${size}px;height:${size}px;filter:drop-shadow(0 0 12px ${glow})" alt="${alt}">
         </div>`;
     }
     const mutation = getMutationData(fish.mutation);
@@ -1416,6 +1658,14 @@ function triggerCatch() {
         return;
     }
 
+    const treasureBox = rollTreasureBoxCatch();
+    if (treasureBox) {
+        state.currentFish = makeTreasureCatchFish(treasureBox);
+        setPhase('REELING');
+        addLog(`📦 ${treasureBox.name} accroché ! Remontez-le pour l\'ouvrir…`, 'epic');
+        return;
+    }
+
     const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
     const activeZone = zone || ZONE_DATA[0];
@@ -1535,6 +1785,21 @@ function catchFish(success) {
         return;
     }
 
+    if (success && state.currentFish?.isTreasureBox) {
+        const boxId = state.currentFish.boxId;
+        const box = TREASURE_BOX_BY_ID[boxId];
+        state.score += state.currentFish.points;
+        state.totalScore += state.currentFish.points;
+        state.totalFishesCaught++;
+        updateProgression();
+        elements.score.innerText = state.score;
+        persistGame();
+        addLog(`📦 ${state.currentFish.name} récupéré ! Ouverture…`, 'epic');
+        stopFishingSession();
+        startTreasureRollMinigame(boxId);
+        return;
+    }
+
     if (success) {
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
@@ -1565,13 +1830,21 @@ function catchFish(success) {
         if (state.currentFish?.isKey) {
             elements.catchTitle.innerText = 'CLÉ PERDUE...';
             elements.catchText.innerText = 'La clé mystérieuse s\'est échappée...';
+        } else if (state.currentFish?.isTreasureBox) {
+            elements.catchTitle.innerText = 'COFFRE PERDU...';
+            elements.catchText.innerText = `${state.currentFish.name} est retombé au fond…`;
         } else {
             elements.catchTitle.innerText = "ÉCHEC...";
             elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
         }
         clearCatchReveal();
         showScreen('catch-modal');
-        addLog(state.currentFish?.isKey ? 'La clé mystérieuse a filé...' : `Le ${state.currentFish.name || 'poisson'} a filé...`, 'system');
+        addLog(
+            state.currentFish?.isKey ? 'La clé mystérieuse a filé...'
+                : state.currentFish?.isTreasureBox ? `${state.currentFish.name} a filé...`
+                    : `Le ${state.currentFish.name || 'poisson'} a filé...`,
+            'system'
+        );
     }
     updateProgression();
     elements.score.innerText = state.score;
@@ -1758,6 +2031,84 @@ function giveRandomMutatedFish(count = 1, aqIndex = state.currentAqIndex) {
 }
 
 window.giveRandomMutatedFish = giveRandomMutatedFish;
+
+/** Console : giveKeys(3) */
+function giveKeys(count = 1) {
+    state.keys = (parseInt(state.keys, 10) || 0) + Math.max(1, count);
+    updateKeysDisplay();
+    persistGame();
+    addLog(`🔑 +${count} clé(s) (total : ${state.keys})`, 'epic');
+    return state.keys;
+}
+window.giveKeys = giveKeys;
+
+/** Console : testTreasureBox('bourse') — ouvre le mini-jeu roll directement */
+function testTreasureBox(boxId) {
+    const id = boxId || 'bourse';
+    if (!TREASURE_BOX_BY_ID[id]) {
+        console.warn('IDs : bourse | coffre_leger | coffre_moyen');
+        return;
+    }
+    startTreasureRollMinigame(id);
+}
+window.testTreasureBox = testTreasureBox;
+
+/** Console : testAllTreasureBoxes() — affiche les 3 commandes à lancer une par une */
+function testAllTreasureBoxes() {
+    TREASURE_BOXES.forEach(box => {
+        console.log(`testTreasureBox('${box.id}')  // ${box.name}`);
+    });
+    addLog('Voir la console (F12) pour tester chaque coffre.', 'system');
+}
+window.testAllTreasureBoxes = testAllTreasureBoxes;
+
+/**
+ * Console : testTreasureFishing('coffre_leger')
+ * Simule une capture (osu + remontée) avec le coffre choisi.
+ */
+function testTreasureFishing(boxId = 'bourse') {
+    const box = TREASURE_BOX_BY_ID[boxId];
+    if (!box) {
+        console.warn('IDs : bourse | coffre_leger | coffre_moyen');
+        return;
+    }
+    if (!state.gameActive) startGame();
+    state.currentFish = makeTreasureCatchFish(box);
+    setPhase('REELING');
+    showScreen('game');
+    if (elements.reelContainer) elements.reelContainer.classList.remove('hidden');
+    startReelGame();
+    addLog(`[TEST] Remontée ${box.name}…`, 'system');
+}
+window.testTreasureFishing = testTreasureFishing;
+
+/** Console : testKeyFishing() — simule une clé à remonter */
+function testKeyFishing() {
+    if (!state.gameActive) startGame();
+    state.currentFish = { ...KEY_FISH };
+    setPhase('REELING');
+    showScreen('game');
+    if (elements.reelContainer) elements.reelContainer.classList.remove('hidden');
+    startReelGame();
+    addLog('[TEST] Remontée clé mystérieuse…', 'system');
+}
+window.testKeyFishing = testKeyFishing;
+
+/** Console : testDevHelp() — liste les commandes de test */
+function testDevHelp() {
+    const lines = [
+        'giveKeys(1)              — ajoute des clés',
+        "testTreasureBox('bourse') — mini-jeu roll (direct)",
+        "testTreasureFishing('coffre_moyen') — pêche + remontée",
+        'testKeyFishing()         — clé + remontée',
+        'testAllTreasureBoxes()   — les 3 coffres à la suite',
+        'giveRandomMutatedFish(1) — poisson muté dans l\'aquarium'
+    ];
+    console.log(lines.join('\n'));
+    addLog('Commandes de test listées dans la console (F12).', 'system');
+    return lines;
+}
+window.testDevHelp = testDevHelp;
 
 let discoveryToastTimer = null;
 
@@ -1980,6 +2331,7 @@ function init() {
     bind('btn-buy-aq', buyAquarium);
     bind('btn-open-crate', openCrate);
     bind('btn-back-menu-crate', goToMenu);
+    bind('btn-treasure-close', goToMenu);
 
     // --- NAVIGATION AQUARIUM ---
     bind('prev-aq', () => {
