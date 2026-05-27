@@ -48,10 +48,17 @@
         </span>`;
     }
 
-    function renderPseudoHeader(pseudo, cosmeticId) {
+    function renderPseudoHeader(pseudo, cosmeticId, titleId, colorId) {
         const el = document.getElementById('pp-pseudo-header');
         if (!el) return;
-        if (window.StepFishCosmetics?.renderPseudoHTML) {
+        if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
+            el.innerHTML = window.StepFishAchievements.renderPlayerPseudoHTML(
+                pseudo,
+                cosmeticId || 'default',
+                titleId,
+                colorId
+            );
+        } else if (window.StepFishCosmetics?.renderPseudoHTML) {
             el.innerHTML = window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default');
         } else {
             el.textContent = pseudo;
@@ -122,7 +129,7 @@
     function renderStatsView() {
         const p = currentProfile;
         if (!p) return;
-        renderPseudoHeader(p.pseudo, p.cosmetic_id);
+        renderPseudoHeader(p.pseudo, p.cosmetic_id, p.achievement_title_id, p.achievement_color_id);
         const set = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;

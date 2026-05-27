@@ -168,10 +168,33 @@
         return resolveCosmeticId(id);
     }
 
-    function renderPseudoCell(pseudo, cosmeticId) {
-        const inner = window.StepFishCosmetics?.renderPseudoHTML
-            ? window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId))
-            : `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
+    function achievementIdsForRow(row, myPseudo) {
+        let titleId = row.achievement_title_id || null;
+        let colorId = row.achievement_color_id || null;
+        if (myPseudo && row.pseudo === myPseudo) {
+            const s = window.__stepfishGetState?.();
+            if (s) {
+                titleId = s.equippedTitleId || titleId;
+                colorId = s.equippedColorId || colorId;
+            }
+        }
+        return { titleId: titleId || null, colorId: colorId || null };
+    }
+
+    function renderPseudoCell(pseudo, cosmeticId, titleId, colorId) {
+        let inner;
+        if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
+            inner = window.StepFishAchievements.renderPlayerPseudoHTML(
+                pseudo,
+                resolveCosmeticId(cosmeticId),
+                titleId,
+                colorId
+            );
+        } else if (window.StepFishCosmetics?.renderPseudoHTML) {
+            inner = window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId));
+        } else {
+            inner = `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
+        }
         return `<button type="button" class="player-pseudo-link lb-pseudo-link" data-player-pseudo="${escapeHtml(pseudo)}" title="Voir le profil de ${escapeHtml(pseudo)}">${inner}</button>`;
     }
 
@@ -192,13 +215,14 @@
             const rank = index + 1;
             const isMe = myPseudo && row.pseudo === myPseudo;
             const cosId = cosmeticIdForRow(row, myPseudo);
+            const ach = achievementIdsForRow(row, myPseudo);
             const hasFx = cosId !== 'default';
             const valueCell = isBestFish
                 ? renderBestFishCell(row, myPseudo)
                 : escapeHtml(formatValue(row, activeCategory));
             return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}${isBestFish ? ' lb-row-best-fish' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
-                <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId)}</span>
+                <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId, ach.titleId, ach.colorId)}</span>
                 <span class="lb-value${isBestFish ? ' lb-value-best-fish' : ''}">${valueCell}</span>
             </li>`;
         }).join('');
@@ -226,7 +250,7 @@
 
         let query = client
             .from('leaderboard_stats')
-            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, cosmetic_id')
+            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, cosmetic_id, achievement_title_id, achievement_color_id')
             .limit(LIMIT);
 
         cat.orders.forEach((order, i) => {

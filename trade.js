@@ -407,6 +407,7 @@
         }
         setStatus('Échange réussi !');
         closeAcceptPanel();
+        window.StepFishAchievements?.onTradeDone?.();
         await reloadCloudInventory();
         await loadTrades();
         G()?.addLog?.('✅ Échange de poissons terminé !', 'epic');

@@ -22,7 +22,10 @@
             : String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
     }
 
-    function renderPseudo(pseudo, cosmeticId) {
+    function renderPseudo(pseudo, cosmeticId, titleId, colorId) {
+        if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
+            return window.StepFishAchievements.renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId);
+        }
         if (window.StepFishCosmetics?.renderPseudoHTML) {
             return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId);
         }
@@ -43,7 +46,7 @@
         }
         box.innerHTML = messages.map(m => {
             const time = new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            const pseudoBtn = `<button type="button" class="player-pseudo-link chat-pseudo-link" data-player-pseudo="${escapeHtml(m.pseudo)}" title="Voir le profil">${renderPseudo(m.pseudo, m.cosmetic_id)}</button>`;
+            const pseudoBtn = `<button type="button" class="player-pseudo-link chat-pseudo-link" data-player-pseudo="${escapeHtml(m.pseudo)}" title="Voir le profil">${renderPseudo(m.pseudo, m.cosmetic_id, m.achievement_title_id, m.achievement_color_id)}</button>`;
             return `<div class="chat-msg">
                 <span class="chat-time">${time}</span>
                 ${pseudoBtn} :
@@ -81,7 +84,7 @@
         if (!client) return;
         const { data, error } = await client
             .from('global_chat')
-            .select('pseudo, cosmetic_id, message, created_at')
+            .select('pseudo, cosmetic_id, achievement_title_id, achievement_color_id, message, created_at')
             .order('created_at', { ascending: true })
             .limit(MAX_MESSAGES);
         if (error) {
@@ -127,10 +130,13 @@
         if (!client || !userId) return { ok: false, msg: 'Serveur indisponible.' };
 
         const cosmeticId = window.StepFishCosmetics?.getEquippedId?.() || 'default';
+        const achIds = window.StepFishAchievements?.getDisplayIds?.(true) || {};
         const { error } = await client.from('global_chat').insert({
             user_id: userId,
             pseudo: window.StepFishAuth.getPseudo(),
             cosmetic_id: cosmeticId,
+            achievement_title_id: achIds.titleId || null,
+            achievement_color_id: achIds.colorId || null,
             message: msg
         });
 
@@ -143,6 +149,7 @@
         }
 
         lastSentAt = Date.now();
+        window.StepFishAchievements?.onChatSent?.();
         return { ok: true };
     }
 

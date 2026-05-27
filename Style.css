@@ -3714,6 +3714,247 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     text-align: center;
 }
 
+/* --- Succès & récompenses pseudo --- */
+.player-pseudo-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ach-player-title {
+    font-size: 0.78em;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+    flex-shrink: 0;
+}
+
+.ach-title-novice { color: #bdbdbd; }
+.ach-title-angler { color: #81d4fa; }
+.ach-title-master { color: #fff59d; }
+.ach-title-legend { color: #ffb74d; }
+.ach-title-myth { color: #ef5350; }
+.ach-title-divine { color: #b39ddb; }
+.ach-title-rich { color: #ffca28; }
+.ach-title-prestige { color: #ce93d8; }
+.ach-title-elite { color: #ffd54f; }
+.ach-title-explorer { color: #4dd0e1; }
+.ach-title-abyss { color: #7e57c2; }
+.ach-title-collector { color: #ffab40; }
+.ach-title-hunter { color: #a1887f; }
+.ach-title-trader { color: #aed581; }
+.ach-title-precise { color: #e1bee7; }
+.ach-title-champion { color: #ff8a65; }
+.ach-title-trophy { color: #ffe082; }
+
+.ach-title-blink {
+    animation: achTitleBlink 1.1s ease-in-out infinite;
+}
+
+.ach-title-pulse {
+    animation: achTitlePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes achTitleBlink {
+    0%, 100% { opacity: 1; filter: brightness(1.2); }
+    50% { opacity: 0.45; filter: brightness(0.85); }
+}
+
+@keyframes achTitlePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.04); opacity: 0.75; }
+}
+
+.ach-pseudo-color {
+    display: inline-block;
+    font-weight: 800;
+}
+
+.ach-pseudo-text {
+    font-weight: inherit;
+}
+
+.ach-color-blue .ach-pseudo-text { color: #4fc3f7; text-shadow: 0 0 8px rgba(79, 195, 247, 0.35); }
+.ach-color-purple .ach-pseudo-text { color: #ba68c8; text-shadow: 0 0 8px rgba(186, 104, 200, 0.35); }
+.ach-color-green .ach-pseudo-text { color: #81c784; text-shadow: 0 0 8px rgba(129, 199, 132, 0.35); }
+.ach-color-gold .ach-pseudo-text { color: #ffca28; text-shadow: 0 0 10px rgba(255, 202, 40, 0.4); }
+.ach-color-indigo .ach-pseudo-text { color: #7986cb; text-shadow: 0 0 8px rgba(121, 134, 203, 0.35); }
+.ach-color-cyan .ach-pseudo-text { color: #4dd0e1; text-shadow: 0 0 8px rgba(77, 208, 225, 0.35); }
+
+#user-pseudo .player-pseudo-full,
+#user-pseudo .ach-pseudo-color,
+#user-pseudo .cos-pseudo-wrap {
+    justify-content: flex-start;
+}
+
+.achievements-card {
+    max-width: 920px;
+    width: 95%;
+    max-height: 92vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.achievements-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.achievements-title {
+    margin: 0 0 6px;
+}
+
+.achievements-summary {
+    margin: 0 0 10px;
+    color: var(--wood-gold);
+    font-weight: 700;
+}
+
+.achievements-filter-label {
+    margin-right: 8px;
+    font-size: 0.9rem;
+}
+
+.achievements-filter {
+    font-family: inherit;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--wood-medium);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--white);
+}
+
+.achievements-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    padding: 4px 2px 12px;
+    text-align: left;
+}
+
+.ach-card {
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px solid var(--wood-medium);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ach-card-done {
+    border-color: rgba(255, 202, 40, 0.55);
+    background: rgba(40, 30, 10, 0.45);
+}
+
+.ach-card-icon {
+    font-size: 1.5rem;
+}
+
+.ach-card h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--wood-gold);
+}
+
+.ach-card-desc {
+    margin: 0;
+    font-size: 0.88rem;
+    opacity: 0.9;
+    line-height: 1.3;
+}
+
+.ach-rewards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.ach-reward-tag {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ach-reward-title { border-color: rgba(255, 183, 77, 0.45); color: #ffcc80; }
+.ach-reward-color { border-color: rgba(129, 199, 132, 0.45); color: #a5d6a7; }
+
+.ach-card-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ach-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.ach-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4fc3f7, #ffca28);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+}
+
+.ach-progress-text {
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+
+.ach-equip-btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--wood-medium);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    cursor: pointer;
+}
+
+.ach-equip-btn.equipped {
+    border-color: var(--wood-gold);
+    background: rgba(255, 202, 40, 0.2);
+    color: var(--wood-gold);
+}
+
+.ach-done-tag {
+    font-size: 0.82rem;
+    color: #a5d6a7;
+    font-weight: 700;
+}
+
+.achievements-footer {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.achievements-hint {
+    font-size: 0.82rem;
+    opacity: 0.8;
+    margin: 0 0 10px;
+}
+
+.achievements-back-btn {
+    margin-top: 4px;
+}
+
+#screen-leaderboard .ach-player-title,
+#sidebar-panel-chat .ach-player-title {
+    font-size: 0.72em;
+}
+
 @media (max-width: 480px) {
     .volume-dock {
         left: 6px;

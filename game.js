@@ -789,7 +789,13 @@ function getSavePayload() {
         currentZone: state.currentZone,
         bestFish: state.bestFish || null,
         ownedCosmetics: state.ownedCosmetics || ['default'],
-        equippedCosmetic: state.equippedCosmetic || 'default'
+        equippedCosmetic: state.equippedCosmetic || 'default',
+        unlockedAchievements: state.unlockedAchievements || [],
+        ownedTitleIds: state.ownedTitleIds || [],
+        ownedColorIds: state.ownedColorIds || [],
+        equippedTitleId: state.equippedTitleId || null,
+        equippedColorId: state.equippedColorId || null,
+        achievementStats: state.achievementStats || null
     };
 }
 
@@ -813,6 +819,12 @@ function persistGameLocal() {
     }
     localStorage.setItem('stepFishingOwnedCosmetics', JSON.stringify(state.ownedCosmetics || ['default']));
     localStorage.setItem('stepFishingEquippedCosmetic', state.equippedCosmetic || 'default');
+    localStorage.setItem('stepFishingAchievements', JSON.stringify(state.unlockedAchievements || []));
+    localStorage.setItem('stepFishingAchTitles', JSON.stringify(state.ownedTitleIds || []));
+    localStorage.setItem('stepFishingAchColors', JSON.stringify(state.ownedColorIds || []));
+    localStorage.setItem('stepFishingEquippedAchTitle', state.equippedTitleId || '');
+    localStorage.setItem('stepFishingEquippedAchColor', state.equippedColorId || '');
+    localStorage.setItem('stepFishingAchStats', JSON.stringify(state.achievementStats || {}));
     updateAquariumCapacityHUD();
 }
 
@@ -847,6 +859,16 @@ function applySaveData(data) {
     } else {
         state.ownedCosmetics = Array.isArray(data.ownedCosmetics) ? data.ownedCosmetics : ['default'];
         state.equippedCosmetic = data.equippedCosmetic || 'default';
+    }
+    if (window.StepFishAchievements) {
+        window.StepFishAchievements.loadFromSave(data);
+    } else {
+        state.unlockedAchievements = Array.isArray(data.unlockedAchievements) ? data.unlockedAchievements : [];
+        state.ownedTitleIds = Array.isArray(data.ownedTitleIds) ? data.ownedTitleIds : [];
+        state.ownedColorIds = Array.isArray(data.ownedColorIds) ? data.ownedColorIds : [];
+        state.equippedTitleId = data.equippedTitleId || null;
+        state.equippedColorId = data.equippedColorId || null;
+        state.achievementStats = data.achievementStats || null;
     }
     if (!state.bestFish?.value) {
         const derived = findBestFishInInventory(state.inventory);
@@ -897,7 +919,13 @@ let state = {
     currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
     keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0,
     ownedCosmetics: safeParse('stepFishingOwnedCosmetics', ['default']),
-    equippedCosmetic: localStorage.getItem('stepFishingEquippedCosmetic') || 'default'
+    equippedCosmetic: localStorage.getItem('stepFishingEquippedCosmetic') || 'default',
+    unlockedAchievements: safeParse('stepFishingAchievements', []),
+    ownedTitleIds: safeParse('stepFishingAchTitles', []),
+    ownedColorIds: safeParse('stepFishingAchColors', []),
+    equippedTitleId: localStorage.getItem('stepFishingEquippedAchTitle') || null,
+    equippedColorId: localStorage.getItem('stepFishingEquippedAchColor') || null,
+    achievementStats: safeParse('stepFishingAchStats', null)
 };
 
 const getEl = (id) => document.getElementById(id);
@@ -913,7 +941,8 @@ const elements = {
         shop: getEl('screen-shop'), 
         equipment: getEl('screen-equipment'),
         index: getEl('screen-index'),
-        map: getEl('screen-map')
+        map: getEl('screen-map'),
+        achievements: getEl('screen-achievements')
     },
     score: getEl('current-score'), walletBalance: getEl('wallet-balance'), walletGame: getEl('wallet-game'), keysBalance: getEl('keys-balance'), userLevel: getEl('user-level'), userPrestige: getEl('user-prestige'), combo: getEl('combo-count'), comboDisplay: getEl('combo-display'), timer: getEl('time-left'), ocean: getEl('ocean'), biteIndicator: getEl('bite-indicator'), reelContainer: getEl('reel-container'), fishTarget: getEl('fish-target'), playerCursor: getEl('player-cursor'), progressFill: getEl('progress-fill'), fishName: getEl('fish-name-display'), fishVisual: getEl('fish-visual'), gameLog: getEl('game-log'), aqViewport: getEl('aquarium-viewport'), fishLayer: getEl('fish-layer'), aqTitle: getEl('aq-title'), aqSlots: getEl('aq-slots'), aqLock: getEl('aq-lock-screen'), aqCost: getEl('aq-cost'), aqCapacityHud: getEl('aq-capacity-hud'), modalFishVisual: getEl('modal-fish-visual'), modalFishName: getEl('modal-fish-name'), modalFishRarity: getEl('modal-fish-rarity'), modalFishPrice: getEl('modal-fish-price'), profLevel: getEl('prof-level'), profPrestige: getEl('prof-prestige'), profFishes: getEl('prof-fishes'), profMaxMoney: getEl('prof-max-money'), profTotalScore: getEl('prof-total-score'), catchTitle: getEl('catch-title'), catchText: getEl('catch-text'), catchVisual: getEl('catch-visual'), catchFishPrice: getEl('catch-fish-price')
 };
@@ -1063,6 +1092,51 @@ function hasDiscoveredAllOceanFish() {
     const required = getOceanFishImagePathsForAbyssUnlock();
     if (!required.length) return true;
     return required.every(path => state.discoveredFishes.includes(path));
+}
+
+function getAbyssFishImagePathsForIndex() {
+    const zone = ZONE_DATA.find(z => z.id === 'abyss');
+    if (!zone?.library) return [];
+    const paths = [];
+    Object.keys(zone.library).forEach(folder => {
+        (zone.library[folder] || []).forEach(file => {
+            paths.push(`assets/fish/${folder}/${file}`);
+        });
+    });
+    return paths;
+}
+
+function getAbyssFishCount() {
+    return getAbyssFishImagePathsForIndex().length;
+}
+
+function getDiscoveredAbyssCount() {
+    const required = getAbyssFishImagePathsForIndex();
+    return required.filter(path => state.discoveredFishes.includes(path)).length;
+}
+
+function hasDiscoveredAllAbyssFish() {
+    const required = getAbyssFishImagePathsForIndex();
+    if (!required.length) return true;
+    return required.every(path => state.discoveredFishes.includes(path));
+}
+
+function getAllFishImagePathsInGame() {
+    const set = new Set();
+    ZONE_DATA.forEach(z => {
+        getZoneFishImagePaths(z.id).forEach(p => set.add(p));
+    });
+    return [...set];
+}
+
+function getAllFishSpeciesCount() {
+    return getAllFishImagePathsInGame().length;
+}
+
+function hasDiscoveredAllFishInGame() {
+    const all = getAllFishImagePathsInGame();
+    if (!all.length) return true;
+    return all.every(path => state.discoveredFishes.includes(path));
 }
 
 function isZoneUnlocked(zone) {
@@ -1545,6 +1619,7 @@ function updateProgression() {
     if(elements.userPrestige) elements.userPrestige.innerText = state.prestige;
     ensureValidEquippedRod();
     ensureValidZone();
+    window.StepFishAchievements?.checkAll?.();
     persistGame();
     const xpFill = document.getElementById('xp-bar-fill');
     const xpText = document.getElementById('xp-text');
@@ -2006,6 +2081,7 @@ function sellAllFromAq() {
         addLog('Aucun poisson vendu : tous sont verrouillés 🔒', 'system');
         return;
     }
+    window.StepFishAchievements?.onFishSold?.(sold, gain);
     state.money += gain;
     persistGame();
     updateMoneyDisplay();
@@ -2043,6 +2119,7 @@ function sellAllFromAllAquariums() {
         return;
     }
 
+    window.StepFishAchievements?.onFishSold?.(soldCount, totalGain);
     state.money += totalGain;
     persistGame();
     updateMoneyDisplay();
@@ -2169,6 +2246,7 @@ function openFishModal(index, aqId) {
 function sellFishFromAq(index, aqId) {
     const fish = state.inventory[aqId][index];
     if(!fish) return;
+    window.StepFishAchievements?.onFishSold?.(1, fish.value || 0);
     state.money += fish.value;
     state.inventory[aqId].splice(index, 1);
     persistGame();
@@ -2242,7 +2320,8 @@ function spawnOsuTarget() {
     
     target.addEventListener('mousedown', (e) => {
         e.stopPropagation();
-        state.combo++; 
+        state.combo++;
+        window.StepFishAchievements?.onComboUpdate?.(state.combo);
         elements.combo.innerText = state.combo;
         target.remove(); 
         spawnOsuTarget();
@@ -2390,6 +2469,7 @@ function startReelGame() {
 function catchFish(success) {
     if (success && state.currentFish?.isKey) {
         state.keys++;
+        window.StepFishAchievements?.onKeyFound?.();
         updateKeysDisplay();
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
@@ -2440,6 +2520,7 @@ function catchFish(success) {
         elements.catchText.innerText = 'Ajouté à votre aquarium !';
         renderCatchReveal(state.currentFish);
         updateCatchLockUI();
+        window.StepFishAchievements?.onFishCaught?.(state.currentFish);
         showScreen('catch-modal');
         if (!state.discoveredFishes.includes(state.currentFish.img)) {
             state.discoveredFishes.push(state.currentFish.img);
@@ -2998,6 +3079,10 @@ function init() {
     bind('btn-cosmetics', () => {
         if (window.StepFishCosmetics) StepFishCosmetics.open();
     });
+    bind('btn-achievements', () => {
+        if (window.StepFishAchievements) StepFishAchievements.open();
+    });
+    bind('btn-back-menu-achievements', goToMenu);
     bind('btn-trades', () => {
         if (window.StepFishTrade) StepFishTrade.open();
         else addLog('Échanges indisponibles.', 'system');
@@ -3101,6 +3186,7 @@ function openCrate() {
     state.keys--;
     updateKeysDisplay();
     playChestSound();
+    window.StepFishAchievements?.onCrateOpened?.();
 
     const crateList = document.getElementById('crate-list');
     if (!crateList) return;
@@ -3157,6 +3243,7 @@ async function boot() {
     if (window.StepFishAuth) StepFishAuth.updatePseudoDisplay();
     if (window.StepFishLeaderboard) StepFishLeaderboard.init();
     if (window.StepFishCosmetics) StepFishCosmetics.init();
+    if (window.StepFishAchievements) StepFishAchievements.init();
     if (window.StepFishChat) StepFishChat.start();
     if (window.StepFishPublicProfile) StepFishPublicProfile.init();
     if (window.StepFishTrade) StepFishTrade.start();
@@ -3179,6 +3266,21 @@ window.StepFishGameTrade = {
     addLog,
     renderAquarium,
     showScreen
+};
+
+window.StepFishGameMeta = {
+    hasDiscoveredAllLacFish: () => hasDiscoveredAllLacFish(),
+    hasDiscoveredAllOceanFish: () => hasDiscoveredAllOceanFish(),
+    hasDiscoveredAllAbyssFish: () => hasDiscoveredAllAbyssFish(),
+    hasDiscoveredAllFishInGame: () => hasDiscoveredAllFishInGame(),
+    getLacFishCount: () => getLacFishCount(),
+    getDiscoveredLacCount: () => getDiscoveredLacCount(),
+    getOceanFishCountForAbyss: () => getOceanFishCountForAbyss(),
+    getDiscoveredOceanCountForAbyss: () => getDiscoveredOceanCountForAbyss(),
+    getAbyssFishCount: () => getAbyssFishCount(),
+    getDiscoveredAbyssCount: () => getDiscoveredAbyssCount(),
+    getAllFishSpeciesCount: () => getAllFishSpeciesCount(),
+    getDiscoveredSpeciesCount: () => (window.__stepfishGetState?.()?.discoveredFishes || []).length
 };
 
 window.StepFishAquariumPreview = {

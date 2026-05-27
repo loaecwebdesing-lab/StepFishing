@@ -75,6 +75,10 @@
     }
 
     function refreshPseudoDisplays() {
+        if (window.StepFishAchievements?.refreshPseudoDisplays) {
+            window.StepFishAchievements.refreshPseudoDisplays();
+            return;
+        }
         const pseudo = window.StepFishAuth?.getPseudo?.() || 'Pêcheur';
         const cid = getEquippedId();
         applyToElement(document.getElementById('user-pseudo'), pseudo, cid);
