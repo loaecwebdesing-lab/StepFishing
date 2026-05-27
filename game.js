@@ -339,8 +339,8 @@ const FISH_DATA = {
     prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
 };
 
-/** Multiplicateurs d'augmentation (préfixe plus rare que le poisson) — inchangés. */
-const PREFIX_VALUE_MULT = [0.5, 0.65, 0.8, 1.0, 1.5, 2.0, 3.0];
+/** Bonus quand le préfixe est plus rare que le poisson (tiers bas = ×1, hauts = ×1.5 / ×2 / ×3). */
+const PREFIX_BOOST_MULT = [1.0, 1.0, 1.0, 1.0, 1.5, 2.0, 3.0];
 
 /** Malus adoucis quand le préfixe est moins rare que le poisson (écart 1 → ×0,9). */
 function getPrefixDebuffMult(fishRarityIdx, prefixIdx) {
@@ -371,11 +371,11 @@ function rollPrefixTierIndex(fishRarityIdx) {
     return 0;
 }
 
-/** Préfixe du même tier que le poisson = ×1 ; au-dessus = PREFIX_VALUE_MULT ; en dessous = malus adouci. */
+/** Préfixe même tier = ×1 ; plus rare = bonus ; moins rare = malus adouci. */
 function getPrefixValueMult(fishRarityIdx, prefixIdx) {
     if (prefixIdx === fishRarityIdx) return 1;
     if (prefixIdx < fishRarityIdx) return getPrefixDebuffMult(fishRarityIdx, prefixIdx);
-    return PREFIX_VALUE_MULT[prefixIdx] ?? 1;
+    return PREFIX_BOOST_MULT[prefixIdx] ?? 1;
 }
 
 function rollFishPrefix(fishRarityIdx) {
