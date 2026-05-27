@@ -320,13 +320,12 @@ const ZONE_DATA = [
         bgDay: 'assets/abyss_day.png',
         bgDawn: 'assets/abyss_dawn.png',
         bgNight: 'assets/abyss_night.png',
-        /** Aucune espèce pour l'instant — zone visitable, pêche normale désactivée. */
         library: {
-            'commun': [],
-            'peu_commun': [],
-            'rare': [],
-            'epique': [],
-            'legendaire': [],
+            'commun': ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
+            'peu_commun': ['LoupAbyssal.png', 'PoissonArcher.png', 'PoissonHachette.png', 'PoissonLampe.png', 'PoissonLicorne.png', 'PoissonOgre.png', 'Tripode.png'],
+            'rare': ['Chymere.png', 'PoissonScie.png'],
+            'epique': ['BlobFish.png', 'RequinGriset.png', 'RequnLutin.png', 'Vipere.png'],
+            'legendaire': ['BaudroieAbyssal.png', 'DiableNoir.png', 'DragonDesMers.png', 'PoissonRuban.png'],
             'mythique': [],
             'divin': []
         }
