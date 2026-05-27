@@ -1797,8 +1797,8 @@ function getCatchRevealFishSize(fish) {
     if (fish.isKey || fish.isTreasureBox) return 110;
     const base = aquariumFishWidthPx(fish.weight) + 18;
     const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
-    const scaled = base * (isMobile ? 1.35 : 1.1);
-    return Math.min(isMobile ? 150 : 130, Math.max(72, Math.round(scaled)));
+    const scaled = base * (isMobile ? 1.42 : 1.22);
+    return Math.min(isMobile ? 168 : 158, Math.max(84, Math.round(scaled)));
 }
 
 function renderCatchReveal(fish) {

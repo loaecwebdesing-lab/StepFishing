@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>StepFishing | Pro Edition</title>
-    <link rel="stylesheet" href="Style.css?v=mobile-scroll1">
+    <link rel="stylesheet" href="Style.css?v=catch-ui1">
     <link rel="preload" href="assets/Button.mp3?v=2" as="fetch" type="audio/mpeg">
     <script>
     window.__stepfishBgTracks = [
@@ -358,10 +358,10 @@
 
             <!-- FIN DE PARTIE -->
             <div id="screen-game-over" class="screen">
-                <div class="glass-card">
-                    <h1 class="title">Fin de Session</h1>
-                    <p>Votre récolte : <span id="final-score">0</span> points</p>
-                    <button id="btn-restart" class="btn-primary">Recommencer</button>
+                <div class="glass-card game-over-card">
+                    <h1 class="title game-over-title">Fin de Session</h1>
+                    <p class="game-over-score">Votre récolte : <span id="final-score">0</span> points</p>
+                    <button id="btn-restart" class="btn-primary game-over-btn">Recommencer</button>
                 </div>
             </div>
 
@@ -460,13 +460,19 @@
                 <div id="modal-overlay"></div>
                 <div class="glass-card catch-glass-card">
                     <button type="button" id="btn-lock-catch" class="catch-lock-icon hidden" aria-label="Verrouiller le poisson" title="Verrouiller ce poisson">🔓</button>
-                    <h1 id="catch-title" class="title">SUCCÈS !</h1>
-                    <div id="catch-visual"></div>
-                    <h2 id="catch-fish-name" class="rarity-text catch-fish-name"></h2>
-                    <p id="catch-fish-rarity" class="catch-fish-rarity"></p>
-                    <p id="catch-fish-price" class="catch-fish-price hidden" aria-label="Valeur de vente"></p>
-                    <p id="catch-text">Vous avez capturé un poisson !</p>
-                    <button type="button" id="btn-close-catch" class="btn-primary">Continuer</button>
+                    <header class="catch-header">
+                        <h1 id="catch-title" class="title catch-title">SUCCÈS !</h1>
+                    </header>
+                    <div id="catch-visual" class="catch-visual-panel" aria-hidden="false"></div>
+                    <div class="catch-details">
+                        <h2 id="catch-fish-name" class="rarity-text catch-fish-name"></h2>
+                        <p id="catch-fish-rarity" class="catch-fish-rarity"></p>
+                        <p id="catch-fish-price" class="catch-fish-price hidden" aria-label="Valeur de vente"></p>
+                        <p id="catch-text" class="catch-text-msg">Vous avez capturé un poisson !</p>
+                    </div>
+                    <footer class="catch-footer">
+                        <button type="button" id="btn-close-catch" class="btn-primary catch-continue-btn">Continuer</button>
+                    </footer>
                 </div>
             </div>
 
