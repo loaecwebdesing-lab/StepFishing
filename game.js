@@ -17,23 +17,24 @@ const RARITIES = [
 ];
 
 // 1. D'abord on définit les cannes du shop
+/** Chances de pêche en % (Légendaire / Mythique / Divin) — toutes cannes peuvent les obtenir. */
 const ROD_DATA = [
-    { id: 0, name: "Canne en Bambou", cost: 0, luck: 0, speed: 1, time: 0, img: "assets/rods/rod0.png", moneyBuff: 1 },
-    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1 },
-    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1 },
-    { id: 3, name: "Canne en Carbone", cost: 10000, luck: 4, speed: 2.0, time: 15, img: "assets/rods/rod3.png", moneyBuff: 1.1 },
-    { id: 4, name: "Canne Pro", cost: 50000, luck: 7, speed: 2.5, time: 20, img: "assets/rods/rod4.png", moneyBuff: 1.2 },
-    { id: 5, name: "Canne ProMax", cost: 100000, luck: 8, speed: 2.9, time: 25, img: "assets/rods/rod5.png", moneyBuff: 1.5 }
+    { id: 0, name: "Canne en Bambou", cost: 0, luck: 0, speed: 1, time: 0, img: "assets/rods/rod0.png", moneyBuff: 1, catchRates: { legendaire: 0.01, mythique: 0.004, divin: 0.001 } },
+    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1, catchRates: { legendaire: 0.03, mythique: 0.01, divin: 0.002 } },
+    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1, catchRates: { legendaire: 0.12, mythique: 0.04, divin: 0.005 } },
+    { id: 3, name: "Canne en Carbone", cost: 10000, luck: 4, speed: 2.0, time: 15, img: "assets/rods/rod3.png", moneyBuff: 1.1, catchRates: { legendaire: 0.80, mythique: 0.15, divin: 0.01 } },
+    { id: 4, name: "Canne Pro", cost: 50000, luck: 7, speed: 2.5, time: 20, img: "assets/rods/rod4.png", moneyBuff: 1.2, catchRates: { legendaire: 0.45, mythique: 0.18, divin: 0.06 } },
+    { id: 5, name: "Canne ProMax", cost: 100000, luck: 8, speed: 2.9, time: 25, img: "assets/rods/rod5.png", moneyBuff: 1.5, catchRates: { legendaire: 0.65, mythique: 0.28, divin: 0.12 } }
 ];
 
 // 2. Ensuite on définit les cannes des coffres
 const ROD_IMG_V = 'v=2';
 const CRATE_RODS = [
-    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1 },
-    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1 },
-    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2 },
-    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2 },
-    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4 },
+    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1, catchRates: { legendaire: 0.28, mythique: 0.10, divin: 0.04 } },
+    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1, catchRates: { legendaire: 0.55, mythique: 0.22, divin: 0.10 } },
+    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2, catchRates: { legendaire: 0.85, mythique: 0.38, divin: 0.22 } },
+    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2, catchRates: { legendaire: 1.20, mythique: 0.65, divin: 0.45 } },
+    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4, catchRates: { legendaire: 2.0, mythique: 1.0, divin: 0.90 } },
 ];
 
 // 3. MAINTENANT on peut fusionner les deux (car les deux existent déjà)
@@ -483,57 +484,58 @@ function rollMutation() {
     return pickWeightedMutation(MUTATIONS.filter(m => m.name !== 'Normal'));
 }
 
-/** Plafond de rareté selon la canne uniquement (le mini-jeu osu / combo n'a aucun effet). */
-function getMaxRarityFromLuck(luck) {
-    const l = Math.min(Math.max(0, luck), 100);
-    if (l >= 40) return 6;
-    if (l >= 25) return 5;
-    if (l >= 10) return 4;
-    if (l >= 7) return 3;
-    if (l >= 4) return 2;
-    if (l >= 1) return 1;
-    return 0;
+function getRodCatchRates(rod) {
+    const luck = Math.min(Math.max(0, rod?.luck ?? 0), 100);
+    const defaults = {
+        legendaire: 0.01 * (1 + luck * 0.12),
+        mythique: 0.004 * (1 + luck * 0.1),
+        divin: 0.001 * (1 + luck * 0.08)
+    };
+    const r = rod?.catchRates || {};
+    return {
+        legendaire: Math.max(0, r.legendaire ?? defaults.legendaire),
+        mythique: Math.max(0, r.mythique ?? defaults.mythique),
+        divin: Math.max(0, r.divin ?? defaults.divin)
+    };
+}
+
+function formatCatchRatePct(pct) {
+    if (pct >= 1) return pct.toFixed(2).replace(/\.?0+$/, '') + '%';
+    if (pct >= 0.1) return pct.toFixed(2) + '%';
+    return pct.toFixed(3) + '%';
 }
 
 /**
- * Tirage de rareté à la pêche (luck de la canne seulement).
- * Mythique / Divin : second tirage de validation.
+ * Tirage de rareté : d'abord % Lég./Myth./Divin de la canne, sinon pool Commun → Épique (luck = bonus Épique).
  */
-function rollFishRarityIndex(luck = 0) {
-    const cappedLuck = Math.min(Math.max(0, luck), 100);
-    const maxRarityAllowed = getMaxRarityFromLuck(cappedLuck);
+function rollFishRarityIndex(rodOrLuck = 0) {
+    const rod = typeof rodOrLuck === 'object' && rodOrLuck !== null
+        ? rodOrLuck
+        : { luck: Number(rodOrLuck) || 0 };
+    const luck = Math.min(Math.max(0, rod.luck ?? 0), 100);
+    const rates = getRodCatchRates(rod);
+    const rollPct = Math.random() * 100;
+
+    if (rollPct < rates.divin) return 6;
+    if (rollPct < rates.divin + rates.mythique) return 5;
+    if (rollPct < rates.divin + rates.mythique + rates.legendaire) return 4;
 
     let totalWeight = 0;
     const weights = [];
-    for (let i = 0; i < RARITIES.length; i++) {
-        if (i <= maxRarityAllowed) {
-            let w = RARITY_WEIGHTS[i];
-            if (i >= 3 && i <= 4) w *= (1 + cappedLuck * 0.058);
-            weights.push(w);
-            totalWeight += w;
-        } else {
-            weights.push(0);
-        }
+    for (let i = 0; i <= 3; i++) {
+        let w = RARITY_WEIGHTS[i];
+        if (i === 3) w *= (1 + luck * 0.058);
+        weights.push(w);
+        totalWeight += w;
     }
 
     let roll = Math.random() * totalWeight;
     let sum = 0;
-    let rIdx = 0;
     for (let i = 0; i < weights.length; i++) {
         sum += weights[i];
-        if (roll <= sum) { rIdx = i; break; }
+        if (roll <= sum) return i;
     }
-
-    if (rIdx === 5) {
-        const keepMyth = 0.08 + cappedLuck * 0.002;
-        if (Math.random() > keepMyth) rIdx = 4;
-    }
-    if (rIdx === 6) {
-        const keepDivin = 0.02 + cappedLuck * 0.001;
-        if (Math.random() > keepDivin) rIdx = Math.random() < 0.35 ? 5 : 4;
-    }
-
-    return rIdx;
+    return 0;
 }
 
 function safeParse(key, defaultValue) {
@@ -2041,7 +2043,7 @@ function triggerCatch() {
         addLog('Aucune espèce à pêcher ici pour le moment.', 'system');
         return;
     }
-    const rIdx = rollFishRarityIndex(currentRod.luck || 0);
+    const rIdx = rollFishRarityIndex(currentRod);
     let rData = RARITIES[rIdx];
     let possibleFishes = activeZone.library[rData.folder];
     let selectedImg = '';
@@ -2379,7 +2381,7 @@ function rollRandomMutation() {
 function createRandomMutatedFish(zoneId = state.currentZone) {
     const zone = ZONE_DATA.find(z => z.id === zoneId) || ZONE_DATA[0];
     const rod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
-    const rIdx = rollFishRarityIndex(rod.luck || 0);
+    const rIdx = rollFishRarityIndex(rod);
     let rData = RARITIES[rIdx];
     let possibleFishes = zone.library[rData.folder];
     if (!possibleFishes || possibleFishes.length === 0) {
@@ -2561,17 +2563,14 @@ function buyRod(id) {
     } else { alert("Pas assez d'argent !"); }
 }
 
-function getRodMaxRarityLabel(luck) {
-    const idx = getMaxRarityFromLuck(luck);
-    return RARITIES[idx]?.name || 'Commun';
-}
-
 function formatRodStatsHTML(rod) {
     const luck = rod.luck ?? 0;
     const speed = Number(rod.speed || 1);
     const moneyBuff = rod.moneyBuff || 1;
+    const rates = getRodCatchRates(rod);
     const lines = [
-        `<span>🍀 Luck <strong>${luck}</strong> · rareté max <strong>${getRodMaxRarityLabel(luck)}</strong></span>`,
+        `<span>🍀 Luck <strong>${luck}</strong> · bonus rareté <strong>Épique</strong></span>`,
+        `<span>🎣 Par prise · <strong>Lég. ${formatCatchRatePct(rates.legendaire)}</strong> · <strong>My. ${formatCatchRatePct(rates.mythique)}</strong> · <strong>Div. ${formatCatchRatePct(rates.divin)}</strong></span>`,
         `<span>⚡ Remontage <strong>×${speed.toFixed(1)}</strong></span>`
     ];
     if (rod.time > 0) {
