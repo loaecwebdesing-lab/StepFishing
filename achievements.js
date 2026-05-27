@@ -19,7 +19,17 @@
         title_trader: { label: 'Marchand', text: '[Marchand]', class: 'ach-title-trader' },
         title_precise: { label: 'Précis', text: '[Précis]', class: 'ach-title-precise' },
         title_champion: { label: 'Champion', text: '[Champion]', class: 'ach-title-champion ach-title-blink' },
-        title_trophy: { label: 'Trophée', text: '[Trophée]', class: 'ach-title-trophy' }
+        title_trophy: { label: 'Trophée', text: '[Trophée]', class: 'ach-title-trophy' },
+        title_deep: { label: 'Abyssal', text: '[Profondeur]', class: 'ach-title-deep' },
+        title_storm: { label: 'Tempête', text: '[Tempête]', class: 'ach-title-storm ach-title-pulse' },
+        title_naturalist: { label: 'Naturaliste', text: '[Naturaliste]', class: 'ach-title-naturalist' },
+        title_tycoon: { label: 'Magnat', text: '[Magnat]', class: 'ach-title-tycoon ach-title-blink' },
+        title_sage: { label: 'Sage', text: '[Sage]', class: 'ach-title-sage' },
+        title_curator: { label: 'Conservateur', text: '[Conservateur]', class: 'ach-title-curator' },
+        title_merchant: { label: 'Marchand', text: '[Marchand Pro]', class: 'ach-title-merchant' },
+        title_reflex: { label: 'Réflexe', text: '[Réflexe]', class: 'ach-title-reflex ach-title-blink' },
+        title_broker: { label: 'Courtier', text: '[Courtier]', class: 'ach-title-broker' },
+        title_whale: { label: 'Baleine', text: '[Baleine]', class: 'ach-title-whale ach-title-blink' }
     };
 
     const COLOR_REWARDS = {
@@ -28,8 +38,20 @@
         color_green: { label: 'Vert', class: 'ach-color-green' },
         color_gold: { label: 'Or', class: 'ach-color-gold' },
         color_indigo: { label: 'Indigo', class: 'ach-color-indigo' },
-        color_cyan: { label: 'Cyan', class: 'ach-color-cyan' }
+        color_cyan: { label: 'Cyan', class: 'ach-color-cyan' },
+        color_silver: { label: 'Argent', class: 'ach-color-silver' },
+        color_coral: { label: 'Corail', class: 'ach-color-coral' }
     };
+
+    const CATEGORIES = [
+        { id: 'peche', label: 'Pêche', icon: '🎣', order: 1 },
+        { id: 'coll', label: 'Collection & Index', icon: '📖', order: 2 },
+        { id: 'eco', label: 'Économie', icon: '💰', order: 3 },
+        { id: 'prog', label: 'Progression', icon: '⭐', order: 4 },
+        { id: 'social', label: 'Social', icon: '💬', order: 5 }
+    ];
+
+    let activeAchFilter = 'all';
 
     const ACHIEVEMENTS = [
         { id: 'first_catch', name: 'Première prise', desc: 'Capturer ton premier poisson.', cat: 'peche', icon: '🎣', cond: { type: 'catches', n: 1 }, rewards: [{ type: 'title', id: 'title_novice' }] },
@@ -61,7 +83,17 @@
         { id: 'chat_25', name: 'Bavard', desc: 'Envoyer 25 messages dans le chat.', cat: 'social', icon: '💬', cond: { type: 'chat', n: 25 }, rewards: [{ type: 'color', id: 'color_cyan' }] },
         { id: 'trade_3', name: 'Négociant', desc: 'Réussir 3 échanges de poissons.', cat: 'social', icon: '🔄', cond: { type: 'trades', n: 3 }, rewards: [{ type: 'title', id: 'title_trader' }] },
         { id: 'combo_8', name: 'Précision osu', desc: 'Atteindre un combo de 8.', cat: 'peche', icon: '🎯', cond: { type: 'combo', n: 8 }, rewards: [{ type: 'title', id: 'title_precise' }] },
-        { id: 'best_fish_1000', name: 'Prise de rêve', desc: 'Capturer un poisson valant 1 000 $+.', cat: 'peche', icon: '💎', cond: { type: 'best_fish', n: 1000 }, rewards: [{ type: 'title', id: 'title_trophy' }] }
+        { id: 'best_fish_1000', name: 'Prise de rêve', desc: 'Capturer un poisson valant 1 000 $+.', cat: 'peche', icon: '💎', cond: { type: 'best_fish', n: 1000 }, rewards: [{ type: 'title', id: 'title_trophy' }] },
+        { id: 'catches_5000', name: 'Océan infini', desc: 'Capturer 5 000 poissons.', cat: 'peche', icon: '🌐', cond: { type: 'catches', n: 5000 }, rewards: [{ type: 'title', id: 'title_deep' }] },
+        { id: 'myths_5', name: 'Chasseur de tempêtes', desc: 'Capturer 5 Mythiques.', cat: 'peche', icon: '⛈️', cond: { type: 'rarity', r: 5, n: 5 }, rewards: [{ type: 'title', id: 'title_storm' }] },
+        { id: 'combo_15', name: 'Réflexes d\'acier', desc: 'Atteindre un combo de 15.', cat: 'peche', icon: '⚡', cond: { type: 'combo', n: 15 }, rewards: [{ type: 'title', id: 'title_reflex' }] },
+        { id: 'best_fish_10k', name: 'Monstre des mers', desc: 'Capturer un poisson valant 10 000 $+.', cat: 'peche', icon: '🐋', cond: { type: 'best_fish', n: 10000 }, rewards: [{ type: 'title', id: 'title_whale' }] },
+        { id: 'discovered_50', name: 'Naturaliste', desc: 'Découvrir 50 espèces différentes.', cat: 'coll', icon: '🔬', cond: { type: 'discovered', n: 50 }, rewards: [{ type: 'title', id: 'title_naturalist' }] },
+        { id: 'money_10m', name: 'Magnat', desc: 'Posséder 10 000 000 $ au total.', cat: 'eco', icon: '🏛️', cond: { type: 'max_money', n: 10000000 }, rewards: [{ type: 'title', id: 'title_tycoon' }] },
+        { id: 'fish_sold_500', name: 'Grossiste', desc: 'Vendre 500 poissons au total.', cat: 'eco', icon: '🏪', cond: { type: 'fish_sold', n: 500 }, rewards: [{ type: 'title', id: 'title_merchant' }] },
+        { id: 'aquariums_5', name: 'Conservateur', desc: 'Débloquer les 5 aquariums.', cat: 'eco', icon: '🐠', cond: { type: 'aquariums', n: 5 }, rewards: [{ type: 'title', id: 'title_curator' }] },
+        { id: 'level_100', name: 'Sage des mers', desc: 'Atteindre le niveau 100.', cat: 'prog', icon: '🧙', cond: { type: 'level', n: 100 }, rewards: [{ type: 'title', id: 'title_sage' }] },
+        { id: 'trades_10', name: 'Courtier expert', desc: 'Réussir 10 échanges.', cat: 'social', icon: '🤝', cond: { type: 'trades', n: 10 }, rewards: [{ type: 'title', id: 'title_broker' }] }
     ];
 
     const achById = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
@@ -153,6 +185,12 @@
             case 'best_fish': return { cur: s.bestFish?.value || 0, max: c.n };
             case 'aquariums': return { cur: (s.unlockedAquariums || [0]).length, max: c.n };
             case 'fish_sold': return { cur: st.fishSold, max: c.n };
+            case 'total_sold': return { cur: st.totalSold, max: c.n };
+            case 'discovered': {
+                const cur = window.StepFishGameMeta?.getDiscoveredSpeciesCount?.() || 0;
+                return { cur, max: c.n };
+            }
+            case 'owned_rods': return { cur: (s.ownedRods || []).length, max: c.n };
             default: return { cur: 0, max: 1 };
         }
     }
@@ -270,65 +308,123 @@
         }).join('');
     }
 
+    function filterAchievements(filter, unlocked) {
+        return ACHIEVEMENTS.filter(ach => {
+            if (filter === 'done') return unlocked.includes(ach.id);
+            if (filter === 'todo') return !unlocked.includes(ach.id);
+            if (filter !== 'all') return ach.cat === filter;
+            return true;
+        });
+    }
+
+    function renderCardHtml(ach, s, unlocked) {
+        const done = unlocked.includes(ach.id);
+        const p = getProgress(ach, s);
+        const pct = Math.min(100, Math.round((p.cur / Math.max(p.max, 1)) * 100));
+        let action = '';
+        if (done) {
+            const rewards = ach.rewards || [];
+            const titleRs = rewards.filter(r => r.type === 'title');
+            const colorRs = rewards.filter(r => r.type === 'color');
+            titleRs.forEach(titleR => {
+                if (s.ownedTitleIds.includes(titleR.id)) {
+                    const eq = s.equippedTitleId === titleR.id;
+                    action += `<button type="button" class="ach-equip-btn${eq ? ' equipped' : ''}" data-equip-title="${titleR.id}">${eq ? 'Préfixe équipé' : 'Équiper préfixe'}</button>`;
+                }
+            });
+            colorRs.forEach(colorR => {
+                if (s.ownedColorIds.includes(colorR.id)) {
+                    const eq = s.equippedColorId === colorR.id;
+                    action += `<button type="button" class="ach-equip-btn${eq ? ' equipped' : ''}" data-equip-color="${colorR.id}">${eq ? 'Couleur équipée' : 'Équiper couleur'}</button>`;
+                }
+            });
+            if (!titleRs.length && !colorRs.length) action = '<span class="ach-done-tag">✓ Trophée obtenu</span>';
+        } else {
+            action = `<div class="ach-progress-bar"><div class="ach-progress-fill" style="width:${pct}%"></div></div><span class="ach-progress-text">${formatProgress(p, ach)}</span>`;
+        }
+        return `<article class="ach-card${done ? ' ach-card-done' : ''}" data-id="${ach.id}" data-cat="${ach.cat}">
+            <div class="ach-card-top">
+                <span class="ach-card-icon">${ach.icon}</span>
+                ${done ? '<span class="ach-card-badge">✓</span>' : ''}
+            </div>
+            <h3>${escapeHtml(ach.name)}</h3>
+            <p class="ach-card-desc">${escapeHtml(ach.desc)}</p>
+            <div class="ach-rewards">${renderRewardTags(ach)}</div>
+            <div class="ach-card-footer">${action}</div>
+        </article>`;
+    }
+
+    function bindEquipButtons(root) {
+        if (!root) return;
+        root.querySelectorAll('[data-equip-title]').forEach(btn => {
+            btn.addEventListener('click', () => equipTitle(btn.dataset.equipTitle));
+        });
+        root.querySelectorAll('[data-equip-color]').forEach(btn => {
+            btn.addEventListener('click', () => equipColor(btn.dataset.equipColor));
+        });
+    }
+
     function renderScreen() {
         const grid = document.getElementById('achievements-grid');
         const summary = document.getElementById('achievements-summary');
-        const filter = document.getElementById('achievements-filter')?.value || 'all';
         if (!grid) return;
 
         const s = getState();
         ensureAchievementState(s);
         const unlocked = s?.unlockedAchievements || [];
         const total = ACHIEVEMENTS.length;
-        summary && (summary.textContent = `${unlocked.length} / ${total} succès débloqués`);
+        const filter = activeAchFilter;
 
-        const list = ACHIEVEMENTS.filter(ach => {
-            if (filter === 'done') return unlocked.includes(ach.id);
-            if (filter === 'todo') return !unlocked.includes(ach.id);
-            if (filter !== 'all') return ach.cat === filter;
-            return true;
+        if (summary) {
+            const parts = CATEGORIES.map(cat => {
+                const items = ACHIEVEMENTS.filter(a => a.cat === cat.id);
+                const done = items.filter(a => unlocked.includes(a.id)).length;
+                return `${cat.icon} ${done}/${items.length}`;
+            });
+            summary.textContent = `${unlocked.length} / ${total} trophées · ${parts.join(' · ')}`;
+        }
+
+        document.querySelectorAll('.ach-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.filter === filter);
         });
 
-        grid.innerHTML = list.map(ach => {
-            const done = unlocked.includes(ach.id);
-            const p = getProgress(ach, s);
-            const pct = Math.min(100, Math.round((p.cur / Math.max(p.max, 1)) * 100));
-            let action = '';
-            if (done) {
-                const rewards = ach.rewards || [];
-                const titleR = rewards.find(r => r.type === 'title');
-                const colorR = rewards.find(r => r.type === 'color');
-                if (titleR && s.ownedTitleIds.includes(titleR.id)) {
-                    const eq = s.equippedTitleId === titleR.id;
-                    action += `<button type="button" class="ach-equip-btn${eq ? ' equipped' : ''}" data-equip-title="${titleR.id}">${eq ? 'Préfixe équipé' : 'Équiper préfixe'}</button>`;
-                }
-                if (colorR && s.ownedColorIds.includes(colorR.id)) {
-                    const eq = s.equippedColorId === colorR.id;
-                    action += `<button type="button" class="ach-equip-btn${eq ? ' equipped' : ''}" data-equip-color="${colorR.id}">${eq ? 'Couleur équipée' : 'Équiper couleur'}</button>`;
-                }
-                if (!titleR && !colorR) action = '<span class="ach-done-tag">✓ Terminé</span>';
-            } else {
-                action = `<div class="ach-progress-bar"><div class="ach-progress-fill" style="width:${pct}%"></div></div><span class="ach-progress-text">${formatProgress(p, ach)}</span>`;
-            }
-            return `<article class="ach-card${done ? ' ach-card-done' : ''}" data-id="${ach.id}">
-                <span class="ach-card-icon">${ach.icon}</span>
-                <h3>${escapeHtml(ach.name)}</h3>
-                <p class="ach-card-desc">${escapeHtml(ach.desc)}</p>
-                <div class="ach-rewards">${renderRewardTags(ach)}</div>
-                <div class="ach-card-footer">${action}</div>
-            </article>`;
-        }).join('');
+        const list = filterAchievements(filter, unlocked);
 
-        grid.querySelectorAll('[data-equip-title]').forEach(btn => {
-            btn.addEventListener('click', () => equipTitle(btn.dataset.equipTitle));
-        });
-        grid.querySelectorAll('[data-equip-color]').forEach(btn => {
-            btn.addEventListener('click', () => equipColor(btn.dataset.equipColor));
-        });
+        if (filter === 'all') {
+            grid.className = 'achievements-grid achievements-grid-sectioned';
+            grid.innerHTML = CATEGORIES.map(cat => {
+                const items = list.filter(a => a.cat === cat.id);
+                if (!items.length) return '';
+                const doneInCat = items.filter(a => unlocked.includes(a.id)).length;
+                const sectionPct = Math.round((doneInCat / items.length) * 100);
+                return `<section class="ach-section" data-cat="${cat.id}">
+                    <header class="ach-section-head">
+                        <h2 class="ach-section-title"><span class="ach-section-icon">${cat.icon}</span> ${escapeHtml(cat.label)}</h2>
+                        <span class="ach-section-meta">${doneInCat} / ${items.length} · ${sectionPct}%</span>
+                    </header>
+                    <div class="ach-section-bar"><div class="ach-section-bar-fill" style="width:${sectionPct}%"></div></div>
+                    <div class="ach-section-grid">${items.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>
+                </section>`;
+            }).join('');
+        } else {
+            grid.className = 'achievements-grid';
+            const catInfo = CATEGORIES.find(c => c.id === filter);
+            const header = catInfo && filter !== 'done' && filter !== 'todo'
+                ? `<div class="ach-flat-head"><h2>${catInfo.icon} ${escapeHtml(catInfo.label)}</h2></div>`
+                : '';
+            grid.innerHTML = `${header}<div class="ach-section-grid">${list.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>`;
+        }
+
+        bindEquipButtons(grid);
+    }
+
+    function setActiveFilter(filter) {
+        activeAchFilter = filter || 'all';
+        renderScreen();
     }
 
     function formatProgress(p, ach) {
-        if (ach.cond.type === 'max_money' || ach.cond.type === 'best_fish') {
+        if (['max_money', 'best_fish', 'total_sold'].includes(ach.cond.type)) {
             return `${Number(p.cur).toLocaleString('fr-FR')} / ${Number(p.max).toLocaleString('fr-FR')}`;
         }
         return `${p.cur} / ${p.max}`;
@@ -436,8 +532,9 @@
     function init() {
         const s = getState();
         ensureAchievementState(s);
-        const filter = document.getElementById('achievements-filter');
-        filter?.addEventListener('change', renderScreen);
+        document.querySelectorAll('.ach-tab').forEach(tab => {
+            tab.addEventListener('click', () => setActiveFilter(tab.dataset.filter));
+        });
         checkAll();
     }
 

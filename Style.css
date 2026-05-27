@@ -3748,6 +3748,16 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .ach-title-precise { color: #e1bee7; }
 .ach-title-champion { color: #ff8a65; }
 .ach-title-trophy { color: #ffe082; }
+.ach-title-deep { color: #4dd0e1; }
+.ach-title-storm { color: #90caf9; }
+.ach-title-naturalist { color: #a5d6a7; }
+.ach-title-tycoon { color: #ffd54f; }
+.ach-title-sage { color: #b39ddb; }
+.ach-title-curator { color: #80cbc4; }
+.ach-title-merchant { color: #ffcc80; }
+.ach-title-reflex { color: #ffab91; }
+.ach-title-broker { color: #c5e1a5; }
+.ach-title-whale { color: #81d4fa; }
 
 .ach-title-blink {
     animation: achTitleBlink 1.1s ease-in-out infinite;
@@ -3782,6 +3792,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .ach-color-gold .ach-pseudo-text { color: #ffca28; text-shadow: 0 0 10px rgba(255, 202, 40, 0.4); }
 .ach-color-indigo .ach-pseudo-text { color: #7986cb; text-shadow: 0 0 8px rgba(121, 134, 203, 0.35); }
 .ach-color-cyan .ach-pseudo-text { color: #4dd0e1; text-shadow: 0 0 8px rgba(77, 208, 225, 0.35); }
+.ach-color-silver .ach-pseudo-text { color: #cfd8dc; text-shadow: 0 0 8px rgba(207, 216, 220, 0.35); }
+.ach-color-coral .ach-pseudo-text { color: #ff8a80; text-shadow: 0 0 8px rgba(255, 138, 128, 0.35); }
 
 #user-pseudo .player-pseudo-full,
 #user-pseudo .ach-pseudo-color,
@@ -3800,7 +3812,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .achievements-header {
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .achievements-title {
@@ -3811,30 +3824,123 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     margin: 0 0 10px;
     color: var(--wood-gold);
     font-weight: 700;
+    font-size: 0.82rem;
+    line-height: 1.35;
 }
 
-.achievements-filter-label {
-    margin-right: 8px;
-    font-size: 0.9rem;
+.achievements-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 4px;
 }
 
-.achievements-filter {
+.ach-tab {
     font-family: inherit;
+    font-size: 0.78rem;
     padding: 6px 10px;
-    border-radius: 8px;
+    border-radius: 999px;
     border: 2px solid var(--wood-medium);
     background: rgba(0, 0, 0, 0.35);
     color: var(--white);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.ach-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ach-tab.active {
+    border-color: var(--wood-gold);
+    background: rgba(255, 202, 40, 0.22);
+    color: var(--wood-gold);
+}
+
+.achievements-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 2px 4px 8px;
 }
 
 .achievements-grid {
-    flex: 1;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 10px;
-    padding: 4px 2px 12px;
     text-align: left;
+}
+
+.achievements-grid-sectioned {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.ach-section {
+    background: rgba(0, 0, 0, 0.28);
+    border: 2px solid rgba(141, 110, 99, 0.55);
+    border-radius: 16px;
+    padding: 12px 12px 14px;
+}
+
+.ach-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.ach-section-title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--wood-gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ach-section-icon {
+    font-size: 1.25rem;
+}
+
+.ach-section-meta {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+}
+
+.ach-section-bar {
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.ach-section-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4fc3f7, #ffca28);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.ach-section-grid,
+.achievements-grid .ach-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+}
+
+.ach-flat-head {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.ach-flat-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--wood-gold);
 }
 
 .ach-card {
@@ -3845,6 +3951,22 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.ach-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.ach-card-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #a5d6a7;
+    background: rgba(129, 199, 132, 0.2);
+    border-radius: 999px;
+    padding: 2px 7px;
 }
 
 .ach-card-done {
@@ -3953,6 +4075,27 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 #screen-leaderboard .ach-player-title,
 #sidebar-panel-chat .ach-player-title {
     font-size: 0.72em;
+}
+
+@media (max-width: 720px) {
+    .achievements-summary {
+        font-size: 0.75rem;
+    }
+
+    .ach-tab {
+        font-size: 0.72rem;
+        padding: 5px 8px;
+    }
+
+    .ach-section-grid,
+    .achievements-grid .ach-section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ach-section-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 @media (max-width: 480px) {
