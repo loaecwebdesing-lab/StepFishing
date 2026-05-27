@@ -33,11 +33,11 @@ const ROD_DATA = [
 // 2. Ensuite on définit les cannes des coffres
 const ROD_IMG_V = 'v=2';
 const CRATE_RODS = [
-    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1, catchRates: { legendaire: 0.68, mythique: 0.14, divin: 0.025 } },
-    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1, catchRates: { legendaire: 0.86, mythique: 0.20, divin: 0.05 } },
-    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2, catchRates: { legendaire: 1.17, mythique: 0.30, divin: 0.12 } },
-    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2, catchRates: { legendaire: 1.42, mythique: 0.45, divin: 0.28 } },
-    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4, catchRates: { legendaire: 1.85, mythique: 0.75, divin: 0.68 } },
+    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 9, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1, catchRates: { legendaire: 0.68, mythique: 0.14, divin: 0.025 } },
+    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 13, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1, catchRates: { legendaire: 0.86, mythique: 0.20, divin: 0.05 } },
+    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 22, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2, catchRates: { legendaire: 1.17, mythique: 0.30, divin: 0.12 } },
+    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 35, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2, catchRates: { legendaire: 1.42, mythique: 0.45, divin: 0.28 } },
+    { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 88, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4, catchRates: { legendaire: 1.85, mythique: 0.75, divin: 0.68 } },
 ];
 
 // 3. MAINTENANT on peut fusionner les deux (car les deux existent déjà)
