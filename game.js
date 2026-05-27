@@ -20,20 +20,20 @@ const RARITIES = [
 /** Chances de pêche en % (Légendaire / Mythique / Divin) — toutes cannes peuvent les obtenir. */
 const ROD_DATA = [
     { id: 0, name: "Canne en Bambou", cost: 0, luck: 0, speed: 1, time: 0, img: "assets/rods/rod0.png", moneyBuff: 1, catchRates: { legendaire: 0.008, mythique: 0.003, divin: 0.0008 } },
-    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1, catchRates: { legendaire: 0.022, mythique: 0.008, divin: 0.0015 } },
-    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1, catchRates: { legendaire: 0.09, mythique: 0.03, divin: 0.004 } },
-    { id: 3, name: "Canne en Carbone", cost: 10000, luck: 4, speed: 2.0, time: 15, img: "assets/rods/rod3.png", moneyBuff: 1.1, catchRates: { legendaire: 0.60, mythique: 0.11, divin: 0.008 } },
-    { id: 4, name: "Canne Pro", cost: 50000, luck: 7, speed: 2.5, time: 20, img: "assets/rods/rod4.png", moneyBuff: 1.2, catchRates: { legendaire: 0.34, mythique: 0.14, divin: 0.045 } },
-    { id: 5, name: "Canne ProMax", cost: 100000, luck: 8, speed: 2.9, time: 25, img: "assets/rods/rod5.png", moneyBuff: 1.5, catchRates: { legendaire: 0.49, mythique: 0.21, divin: 0.09 } }
+    { id: 1, name: "Canne Fine", cost: 500, luck: 1, speed: 1.2, time: 5, img: "assets/rods/rod1.png", moneyBuff: 1, catchRates: { legendaire: 0.02, mythique: 0.008, divin: 0.0015 } },
+    { id: 2, name: "Canne en Aluminium", cost: 2500, luck: 2, speed: 1.5, time: 10, img: "assets/rods/rod2.png", moneyBuff: 1, catchRates: { legendaire: 0.06, mythique: 0.025, divin: 0.004 } },
+    { id: 3, name: "Canne en Carbone", cost: 10000, luck: 4, speed: 2.0, time: 15, img: "assets/rods/rod3.png", moneyBuff: 1.1, catchRates: { legendaire: 0.35, mythique: 0.08, divin: 0.006 } },
+    { id: 4, name: "Canne Pro", cost: 50000, luck: 7, speed: 2.5, time: 20, img: "assets/rods/rod4.png", moneyBuff: 1.2, catchRates: { legendaire: 0.42, mythique: 0.10, divin: 0.012 } },
+    { id: 5, name: "Canne ProMax", cost: 100000, luck: 8, speed: 2.9, time: 25, img: "assets/rods/rod5.png", moneyBuff: 1.5, catchRates: { legendaire: 0.50, mythique: 0.12, divin: 0.015 } }
 ];
 
 // 2. Ensuite on définit les cannes des coffres
 const ROD_IMG_V = 'v=2';
 const CRATE_RODS = [
-    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1, catchRates: { legendaire: 0.21, mythique: 0.08, divin: 0.03 } },
-    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1, catchRates: { legendaire: 0.41, mythique: 0.17, divin: 0.08 } },
-    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2, catchRates: { legendaire: 0.64, mythique: 0.29, divin: 0.17 } },
-    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2, catchRates: { legendaire: 0.90, mythique: 0.49, divin: 0.34 } },
+    { id: 10, name: "Canne Astral", rarity: 'Rare', luck: 10, speed: 2.0, time: 20, img: "assets/rods/astral.png?" + ROD_IMG_V, color: '#2196F3', moneyBuff: 2, minPrestige: 1, catchRates: { legendaire: 0.55, mythique: 0.14, divin: 0.025 } },
+    { id: 11, name: "Canne Solaire", rarity: 'Épique', luck: 15, speed: 2.5, time: 30, img: "assets/rods/solaire.png?" + ROD_IMG_V, color: '#FFD700', moneyBuff: 3, minPrestige: 1, catchRates: { legendaire: 0.70, mythique: 0.20, divin: 0.05 } },
+    { id: 12, name: "Canne Nécro", rarity: 'Légendaire', luck: 25, speed: 3.0, time: 40, img: "assets/rods/necro.png?" + ROD_IMG_V, color: '#9C27B0', moneyBuff: 5, minPrestige: 2, catchRates: { legendaire: 0.95, mythique: 0.30, divin: 0.12 } },
+    { id: 13, name: "Canne du Chaos", rarity: 'Mythique', luck: 40, speed: 4.0, time: 60, img: "assets/rods/chaos.png?" + ROD_IMG_V, color: '#F44336', moneyBuff: 10, minPrestige: 2, catchRates: { legendaire: 1.15, mythique: 0.45, divin: 0.28 } },
     { id: 14, name: "L'Excalibur des Mers", rarity: 'Divin', luck: 100, speed: 6.0, time: 120, img: "assets/rods/excalibur.png?" + ROD_IMG_V, color: '#4B0082', moneyBuff: 25, minPrestige: 4, catchRates: { legendaire: 1.5, mythique: 0.75, divin: 0.68 } },
 ];
 
