@@ -936,7 +936,9 @@ function runTreasureReelSpin(listEl, strip, winIndex, durationMs) {
         setTimeout(() => {
             listEl.style.transition = `transform ${durationMs}ms cubic-bezier(0.15, 0, 0.05, 1)`;
             const itemWidth = 136;
-            const centerOffset = (800 / 2) - (itemWidth / 2);
+            const viewport = listEl.closest('#treasure-viewport, #crate-viewport');
+            const viewportW = viewport?.clientWidth || 720;
+            const centerOffset = (viewportW / 2) - (itemWidth / 2);
             listEl.style.transform = `translateX(-${winIndex * itemWidth - centerOffset}px)`;
             setTimeout(resolve, durationMs + 100);
         }, 50);
