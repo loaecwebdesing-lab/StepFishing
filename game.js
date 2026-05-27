@@ -656,6 +656,8 @@ let state = {
     fishTargetY: 100, 
     playerPos: 100, 
     currentFish: null,
+    /** UID du poisson affiché sur l'écran de capture (conservé après stopFishingSession). */
+    catchModalFishUid: null,
     ownedRods: safeParse('stepFishingOwnedRods', [0]), 
     equippedRod: parseInt(localStorage.getItem('stepFishingEquippedRod')) || 0,
     discoveredFishes: safeParse('stepFishingDiscovered', []),
@@ -1519,12 +1521,17 @@ function clearCatchReveal() {
     updateCatchLockUI();
 }
 
+function getCatchModalFishLocation() {
+    const uid = state.catchModalFishUid;
+    if (!uid) return null;
+    return findFishByUid(uid);
+}
+
 function updateCatchLockUI() {
     const btn = document.getElementById('btn-lock-catch');
     if (!btn) return;
 
-    const fish = state.currentFish;
-    const loc = (fish?.uid && !fish.isKey && !fish.isTreasureBox) ? findFishByUid(fish.uid) : null;
+    const loc = getCatchModalFishLocation();
 
     if (!loc) {
         btn.classList.add('hidden');
@@ -1542,7 +1549,7 @@ function updateCatchLockUI() {
 }
 
 function toggleLockFromCatchModal() {
-    const loc = findFishByUid(state.currentFish?.uid);
+    const loc = getCatchModalFishLocation();
     if (!loc) return;
     loc.fish.locked = !loc.fish.locked;
     persistGame();
@@ -2145,6 +2152,7 @@ function catchFish(success) {
         state.totalScore += state.currentFish.points;
         elements.catchTitle.innerText = 'CLÉ TROUVÉE !';
         elements.catchText.innerText = 'Utilisez-la pour ouvrir le coffre mystère.';
+        state.catchModalFishUid = null;
         renderCatchReveal(state.currentFish);
         updateCatchLockUI();
         showScreen('catch-modal');
@@ -2176,6 +2184,7 @@ function catchFish(success) {
         state.totalFishesCaught++;
         updateBestFishRecord(state.currentFish);
         const placement = placeFishInAquarium(state.currentFish);
+        state.catchModalFishUid = placement.placed && state.currentFish?.uid ? state.currentFish.uid : null;
         if (!placement.placed) {
             addLog('Aquariums pleins ou verrouillés ! Poisson perdu.', 'system');
         } else if (placement.aqIndex !== state.currentAqIndex) {
@@ -2201,6 +2210,7 @@ function catchFish(success) {
             }
         }
     } else {
+        state.catchModalFishUid = null;
         if (state.currentFish?.isKey) {
             elements.catchTitle.innerText = 'CLÉ PERDUE...';
             elements.catchText.innerText = 'La clé mystérieuse s\'est échappée...';
@@ -2311,6 +2321,7 @@ function stopFishingSession() {
 }
 
 function goToMenu() {
+    state.catchModalFishUid = null;
     stopFishingSession();
     isAnimating = false;
     showScreen('menu');
