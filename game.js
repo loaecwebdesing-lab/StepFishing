@@ -1687,6 +1687,23 @@ function toggleFishLock(index, aqId) {
     addLog(fish.locked ? `🔒 ${fish.name} protégé du « Tout vendre ».` : `🔓 ${fish.name} peut être vendu en masse.`, 'system');
 }
 
+function sellUnlockedFishFromTank(aqId) {
+    const fishes = state.inventory[aqId] || [];
+    const kept = [];
+    let gain = 0;
+    let sold = 0;
+    fishes.forEach(fish => {
+        if (isFishLocked(fish)) {
+            kept.push(fish);
+        } else {
+            gain += fish.value || 0;
+            sold++;
+        }
+    });
+    state.inventory[aqId] = kept;
+    return { gain, sold, locked: kept.length };
+}
+
 function sellAllFromAq() {
     const aqId = `aq${state.currentAqIndex}`;
     const fishes = state.inventory[aqId] || [];
@@ -1694,28 +1711,58 @@ function sellAllFromAq() {
         addLog("Le bac est déjà vide !", "system");
         return;
     }
-    const kept = [];
-    let totalGain = 0;
-    let soldCount = 0;
-    fishes.forEach(fish => {
-        if (isFishLocked(fish)) {
-            kept.push(fish);
-        } else {
-            totalGain += fish.value || 0;
-            soldCount++;
-        }
-    });
-    if (soldCount === 0) {
+    const { gain, sold, locked } = sellUnlockedFishFromTank(aqId);
+    if (sold === 0) {
         addLog('Aucun poisson vendu : tous sont verrouillés 🔒', 'system');
         return;
     }
-    state.money += totalGain;
-    state.inventory[aqId] = kept;
+    state.money += gain;
     persistGame();
     updateMoneyDisplay();
+    updateAquariumCapacityHUD();
     renderAquarium();
-    const lockedNote = kept.length ? ` · ${kept.length} verrouillé(s) conservé(s)` : '';
-    addLog(`Vendu ${soldCount} poisson(s) : ${totalGain.toLocaleString('en-US', { minimumFractionDigits: 2 })} $${lockedNote}`, 'epic');
+    const lockedNote = locked ? ` · ${locked} verrouillé(s) conservé(s)` : '';
+    addLog(`Vendu ${sold} poisson(s) : ${gain.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} $${lockedNote}`, 'epic');
+}
+
+/** Vend tous les poissons non verrouillés dans tous les aquariums débloqués. */
+function sellAllFromAllAquariums() {
+    normalizeInventory();
+    const unlocked = normalizeUnlockedAquariums();
+    let totalGain = 0;
+    let soldCount = 0;
+    let lockedKept = 0;
+    let hadAnyFish = false;
+
+    unlocked.forEach(idx => {
+        const aqId = `aq${idx}`;
+        const fishes = state.inventory[aqId] || [];
+        if (fishes.length) hadAnyFish = true;
+        const { gain, sold, locked } = sellUnlockedFishFromTank(aqId);
+        totalGain += gain;
+        soldCount += sold;
+        lockedKept += locked;
+    });
+
+    if (!hadAnyFish) {
+        addLog('Aucun poisson dans les aquariums.', 'system');
+        return;
+    }
+    if (soldCount === 0) {
+        addLog('Aucun poisson vendu : tout est verrouillé 🔒', 'system');
+        return;
+    }
+
+    state.money += totalGain;
+    persistGame();
+    updateMoneyDisplay();
+    updateAquariumCapacityHUD();
+    if (state.currentPhase === 'INVENTORY') {
+        renderAquarium();
+        animateFish();
+    }
+    const lockedNote = lockedKept ? ` · ${lockedKept} verrouillé(s) conservé(s)` : '';
+    addLog(`Vendu ${soldCount} poisson(s) (tous bacs) : ${totalGain.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} $${lockedNote}`, 'epic');
 }
 
 function renderMap() {
@@ -2672,6 +2719,7 @@ function init() {
         renderAquarium();
     });
     bind('btn-sell-all-aq', sellAllFromAq);
+    bind('btn-sell-all-global', sellAllFromAllAquariums);
 
     // --- INPUTS SOURIS ---
         window.addEventListener('mousemove', (e) => {
