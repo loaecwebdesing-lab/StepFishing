@@ -2696,6 +2696,7 @@ async function boot() {
     if (window.StepFishLeaderboard) StepFishLeaderboard.init();
     if (window.StepFishCosmetics) StepFishCosmetics.init();
     if (window.StepFishChat) StepFishChat.start();
+    if (window.StepFishPublicProfile) StepFishPublicProfile.init();
     if (window.StepFishTrade) StepFishTrade.start();
 }
 

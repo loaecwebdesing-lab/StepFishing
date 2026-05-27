@@ -350,6 +350,53 @@
                 </div>
             </div>
 
+            <div id="public-profile-modal" class="screen">
+                <div id="public-profile-overlay" class="modal-overlay-click"></div>
+                <div class="glass-card pp-card">
+                    <div id="pp-stats-view">
+                        <h1 class="title">Profil joueur</h1>
+                        <div id="pp-pseudo-header" class="pp-pseudo-header"></div>
+                        <p id="pp-status" class="pp-status"></p>
+                        <div class="pp-stats-grid profile-stats-grid">
+                            <div class="p-stat"><span>Niveau :</span> <strong id="pp-level">—</strong></div>
+                            <div class="p-stat"><span>Argent :</span> <strong id="pp-money">—</strong></div>
+                            <div class="p-stat"><span>Record argent :</span> <strong id="pp-max-money">—</strong></div>
+                            <div class="p-stat"><span>Captures :</span> <strong id="pp-fishes">—</strong></div>
+                            <div class="p-stat"><span>FishIndex :</span> <strong id="pp-discovered">—</strong></div>
+                            <div class="p-stat"><span>XP totale :</span> <strong id="pp-xp">—</strong></div>
+                        </div>
+                        <div class="pp-best-fish-section">
+                            <h2 class="pp-section-title">🏆 Meilleur poisson</h2>
+                            <div id="pp-best-fish"></div>
+                        </div>
+                        <div class="pp-actions">
+                            <button type="button" id="btn-pp-view-aquariums" class="btn-primary">Voir Aquariums</button>
+                            <button type="button" id="btn-pp-close" class="btn-secondary">Fermer</button>
+                        </div>
+                    </div>
+                    <div id="pp-aq-view" class="hidden">
+                        <h1 class="title">Aquariums</h1>
+                        <p id="pp-aq-owner" class="pp-aq-owner-label"></p>
+                        <div class="pp-aq-nav aq-nav">
+                            <button type="button" id="btn-pp-aq-prev" class="btn-secondary" aria-label="Aquarium précédent">◀</button>
+                            <div class="pp-aq-nav-center">
+                                <strong id="pp-aq-title">Bac</strong>
+                                <span id="pp-aq-slots" class="pp-aq-slots"></span>
+                            </div>
+                            <button type="button" id="btn-pp-aq-next" class="btn-secondary" aria-label="Aquarium suivant">▶</button>
+                        </div>
+                        <div id="pp-aq-preview" class="pp-aq-preview">
+                            <p id="pp-aq-locked" class="pp-aq-locked hidden">🔒 Aquarium non débloqué par ce joueur</p>
+                        </div>
+                        <div id="pp-aq-fish-grid" class="pp-aq-fish-grid"></div>
+                        <div class="pp-actions">
+                            <button type="button" id="btn-pp-back-stats" class="btn-secondary">← Retour au profil</button>
+                            <button type="button" id="btn-pp-close-aq" class="btn-secondary">Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="fish-modal" class="screen">
                 <div id="modal-overlay"></div>
                 <div class="glass-card" style="max-width: 320px; position: relative; z-index: 4000;">
@@ -499,6 +546,7 @@
     <script src="cosmetics.js"></script>
     <script src="chat.js"></script>
     <script src="leaderboard.js?v=lb-fish2"></script>
+    <script src="public-profile.js"></script>
     <script src="game.js"></script>
     <script src="trade.js?v=3"></script>
 </body>

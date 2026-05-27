@@ -169,10 +169,10 @@
     }
 
     function renderPseudoCell(pseudo, cosmeticId) {
-        if (window.StepFishCosmetics?.renderPseudoHTML) {
-            return window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId));
-        }
-        return `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
+        const inner = window.StepFishCosmetics?.renderPseudoHTML
+            ? window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId))
+            : `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
+        return `<button type="button" class="player-pseudo-link lb-pseudo-link" data-player-pseudo="${escapeHtml(pseudo)}" title="Voir le profil de ${escapeHtml(pseudo)}">${inner}</button>`;
     }
 
     function renderList(rows) {

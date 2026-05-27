@@ -498,7 +498,120 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .lock-card { background: var(--glass); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid white; }
 
 #fish-modal, #profile-modal, #catch-modal { position: fixed !important; top: 0; left: 0; width: 100vw !important; height: 100vh !important; z-index: 9999 !important; display: none; justify-content: center; align-items: center; }
-#fish-modal.active, #profile-modal.active, #catch-modal.active { display: flex !important; }
+#fish-modal.active, #profile-modal.active, #catch-modal.active, #public-profile-modal.active { display: flex !important; }
+
+#public-profile-modal { z-index: 10050 !important; }
+#public-profile-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: -1;
+}
+.pp-card {
+    max-width: 520px;
+    width: min(94vw, 520px);
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+}
+.pp-pseudo-header { margin: 12px 0 8px; display: flex; justify-content: center; }
+.pp-stats-grid { margin: 12px 0; }
+.pp-section-title { font-size: 1rem; margin: 16px 0 8px; text-align: center; color: var(--wood-gold); }
+.pp-best-fish-section { width: 100%; }
+.pp-best-fish-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--wood-medium);
+}
+.pp-best-fish-meta { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.9rem; }
+.pp-fish-thumb img { display: block; max-height: 64px; width: auto; object-fit: contain; }
+.pp-fish-placeholder { font-size: 2rem; }
+.pp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+    width: 100%;
+}
+.pp-status { min-height: 1.2em; font-size: 0.85rem; text-align: center; margin-bottom: 8px; }
+.pp-status-error { color: #ff8a80; }
+.pp-status-ok { color: #a5d6a7; }
+.pp-muted { color: rgba(255, 255, 255, 0.65); text-align: center; font-size: 0.9rem; }
+.player-pseudo-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    display: inline;
+    vertical-align: baseline;
+    text-align: left;
+}
+.player-pseudo-link:hover .cos-pseudo-text,
+.player-pseudo-link:focus-visible .cos-pseudo-text {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.lb-pseudo-link { display: inline-flex; max-width: 100%; }
+.chat-pseudo-link { display: inline; }
+.pp-aq-owner-label { text-align: center; margin: 0 0 12px; opacity: 0.9; }
+.pp-aq-nav-center { text-align: center; min-width: 140px; }
+.pp-aq-slots { display: block; font-size: 0.85rem; opacity: 0.85; }
+.pp-aq-preview {
+    width: 100%;
+    height: 120px;
+    border-radius: 16px;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid var(--wood-medium);
+    position: relative;
+    margin-bottom: 14px;
+}
+.pp-aq-locked {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 14px;
+    font-weight: bold;
+}
+.pp-aq-fish-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    width: 100%;
+    max-height: 42vh;
+    overflow-y: auto;
+    padding: 4px;
+}
+.pp-aq-fish-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: center;
+    position: relative;
+}
+.pp-aq-fish-card strong { font-size: 0.85rem; line-height: 1.2; }
+.pp-aq-fish-meta { font-size: 0.72rem; opacity: 0.9; line-height: 1.35; }
+.pp-aq-fish-val { font-size: 0.8rem; color: var(--wood-gold); font-weight: bold; }
+.pp-aq-lock { position: absolute; top: 6px; right: 8px; font-size: 0.85rem; }
+.pp-aq-empty { grid-column: 1 / -1; }
 #modal-overlay { position: absolute !important; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8) !important; backdrop-filter: blur(10px); z-index: -1; }
 .fish-price-tag { font-size: 2rem !important; font-weight: 800; color: var(--wood-gold) !important; margin: 20px 0; text-align: center; }
 

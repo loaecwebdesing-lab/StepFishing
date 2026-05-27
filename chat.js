@@ -43,9 +43,10 @@
         }
         box.innerHTML = messages.map(m => {
             const time = new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const pseudoBtn = `<button type="button" class="player-pseudo-link chat-pseudo-link" data-player-pseudo="${escapeHtml(m.pseudo)}" title="Voir le profil">${renderPseudo(m.pseudo, m.cosmetic_id)}</button>`;
             return `<div class="chat-msg">
                 <span class="chat-time">${time}</span>
-                ${renderPseudo(m.pseudo, m.cosmetic_id)} :
+                ${pseudoBtn} :
                 <span class="chat-text">${escapeHtml(m.message)}</span>
             </div>`;
         }).join('');
