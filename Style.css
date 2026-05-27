@@ -888,7 +888,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     font-size: 1rem !important;
 }
 
-#crate-viewport {
+#crate-viewport,
+#treasure-viewport {
     position: relative;
     width: min(720px, 100%);
     height: 130px;
@@ -918,7 +919,8 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
-#crate-selector {
+#crate-selector,
+#treasure-selector {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -929,10 +931,32 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     box-shadow: 0 0 15px var(--wood-gold);
 }
 
-#crate-list {
+#crate-list,
+#treasure-list {
     display: flex;
     transition: transform 5s cubic-bezier(0.15, 0, 0.05, 1); /* L'effet de ralentissement CSGO */
     will-change: transform;
+}
+
+#screen-treasure-roll {
+    z-index: 8500;
+}
+
+.treasure-roll-phase {
+    margin: 6px 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--wood-gold);
+    text-align: center;
+}
+
+.treasure-roll-result {
+    margin: 14px auto 0;
+    font-family: 'Neko One', cursive;
+    font-size: 1.6rem;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .crate-item {
