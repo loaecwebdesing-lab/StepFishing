@@ -1791,16 +1791,40 @@ function getMutationData(mutationName) {
     return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
 }
 
-/** Taille affichage poisson dans le modal capture (×2 visuel) */
+/** Taille du poisson à l'écran de capture (= 2× la taille aquarium) */
 function getCatchRevealFishSize(fish) {
     if (!fish) return 200;
-    const base = (fish.isKey || fish.isTreasureBox)
-        ? 110
-        : aquariumFishWidthPx(fish.weight) + 18;
     const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
-    const scaled = base * (isMobile ? 1.42 : 1.22);
-    const capped = Math.min(isMobile ? 168 : 158, Math.max(84, Math.round(scaled)));
-    return capped * 2;
+    if (fish.isKey || fish.isTreasureBox) {
+        return isMobile ? 200 : 220;
+    }
+    const aqSize = aquariumFishWidthPx(fish.weight);
+    const doubled = (aqSize + 20) * 2;
+    return Math.min(isMobile ? 300 : 380, Math.max(140, Math.round(doubled)));
+}
+
+function applyCatchRevealSizing(container, sizePx) {
+    if (!container || !sizePx) return;
+    const px = Math.round(sizePx);
+    container.style.setProperty('--catch-fish-size', px + 'px');
+    container.querySelectorAll('.fish-visual-wrap').forEach(wrap => {
+        wrap.style.width = px + 'px';
+        wrap.style.maxWidth = 'none';
+        wrap.style.height = 'auto';
+    });
+    container.querySelectorAll('.fish-mut-img.catch-reveal-img').forEach(img => {
+        img.style.width = px + 'px';
+        img.style.minWidth = px + 'px';
+        img.style.maxWidth = 'none';
+        img.style.height = 'auto';
+    });
+    container.querySelectorAll('.key-catch-img.catch-reveal-img').forEach(img => {
+        const k = Math.round(px * 0.88);
+        img.style.width = k + 'px';
+        img.style.height = k + 'px';
+        img.style.minWidth = k + 'px';
+        img.style.maxWidth = 'none';
+    });
 }
 
 function renderCatchReveal(fish) {
@@ -1817,8 +1841,9 @@ function renderCatchReveal(fish) {
     }
     const size = getCatchRevealFishSize(fish);
     if (visual) {
-        visual.innerHTML = buildFishVisualHTML(fish, size);
+        visual.innerHTML = buildCatchRevealVisualHTML(fish, size);
         visual.style.setProperty('--catch-glow', fish.color || '#ffffff');
+        applyCatchRevealSizing(visual, size);
     }
     if (nameEl) {
         nameEl.textContent = fish.name;
@@ -1892,6 +1917,23 @@ function toggleLockFromCatchModal() {
             : `🔓 ${loc.fish.name} peut être vendu en masse.`,
         'system'
     );
+}
+
+function buildCatchRevealVisualHTML(fish, width) {
+    const w = Math.round(width);
+    if (fish.isKey || fish.isTreasureBox) {
+        const img = fish.img || KEY_IMG;
+        const icon = Math.round(w * 0.88);
+        const glow = fish.color || '#ffca28';
+        const alt = fish.isKey ? 'Clé mystérieuse' : fish.name;
+        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual catch-reveal-wrap" style="width:${w}px;--catch-glow:${glow}">
+            <img src="${img}" class="key-catch-img catch-reveal-img" style="width:${icon}px;height:${icon}px;filter:drop-shadow(0 0 12px ${glow})" alt="${alt}">
+        </div>`;
+    }
+    const mutation = getMutationData(fish.mutation);
+    return `<div class="fish-visual-wrap catch-reveal-wrap" data-mutation="${mutation.name}" style="width:${w}px">
+        <img src="${fish.img}" class="fish-mut-img catch-reveal-img" style="width:${w}px;height:auto" alt="${fish.name}">
+    </div>`;
 }
 
 function buildFishVisualHTML(fish, width) {

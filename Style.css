@@ -679,28 +679,29 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     filter: drop-shadow(0 0 20px var(--catch-glow, rgba(255, 255, 255, 0.35)));
 }
 
-#catch-visual .fish-visual-wrap {
+#catch-visual .fish-visual-wrap,
+#catch-visual .catch-reveal-wrap {
     padding: 6px 10px !important;
-    max-width: 100%;
-    max-height: min(40vh, 400px);
+    max-width: none !important;
     box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#catch-visual .fish-mut-img,
-#catch-visual .key-catch-img {
-    width: auto !important;
-    max-width: min(336px, 88vw) !important;
-    max-height: min(40vh, 400px) !important;
+#catch-visual .catch-reveal-img {
+    display: block;
+    width: var(--catch-fish-size, 280px);
+    max-width: none !important;
+    max-height: min(52vh, 480px) !important;
     height: auto !important;
     object-fit: contain;
 }
 
-#catch-visual .key-catch-visual,
-#catch-visual .treasure-catch-visual {
-    width: auto !important;
-    height: auto !important;
-    max-width: min(336px, 88vw) !important;
-    max-height: min(40vh, 400px) !important;
+#catch-visual .key-catch-img.catch-reveal-img {
+    width: calc(var(--catch-fish-size, 280px) * 0.88);
+    height: calc(var(--catch-fish-size, 280px) * 0.88);
+    max-height: min(52vh, 480px) !important;
 }
 
 .catch-details {
@@ -4802,16 +4803,9 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
         max-height: min(48vh, 360px);
     }
 
-    #catch-visual .fish-mut-img,
-    #catch-visual .key-catch-img {
-        max-width: min(300px, 92vw) !important;
-        max-height: min(48vh, 360px) !important;
-    }
-
-    #catch-visual .key-catch-visual,
-    #catch-visual .treasure-catch-visual {
-        max-width: min(300px, 92vw) !important;
-        max-height: min(48vh, 360px) !important;
+    #catch-visual .catch-reveal-img {
+        max-width: min(92vw, var(--catch-fish-size, 280px)) !important;
+        max-height: min(50vh, 400px) !important;
     }
 
     .catch-title,
