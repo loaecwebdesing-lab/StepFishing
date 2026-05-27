@@ -312,6 +312,23 @@ const ZONE_DATA = [
             'mythique': ['Krakenor.png', 'Chronos.png'],
             'divin': ['Abysellion.png']
         }
+    },
+    {
+        id: 'abyss',
+        name: 'Abysse',
+        minLevel: 100,
+        bgDay: 'assets/abyss_day.png',
+        bgDawn: 'assets/abyss_dawn.png',
+        bgNight: 'assets/abyss_night.png',
+        library: {
+            'commun': ['Merou.png', 'Labre.png', 'Chirurgien.png', 'Vivaneau.png', 'Sardine.png', 'Maquereau.png', 'Mulet.png', 'LieuJaune.png', 'Anchois.png', 'Rougeais.png', 'Liche.png', 'Pagre.png', 'Tacaud.png', 'Aglefin.png', 'Atherine.png', 'Cabillaud.png', 'Chapon.png', 'Girelle.png', 'Perca.png', 'Sprat.png', 'Vielle.png'],
+            'peu_commun': ['PoissonClown.png', 'PoissonLion.png', 'Bar.png', 'Sole.png', 'Dorade.png', 'SaintPierre.png', 'Napoleon.png', 'Albacore.png', 'Baliste.png', 'Carangue.png', 'Denti.png', 'Orphie.png', 'PoissonHache.png', 'Sar.png', 'Seriole.png', 'Trachinote.png'],
+            'rare': ['Baracuda.png', 'Thon.png', 'Turbot.png', 'Papillon.png'],
+            'epique': ['Espadon.png', 'MahiMahi.png', 'Poulpi.png', 'PoissonGlobe.png'],
+            'legendaire': ['Raiemanta.png', 'Mako.png', 'Voilier.png', 'Hippocampe.png'],
+            'mythique': ['Krakenor.png', 'Chronos.png'],
+            'divin': ['Abysellion.png']
+        }
     }
 ];
 
@@ -725,10 +742,42 @@ function hasDiscoveredAllLacFish() {
     return required.every(path => state.discoveredFishes.includes(path));
 }
 
+/** Espèces de l'océan requises pour l'Abysse (hors Mythique et Divin). */
+const OCEAN_ABYSS_UNLOCK_SKIP = ['mythique', 'divin'];
+
+function getOceanFishImagePathsForAbyssUnlock() {
+    const zone = ZONE_DATA.find(z => z.id === 'ocean');
+    if (!zone?.library) return [];
+    const paths = [];
+    Object.keys(zone.library).forEach(folder => {
+        if (OCEAN_ABYSS_UNLOCK_SKIP.includes(folder)) return;
+        (zone.library[folder] || []).forEach(file => {
+            paths.push(`assets/fish/${folder}/${file}`);
+        });
+    });
+    return paths;
+}
+
+function getOceanFishCountForAbyss() {
+    return getOceanFishImagePathsForAbyssUnlock().length;
+}
+
+function getDiscoveredOceanCountForAbyss() {
+    const required = getOceanFishImagePathsForAbyssUnlock();
+    return required.filter(path => state.discoveredFishes.includes(path)).length;
+}
+
+function hasDiscoveredAllOceanFish() {
+    const required = getOceanFishImagePathsForAbyssUnlock();
+    if (!required.length) return true;
+    return required.every(path => state.discoveredFishes.includes(path));
+}
+
 function isZoneUnlocked(zone) {
     if (!zone) return false;
     if (state.level < getZoneMinLevel(zone)) return false;
     if (zone.id === 'ocean') return hasDiscoveredAllLacFish();
+    if (zone.id === 'abyss') return hasDiscoveredAllOceanFish();
     return true;
 }
 
@@ -742,6 +791,11 @@ function getZoneLockMessage(zone) {
         const total = getLacFishCount();
         const found = getDiscoveredLacCount();
         return `Niveau 10 OK · Lac : ${found}/${total} espèces (sans Mythique ni Divin)`;
+    }
+    if (zone.id === 'abyss' && !hasDiscoveredAllOceanFish()) {
+        const total = getOceanFishCountForAbyss();
+        const found = getDiscoveredOceanCountForAbyss();
+        return `Niveau 100 OK · Océan : ${found}/${total} espèces (sans Mythique ni Divin)`;
     }
     return '';
 }
@@ -1933,6 +1987,9 @@ function catchFish(success) {
             showDiscoveryToast(state.currentFish.name, state.currentFish.name, state.currentFish.mutation);
             if (hasDiscoveredAllLacFish() && state.level >= 10) {
                 addLog('🌊 Haute Mer débloquée ! Toutes les espèces du Lac requises sont dans ton FishIndex.', 'epic');
+            }
+            if (hasDiscoveredAllOceanFish() && state.level >= 100) {
+                addLog('🌑 Abysse débloqué ! Toutes les espèces de Haute Mer requises sont dans ton FishIndex.', 'epic');
             }
         }
     } else {
