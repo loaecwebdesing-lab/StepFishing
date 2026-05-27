@@ -339,8 +339,17 @@ const FISH_DATA = {
     prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
 };
 
-/** Bonus quand le préfixe est plus rare que le poisson (tiers bas = ×1, hauts = ×1.5 / ×2 / ×3). */
-const PREFIX_BOOST_MULT = [1.0, 1.0, 1.0, 1.0, 1.5, 2.0, 3.0];
+/** Bonus forts (préfixe Légendaire et au-dessus). */
+const PREFIX_BOOST_MULT = [1.5, 2.0, 3.0]; // index 0 = tier 4 Légendaire, 1 = Mythique, 2 = Divin
+
+/** Bonus progressif quand le préfixe est un peu plus rare que le poisson (ex. Peu commun + Rare → ×1,1). */
+function getPrefixBoostMult(fishRarityIdx, prefixIdx) {
+    if (prefixIdx >= 4) return PREFIX_BOOST_MULT[prefixIdx - 4] ?? 1.5;
+    const gap = prefixIdx - fishRarityIdx;
+    if (gap <= 1) return 1.1;
+    if (gap === 2) return 1.15;
+    return 1.2;
+}
 
 /** Malus adoucis quand le préfixe est moins rare que le poisson (écart 1 → ×0,9). */
 function getPrefixDebuffMult(fishRarityIdx, prefixIdx) {
@@ -375,7 +384,7 @@ function rollPrefixTierIndex(fishRarityIdx) {
 function getPrefixValueMult(fishRarityIdx, prefixIdx) {
     if (prefixIdx === fishRarityIdx) return 1;
     if (prefixIdx < fishRarityIdx) return getPrefixDebuffMult(fishRarityIdx, prefixIdx);
-    return PREFIX_BOOST_MULT[prefixIdx] ?? 1;
+    return getPrefixBoostMult(fishRarityIdx, prefixIdx);
 }
 
 function rollFishPrefix(fishRarityIdx) {
