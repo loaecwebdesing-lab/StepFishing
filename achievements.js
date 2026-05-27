@@ -410,9 +410,7 @@
             <div class="ach-section-bar"><div class="ach-section-bar-fill" style="width:${sectionPct}%"></div></div>` : '';
             return `<section class="ach-section ach-section-${cat.id}" data-cat="${cat.id}">
                 ${head}
-                <div class="ach-section-scroll" tabindex="0">
-                    <div class="ach-section-track">${items.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>
-                </div>
+                <div class="ach-section-grid">${items.map(ach => renderCardHtml(ach, s, unlocked)).join('')}</div>
             </section>`;
         }
 
@@ -420,16 +418,16 @@
             grid.className = 'achievements-grid achievements-grid-sectioned';
             grid.innerHTML = CATEGORIES.map(cat => renderSection(cat, list.filter(a => a.cat === cat.id))).join('');
         } else if (filter === 'done' || filter === 'todo') {
-            grid.className = 'achievements-grid achievements-grid-sectioned';
-            grid.innerHTML = renderSection(
-                { id: filter, icon: filter === 'done' ? '✓' : '⏳', label: filter === 'done' ? 'Débloqués' : 'En cours' },
-                list,
-                false
-            );
+            grid.className = 'achievements-grid achievements-grid-flat';
+            grid.innerHTML = list.length
+                ? list.map(ach => renderCardHtml(ach, s, unlocked)).join('')
+                : `<p class="ach-empty-msg">${filter === 'done' ? 'Aucun trophée débloqué pour l\'instant.' : 'Tous les succès sont débloqués — bravo !'}</p>`;
         } else {
             const cat = CATEGORIES.find(c => c.id === filter) || { id: filter, icon: '🏅', label: 'Succès' };
             grid.className = 'achievements-grid achievements-grid-sectioned';
-            grid.innerHTML = renderSection(cat, list);
+            grid.innerHTML = list.length
+                ? renderSection(cat, list)
+                : '<p class="ach-empty-msg">Aucun succès dans cette catégorie.</p>';
         }
 
         bindEquipButtons(grid);

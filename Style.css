@@ -3801,16 +3801,24 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     justify-content: flex-start;
 }
 
+#screen-achievements {
+    overflow-y: auto;
+    padding: 12px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
 #screen-achievements .achievements-card {
-    width: 92% !important;
+    width: min(960px, 96vw) !important;
     max-width: 960px !important;
-    height: 82vh;
-    max-height: 82vh;
-    overflow: hidden;
+    max-height: min(90vh, 860px);
+    margin: auto;
+    overflow: visible;
     display: flex;
     flex-direction: column;
-    padding: 22px 20px 16px;
+    padding: 18px 18px 14px;
     text-align: center;
+    animation: none;
 }
 
 .achievements-header {
@@ -3888,13 +3896,19 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .achievements-tabs {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     gap: 8px;
     margin-bottom: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 2px 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 .ach-tab.index-tab-style {
+    flex: 0 0 auto;
     padding: 10px 18px;
     border-radius: 15px;
     cursor: pointer;
@@ -3921,14 +3935,17 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 
 .achievements-scroll {
     flex: 1;
-    min-height: 0;
+    min-height: 200px;
+    max-height: min(52vh, 480px);
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 4px 12px;
+    padding: 10px 12px 14px;
     background: rgba(0, 0, 0, 0.22);
     border-radius: 18px;
     border: 2px solid var(--wood-medium);
     text-align: left;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .achievements-grid {
@@ -3938,8 +3955,15 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .achievements-grid-sectioned {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 4px 2px;
+    gap: 18px;
+    padding: 2px 0;
+}
+
+.achievements-grid-flat {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    padding: 2px 0;
 }
 
 .ach-section {
@@ -3999,40 +4023,16 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     transition: width 0.3s ease;
 }
 
-.ach-section-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 4px 12px;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
-    scrollbar-color: var(--wood-gold) rgba(0, 0, 0, 0.3);
-}
-
-.ach-section-scroll::-webkit-scrollbar {
-    height: 8px;
-}
-
-.ach-section-scroll::-webkit-scrollbar-thumb {
-    background: var(--wood-gold);
-    border-radius: 999px;
-}
-
-.ach-section-track {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+.ach-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
-    width: max-content;
-    min-height: 100%;
-    padding: 2px 6px 4px;
+    padding: 2px 0 4px;
 }
 
 .ach-card {
-    flex: 0 0 248px;
-    width: 248px;
-    max-width: 248px;
-    scroll-snap-align: start;
+    width: 100%;
+    min-width: 0;
     background: linear-gradient(165deg, rgba(50, 40, 30, 0.9), rgba(20, 15, 10, 0.85));
     border: 2px solid var(--wood-medium);
     border-radius: 14px;
@@ -4157,6 +4157,14 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     flex-shrink: 0;
 }
 
+.ach-empty-msg {
+    margin: 24px 12px;
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.85;
+    grid-column: 1 / -1;
+}
+
 .achievements-hint {
     font-size: 0.8rem;
     opacity: 0.75;
@@ -4175,8 +4183,17 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 @media (max-width: 720px) {
     #screen-achievements .achievements-card {
         width: 96% !important;
-        height: 88vh;
-        padding: 16px 12px 12px;
+        max-height: none;
+        padding: 14px 10px 12px;
+    }
+
+    .achievements-scroll {
+        max-height: min(58vh, 520px);
+    }
+
+    .ach-section-grid,
+    .achievements-grid-flat {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 
     .ach-global-pct {
@@ -4190,20 +4207,13 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
         padding: 8px 12px;
     }
 
-    .ach-card {
-        flex: 0 0 220px;
-        width: 220px;
-        max-width: 220px;
-    }
-
     .ach-section-head {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .ach-legend-item {
-        font-size: 0.72rem;
-        padding: 5px 8px;
+    .achievements-legend {
+        display: none;
     }
 }
 
