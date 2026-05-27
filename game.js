@@ -336,7 +336,10 @@ const ZONE_DATA = [
 const ZONE_FISH_VALUE_MULT = { abyss: 1.5 };
 
 const FISH_DATA = {
-    prefixes: { 'Commun': ['Petit', 'Svelte', 'Maigrichon', 'Apathique', 'Faible', 'Grincheux', 'Fatigué', 'Rachitique', 'Déprimé', 'Timide', 'Skinny'], 'Peu Commun': ['Vif', 'Curieux', 'Enjoué', 'Frétillant', 'Mignon', 'Glouton', 'Rapide', 'Présentable'], 'Rare': ['Brillant', 'Joli', 'Beau', 'Séduisant', 'Luisant', 'Jovial', 'Adorable', 'Musclé', 'Etonant'], 'Épique': ['Souverain', 'Ancien', 'Admirable', 'Elegant', 'Enorme', 'Croustillant', 'Scintillant', 'Délicieux', 'Glorieux'], 'Légendaire': ['Colossal', 'Éternel', 'Monumental', 'Sublime', 'Maxi', 'Raciste'], 'Mythique': ['Céleste', 'Primordial', 'Intouchable', 'Inébranlable', 'Interdit', 'Immortel', 'Béni'], 'Divin': ['Cosmique', 'Omnipotant', 'Dieu', 'Stélaire', 'Intergalactique'] }
+    prefixes: window.STEPFISH_PREFIX_WORDS || {
+        'Commun': ['Petit'], 'Peu Commun': ['Vif'], 'Rare': ['Brillant'], 'Épique': ['Souverain'],
+        'Légendaire': ['Colossal'], 'Mythique': ['Céleste'], 'Divin': ['Cosmique']
+    }
 };
 
 /** Bonus forts (préfixe Légendaire et au-dessus). */
