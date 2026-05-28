@@ -3338,10 +3338,10 @@ button.index-legend-item {
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap {
-    font-size: 0.95rem;
+    font-size: 1rem;
     line-height: 1;
     max-width: 100%;
-    padding: 28px 32px 24px;
+    padding: 84px 96px 72px;
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
@@ -4721,7 +4721,7 @@ button.index-legend-item {
     line-height: 1;
     vertical-align: middle;
     max-width: 100%;
-    padding: 14px 30px 11px;
+    padding: 28px 60px 22px;
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
