@@ -146,8 +146,8 @@
         const orn = ornamentById[ornamentId];
         if (!orn || !innerHtml) return innerHtml;
         const stackClass = variant === 'stack' ? ' cos-pseudo-ornament-inner--stack' : '';
-        return `<span class="cos-pseudo-ornament-wrap cos-pseudo-ornament-${escapeHtml(orn.id)}" data-ornament="1">
-            <img src="${escapeHtml(orn.img)}" class="cos-ornament-frame" alt="" aria-hidden="true">
+        const imgUrl = escapeHtml(orn.img).replace(/'/g, '%27');
+        return `<span class="cos-pseudo-ornament-wrap cos-pseudo-ornament-${escapeHtml(orn.id)}" data-ornament="1" style="--cos-orn-img:url('${imgUrl}')">
             <span class="cos-pseudo-ornament-inner${stackClass}">${innerHtml}</span>
         </span>`;
     }
