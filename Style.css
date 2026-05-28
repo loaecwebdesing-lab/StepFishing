@@ -1241,8 +1241,10 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .index-legend-item.zone-lac i { background: #87ceeb; border: 1px solid #b8e4f5; }
 .index-legend-item.zone-ocean i { background: #1e4078; border: 1px solid #3d6a9e; }
 .index-legend-item.zone-abyss i { background: #7c5cbf; border: 1px solid #a78bfa; }
+.index-legend-item.zone-bonta i { background: #7cb342; border: 1px solid #aed581; }
 .index-legend-item.zone-lac { border-color: rgba(135, 206, 235, 0.5); background: rgba(135, 206, 235, 0.12); }
 .index-legend-item.zone-ocean { border-color: rgba(30, 64, 120, 0.65); background: rgba(30, 64, 120, 0.25); }
+.index-legend-item.zone-bonta { border-color: rgba(124, 179, 66, 0.6); background: rgba(124, 179, 66, 0.18); }
 .index-legend-item.zone-abyss { border-color: rgba(124, 92, 191, 0.55); background: rgba(124, 92, 191, 0.2); }
 
 .index-grid {
@@ -1278,6 +1280,10 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
 .fish-slot.zone-abyss {
     background: linear-gradient(165deg, rgba(124, 92, 191, 0.52), rgba(80, 50, 130, 0.4));
     border-color: rgba(167, 139, 250, 0.75);
+}
+.fish-slot.zone-bonta {
+    background: linear-gradient(165deg, rgba(124, 179, 66, 0.48), rgba(85, 139, 47, 0.35));
+    border-color: rgba(174, 213, 129, 0.8);
 }
 .fish-slot.locked { cursor: help; }
 .fish-slot.locked img {

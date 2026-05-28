@@ -505,9 +505,55 @@ function makeTreasureCatchFish(box) {
     };
 }
 
-const ZONE_DATA = [
-    // ... (ton code de zones reste identique)
+/** Poissons abyss (hors Mythique / Divin) — base de la zone Bonta. */
+const ABYSS_FISH_NO_TOP = {
+    commun: ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
+    peu_commun: ['LoupAbyssal.png', 'PoissonArcher.png', 'PoissonHachette.png', 'PoissonLampe.png', 'PoissonLicorne.png', 'PoissonOgre.png', 'Tripode.png'],
+    rare: ['Chymere.png', 'PoissonScie.png'],
+    epique: ['BlobFish.png', 'RequinGriset.png', 'RequnLutin.png', 'Vipere.png'],
+    legendaire: ['BaudroieAbyssal.png', 'DiableNoir.png', 'DragonDesMers.png', 'PoissonRuban.png'],
+    mythique: [],
+    divin: []
+};
 
+/** Espèces exclusives Bonta (assets/fish/…/*.webp). */
+const BONTA_EXCLUSIVE_FISH = {
+    commun: [
+        'CarpeDiem.webp', 'CarpeSabloneuse.webp', 'CrabeSouroumi.webp', 'Goujon.webp', 'GoujonKiye.webp',
+        'Greuvette.webp', 'Morue.webp', 'Pichon.webp', 'Poisskaille.webp', 'PoissonPané.webp',
+        'SardineSombre.webp', 'Truite.webp', 'TruiteAncestrale.webp', 'TruiteBoueuse.webp'
+    ],
+    peu_commun: [
+        'BarRikain.webp', 'BremeGrise.webp', 'Brochet.webp', 'BrochetTupeHallet.webp', 'CrabeSouroumiE.webp',
+        'GreuvetteHorreur.webp', 'LotteCrabouillé.webp', 'Perche.webp', 'PoiskailleGivré.webp', 'PoissonIgloo.webp',
+        'SardineBrillante.webp', 'Tench.webp'
+    ],
+    rare: [
+        'BarIton.webp', 'Bearded_Cod.webp', 'BremeRoyale.webp', 'ChatonPerche.webp', 'Poisson Humonk.webp',
+        'PoissonChaton.webp', 'PoissonTigre.webp', 'RaieBleue.webp', 'RaieFarle.webp'
+    ],
+    epique: [
+        'Anguille.webp', 'Espadoun.webp', 'EspadounQuichoque.webp', 'MarteauFaussile.webp', 'MarteauMarchéLibre.webp',
+        'SnappeurMagique.webp', 'TancheHantée.webp'
+    ],
+    legendaire: ['AnguilleRocheuse.webp', 'Kralamoure.webp', 'Patelle.webp'],
+    mythique: ['KralamoureUnique.webp', 'VivaneauEncree.webp'],
+    divin: []
+};
+
+function mergeFishLibraries(...libs) {
+    const folders = ['commun', 'peu_commun', 'rare', 'epique', 'legendaire', 'mythique', 'divin'];
+    const out = {};
+    folders.forEach(folder => {
+        out[folder] = [];
+        libs.forEach(lib => {
+            (lib?.[folder] || []).forEach(file => out[folder].push(file));
+        });
+    });
+    return out;
+}
+
+const ZONE_DATA = [
     { 
         id: 'lac', 
         name: 'Lac Calme', 
@@ -542,6 +588,16 @@ const ZONE_DATA = [
         }
     },
     {
+        id: 'bonta',
+        name: 'Bonta',
+        minLevel: 150,
+        /* Remplacer par assets/bonta_day.png, bonta_dawn.png, bonta_night.png quand prêts */
+        bgDay: 'assets/abyss_day.png',
+        bgDawn: 'assets/abyss_dawn.png',
+        bgNight: 'assets/abyss_night.png',
+        library: mergeFishLibraries(ABYSS_FISH_NO_TOP, BONTA_EXCLUSIVE_FISH)
+    },
+    {
         id: 'abyss',
         name: 'Abysse',
         minLevel: 100,
@@ -549,19 +605,15 @@ const ZONE_DATA = [
         bgDawn: 'assets/abyss_dawn.png',
         bgNight: 'assets/abyss_night.png',
         library: {
-            'commun': ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
-            'peu_commun': ['LoupAbyssal.png', 'PoissonArcher.png', 'PoissonHachette.png', 'PoissonLampe.png', 'PoissonLicorne.png', 'PoissonOgre.png', 'Tripode.png'],
-            'rare': ['Chymere.png', 'PoissonScie.png'],
-            'epique': ['BlobFish.png', 'RequinGriset.png', 'RequnLutin.png', 'Vipere.png'],
-            'legendaire': ['BaudroieAbyssal.png', 'DiableNoir.png', 'DragonDesMers.png', 'PoissonRuban.png'],
-            'mythique': [],
-            'divin': []
+            ...ABYSS_FISH_NO_TOP,
+            mythique: [],
+            divin: []
         }
     }
 ];
 
-/** Multiplicateur de valeur de base selon la zone (Abysse = +50 % vs océan/lac). */
-const ZONE_FISH_VALUE_MULT = { abyss: 1.5 };
+/** Multiplicateur de valeur de base selon la zone. */
+const ZONE_FISH_VALUE_MULT = { bonta: 1.35, abyss: 1.5 };
 
 const FISH_DATA = {
     prefixes: window.STEPFISH_PREFIX_WORDS || {
@@ -3103,6 +3155,7 @@ function equipRod(id) {
 const FISH_INDEX_ZONE_LEGEND = [
     { id: 'lac', label: 'Lac Calme', className: 'zone-lac' },
     { id: 'ocean', label: 'Haute Mer', className: 'zone-ocean' },
+    { id: 'bonta', label: 'Bonta', className: 'zone-bonta' },
     { id: 'abyss', label: 'Abysse', className: 'zone-abyss' }
 ];
 
