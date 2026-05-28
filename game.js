@@ -505,7 +505,7 @@ function makeTreasureCatchFish(box) {
     };
 }
 
-/** Poissons abyss (hors Mythique / Divin) — base de la zone Bonta. */
+/** Poissons abyss (hors Mythique / Divin). */
 const ABYSS_FISH_NO_TOP = {
     commun: ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
     peu_commun: ['LoupAbyssal.png', 'PoissonArcher.png', 'PoissonHachette.png', 'PoissonLampe.png', 'PoissonLicorne.png', 'PoissonOgre.png', 'Tripode.png'],
@@ -540,18 +540,6 @@ const BONTA_EXCLUSIVE_FISH = {
     mythique: ['KralamoureUnique.webp', 'VivaneauEncree.webp'],
     divin: []
 };
-
-function mergeFishLibraries(...libs) {
-    const folders = ['commun', 'peu_commun', 'rare', 'epique', 'legendaire', 'mythique', 'divin'];
-    const out = {};
-    folders.forEach(folder => {
-        out[folder] = [];
-        libs.forEach(lib => {
-            (lib?.[folder] || []).forEach(file => out[folder].push(file));
-        });
-    });
-    return out;
-}
 
 const ZONE_DATA = [
     { 
@@ -588,15 +576,6 @@ const ZONE_DATA = [
         }
     },
     {
-        id: 'bonta',
-        name: 'Bonta',
-        minLevel: 150,
-        bgDay: 'assets/bonta_day.png',
-        bgDawn: 'assets/bonta_dawn.png',
-        bgNight: 'assets/bonta_night.png',
-        library: mergeFishLibraries(ABYSS_FISH_NO_TOP, BONTA_EXCLUSIVE_FISH)
-    },
-    {
         id: 'abyss',
         name: 'Abysse',
         minLevel: 100,
@@ -608,6 +587,15 @@ const ZONE_DATA = [
             mythique: [],
             divin: []
         }
+    },
+    {
+        id: 'bonta',
+        name: 'Bonta',
+        minLevel: 150,
+        bgDay: 'assets/bonta_day.png',
+        bgDawn: 'assets/bonta_dawn.png',
+        bgNight: 'assets/bonta_night.png',
+        library: { ...BONTA_EXCLUSIVE_FISH }
     }
 ];
 
@@ -3154,8 +3142,8 @@ function equipRod(id) {
 const FISH_INDEX_ZONE_LEGEND = [
     { id: 'lac', label: 'Lac Calme', className: 'zone-lac' },
     { id: 'ocean', label: 'Haute Mer', className: 'zone-ocean' },
-    { id: 'bonta', label: 'Bonta', className: 'zone-bonta' },
-    { id: 'abyss', label: 'Abysse', className: 'zone-abyss' }
+    { id: 'abyss', label: 'Abysse', className: 'zone-abyss' },
+    { id: 'bonta', label: 'Bonta', className: 'zone-bonta' }
 ];
 
 function setupIndexLegend() {
