@@ -33,7 +33,7 @@ begin
         );
 
     if out->>'currentZone' is not null
-        and out->>'currentZone' not in ('lac', 'ocean', 'abyss', 'bonta') then
+        and out->>'currentZone' not in ('lac', 'ocean', 'abyss', 'bonta', 'fond') then
         out := out || jsonb_build_object('currentZone', 'lac');
     end if;
 

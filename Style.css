@@ -1361,6 +1361,19 @@ button.index-legend-item {
     box-shadow: 0 0 0 1.5px rgba(220, 237, 200, 0.45), 0 0 8px rgba(124, 179, 66, 0.45);
 }
 
+.index-legend-item.zone-fond {
+    border-color: #5d4037;
+    background: linear-gradient(180deg, rgba(62, 39, 35, 0.55), rgba(38, 24, 22, 0.45));
+    box-shadow: 0 0 0 1px rgba(93, 64, 55, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.index-legend-item.zone-fond i { background: #3e2723; border: 1px solid #8d6e63; }
+.index-legend-item.zone-fond:hover { border-color: #8d6e63; box-shadow: 0 0 10px rgba(93, 64, 55, 0.55); }
+.index-legend-item.zone-fond.active {
+    border-color: #bcaaa4;
+    background: linear-gradient(180deg, rgba(93, 64, 55, 0.65), rgba(62, 39, 35, 0.5));
+    box-shadow: 0 0 0 1.5px rgba(188, 170, 164, 0.4), 0 0 8px rgba(62, 39, 35, 0.55);
+}
+
 .index-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1398,6 +1411,10 @@ button.index-legend-item {
 .fish-slot.zone-bonta {
     background: linear-gradient(165deg, rgba(124, 179, 66, 0.48), rgba(85, 139, 47, 0.35));
     border-color: rgba(174, 213, 129, 0.8);
+}
+.fish-slot.zone-fond {
+    background: linear-gradient(165deg, rgba(62, 39, 35, 0.72), rgba(28, 18, 16, 0.58));
+    border-color: rgba(141, 110, 99, 0.85);
 }
 .fish-slot.locked { cursor: help; }
 .fish-slot.locked img {

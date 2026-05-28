@@ -594,6 +594,17 @@ function makeDofusCatchFish(dofus) {
     };
 }
 
+/** Poissons exclusifs Le Fond (index Abysse Commun → Légendaire requis). */
+const FOND_EXCLUSIVE_FISH = {
+    commun: ['Holoturie.png', 'VerTubicole.png', 'CrevetteFumeur.png'],
+    peu_commun: ['Amphipode.png', 'Leposinapta.png'],
+    rare: ['PoissonDrag.png', 'CuskEel.png', 'PoissonLimace.png'],
+    epique: ['MeduseDeFond.png', 'Grenadier.png'],
+    legendaire: ['AraigniéeDeMer.png', 'PoulpeCasper.png', 'PoulpeAnneauxBleu.png'],
+    mythique: [],
+    divin: []
+};
+
 /** Poissons abyss (hors Mythique / Divin). */
 const ABYSS_FISH_NO_TOP = {
     commun: ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
@@ -685,11 +696,23 @@ const ZONE_DATA = [
         bgDawn: 'assets/bonta_dawn.png',
         bgNight: 'assets/bonta_night.png',
         library: { ...BONTA_EXCLUSIVE_FISH }
+    },
+    {
+        id: 'fond',
+        name: 'Le Fond',
+        minLevel: 200,
+        bgDay: 'assets/lefond.png',
+        bgDawn: 'assets/lefond.png',
+        bgNight: 'assets/lefond.png',
+        library: { ...FOND_EXCLUSIVE_FISH }
     }
 ];
 
 /** Multiplicateur de valeur de base selon la zone. */
-const ZONE_FISH_VALUE_MULT = { bonta: 1.35, abyss: 1.5 };
+const ZONE_FISH_VALUE_MULT = { bonta: 1.35, abyss: 1.5, fond: 1.75 };
+
+/** Dans Le Fond : −50 % sur toutes les probas de rareté (cannes ignorées pour ce malus). */
+const ZONE_CATCH_PROB_MULT = { fond: 0.5 };
 
 function safeParse(key, defaultValue) {
     const data = localStorage.getItem(key);
@@ -1027,30 +1050,42 @@ function formatFishSellPrice(value) {
     return v + ' $';
 }
 
+function applyZoneCatchProbabilityNerf(rates, weights, zoneId) {
+    const mult = ZONE_CATCH_PROB_MULT[zoneId];
+    if (!mult || mult >= 1) return;
+    rates.legendaire *= mult;
+    rates.mythique *= mult;
+    rates.divin *= mult;
+    for (let i = 1; i < weights.length; i++) weights[i] *= mult;
+}
+
 /**
  * Tirage de rareté : d'abord % Lég./Myth./Divin de la canne, sinon pool Commun → Épique (luck = bonus Épique).
+ * zoneId : Le Fond applique −50 % sur toutes les probas (quelle que soit la canne).
  */
-function rollFishRarityIndex(rodOrLuck = 0) {
+function rollFishRarityIndex(rodOrLuck = 0, zoneId = state.currentZone) {
     const rod = typeof rodOrLuck === 'object' && rodOrLuck !== null
         ? rodOrLuck
         : { luck: Number(rodOrLuck) || 0 };
     const luck = Math.min(Math.max(0, rod.luck ?? 0), 100);
     const rates = getRodCatchRates(rod);
-    const rollPct = Math.random() * 100;
 
-    if (rollPct < rates.divin) return 6;
-    if (rollPct < rates.divin + rates.mythique) return 5;
-    if (rollPct < rates.divin + rates.mythique + rates.legendaire) return 4;
-
-    let totalWeight = 0;
     const weights = [];
     for (let i = 0; i <= 3; i++) {
         let w = RARITY_WEIGHTS[i];
         if (i === 2) w *= (1 + luck * 0.045);
         if (i === 3) w *= (1 + luck * 0.095);
         weights.push(w);
-        totalWeight += w;
     }
+    applyZoneCatchProbabilityNerf(rates, weights, zoneId);
+
+    const rollPct = Math.random() * 100;
+    if (rollPct < rates.divin) return 6;
+    if (rollPct < rates.divin + rates.mythique) return 5;
+    if (rollPct < rates.divin + rates.mythique + rates.legendaire) return 4;
+
+    let totalWeight = 0;
+    weights.forEach(w => { totalWeight += w; });
 
     let roll = Math.random() * totalWeight;
     let sum = 0;
@@ -1505,6 +1540,37 @@ function hasDiscoveredAllAbyssFish() {
     return required.every(path => state.discoveredFishes.includes(path));
 }
 
+/** Index Abysse Commun → Légendaire (hors Mythique / Divin) — requis pour Le Fond. */
+const ABYSS_COMMUN_TO_LEGEND_SKIP = ['mythique', 'divin'];
+
+function getAbyssFishImagePathsCommunToLegendaire() {
+    const zone = ZONE_DATA.find(z => z.id === 'abyss');
+    if (!zone?.library) return [];
+    const paths = [];
+    Object.keys(zone.library).forEach(folder => {
+        if (ABYSS_COMMUN_TO_LEGEND_SKIP.includes(folder)) return;
+        (zone.library[folder] || []).forEach(file => {
+            paths.push(`assets/fish/${folder}/${file}`);
+        });
+    });
+    return paths;
+}
+
+function getAbyssCommunToLegendaireCount() {
+    return getAbyssFishImagePathsCommunToLegendaire().length;
+}
+
+function getDiscoveredAbyssCommunToLegendaireCount() {
+    const required = getAbyssFishImagePathsCommunToLegendaire();
+    return required.filter(path => state.discoveredFishes.includes(path)).length;
+}
+
+function hasDiscoveredAllAbyssCommunToLegendaire() {
+    const required = getAbyssFishImagePathsCommunToLegendaire();
+    if (!required.length) return true;
+    return required.every(path => state.discoveredFishes.includes(path));
+}
+
 function getAllFishImagePathsInGame() {
     const set = new Set();
     ZONE_DATA.forEach(z => {
@@ -1529,6 +1595,7 @@ function isZoneUnlocked(zone) {
     if (zone.id === 'ocean') return hasDiscoveredAllLacFish();
     if (zone.id === 'abyss') return hasDiscoveredAllOceanFish();
     if (zone.id === 'bonta') return hasAllDofus();
+    if (zone.id === 'fond') return hasDiscoveredAllAbyssCommunToLegendaire();
     return true;
 }
 
@@ -1552,6 +1619,11 @@ function getZoneLockMessage(zone) {
         const total = window.STEPFISH_DOFUS?.count || 6;
         const found = getCollectedDofusCount();
         return `Niveau 150 · Dofus : ${found}/${total} (Succès → 6 Dofus)`;
+    }
+    if (zone.id === 'fond' && !hasDiscoveredAllAbyssCommunToLegendaire()) {
+        const total = getAbyssCommunToLegendaireCount();
+        const found = getDiscoveredAbyssCommunToLegendaireCount();
+        return `Niveau 200 · Abysse (Commun→Lég.) : ${found}/${total} dans le FishIndex`;
     }
     return '';
 }
@@ -2942,7 +3014,7 @@ function triggerCatch() {
         addLog('Aucune espèce à pêcher ici pour le moment.', 'system');
         return;
     }
-    const rIdx = rollFishRarityIndex(currentRod);
+    const rIdx = rollFishRarityIndex(currentRod, state.currentZone);
     let rData = RARITIES[rIdx];
     let possibleFishes = activeZone.library[rData.folder];
     let selectedImg = '';
@@ -3143,6 +3215,9 @@ function catchFish(success) {
             if (hasDiscoveredAllOceanFish() && state.level >= 100) {
                 addLog('🌑 Abysse débloqué ! Toutes les espèces de Haute Mer requises sont dans ton FishIndex.', 'epic');
             }
+            if (hasDiscoveredAllAbyssCommunToLegendaire() && state.level >= 200) {
+                addLog('🕳️ Le Fond débloqué ! Index Abysse (Commun → Légendaire) complet.', 'epic');
+            }
         }
     } else {
         state.catchModalFishUid = null;
@@ -3230,8 +3305,10 @@ function startGame() {
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
     if (zone && !zoneHasCatchableFish(zone)) {
         addLog(`${zone.name} : pas encore d'espèces — exploration uniquement.`, 'system');
+    } else if (zone?.id === 'fond') {
+        addLog('🕳️ Le Fond : probabilités de rareté −50 % (toutes cannes) — index très difficile.', 'system');
     }
-    
+
     setTimeout(() => {
         setPhase('SIGHTING');
         addLog("Ligne lancée... Bonne chance !");
@@ -3349,7 +3426,7 @@ function rollRandomMutation() {
 function createRandomMutatedFish(zoneId = state.currentZone) {
     const zone = ZONE_DATA.find(z => z.id === zoneId) || ZONE_DATA[0];
     const rod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
-    const rIdx = rollFishRarityIndex(rod);
+    const rIdx = rollFishRarityIndex(rod, zoneId);
     let rData = RARITIES[rIdx];
     let possibleFishes = zone.library[rData.folder];
     if (!possibleFishes || possibleFishes.length === 0) {
@@ -3622,7 +3699,8 @@ const FISH_INDEX_ZONE_LEGEND = [
     { id: 'lac', label: 'Lac Calme', shortLabel: 'Lac', className: 'zone-lac' },
     { id: 'ocean', label: 'Haute Mer', shortLabel: 'Mer', className: 'zone-ocean' },
     { id: 'abyss', label: 'Abysse', shortLabel: 'Abysse', className: 'zone-abyss' },
-    { id: 'bonta', label: 'Bonta', shortLabel: 'Bonta', className: 'zone-bonta' }
+    { id: 'bonta', label: 'Bonta', shortLabel: 'Bonta', className: 'zone-bonta' },
+    { id: 'fond', label: 'Le Fond', shortLabel: 'Fond', className: 'zone-fond' }
 ];
 
 let indexZoneFilter = null;
@@ -4057,6 +4135,9 @@ window.StepFishGameMeta = {
     hasDiscoveredAllLacFish: () => hasDiscoveredAllLacFish(),
     hasDiscoveredAllOceanFish: () => hasDiscoveredAllOceanFish(),
     hasDiscoveredAllAbyssFish: () => hasDiscoveredAllAbyssFish(),
+    hasDiscoveredAllAbyssCommunToLegendaire: () => hasDiscoveredAllAbyssCommunToLegendaire(),
+    getAbyssCommunToLegendaireCount: () => getAbyssCommunToLegendaireCount(),
+    getDiscoveredAbyssCommunToLegendaireCount: () => getDiscoveredAbyssCommunToLegendaireCount(),
     hasDiscoveredAllFishInGame: () => hasDiscoveredAllFishInGame(),
     hasAllDofus: () => hasAllDofus(),
     getCollectedDofusCount: () => getCollectedDofusCount(),
