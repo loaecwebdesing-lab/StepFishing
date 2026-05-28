@@ -149,8 +149,8 @@
     }
 
     function mergeLocalIntoSave(saveData) {
-        if (typeof window.getLocalSavePayload === 'function') {
-            const local = window.getLocalSavePayload();
+        if (window.StepFishGame?.getSavePayload) {
+            const local = window.StepFishGame.getSavePayload();
             const hasLocalProgress =
                 (local.totalScore || 0) > 0 ||
                 (local.money || 0) > 0 ||
@@ -231,16 +231,16 @@
 
         if (row?.pseudo) pseudo = row.pseudo;
         const save = mergeLocalIntoSave(row?.save_data);
-        if (typeof window.applySaveData === 'function') {
-            window.applySaveData(save);
+        if (window.StepFishGame?.applySaveDataFromCloud) {
+            window.StepFishGame.applySaveDataFromCloud(save);
         }
         if (!row) {
             await saveToCloud(save);
-        } else if (typeof window.getLocalSavePayload === 'function') {
-            const local = window.getLocalSavePayload();
+        } else if (window.StepFishGame?.getSavePayload) {
+            const local = window.StepFishGame.getSavePayload();
             if ((local.totalScore || 0) > (row.save_data?.totalScore || 0)) {
                 await saveToCloud(local);
-                if (typeof window.applySaveData === 'function') window.applySaveData(local);
+                window.StepFishGame.applySaveDataFromCloud(local);
             }
         }
 
@@ -254,7 +254,10 @@
 
     async function saveToCloud(saveData) {
         if (!supabaseClient || !getUserId()) return;
-        const payload = saveData || (typeof window.getSavePayload === 'function' ? window.getSavePayload() : DEFAULT_SAVE);
+        const raw = saveData || (window.StepFishGame?.getSavePayload?.() || DEFAULT_SAVE);
+        const payload = window.StepFishGame?.sanitizeSavePayload
+            ? window.StepFishGame.sanitizeSavePayload(raw)
+            : raw;
         const { error } = await supabaseClient.from('player_saves').upsert({
             id: getUserId(),
             pseudo,

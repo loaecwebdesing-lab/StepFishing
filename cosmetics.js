@@ -23,7 +23,7 @@
     const catalogById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));
 
     function getState() {
-        return typeof window.__stepfishGetState === 'function' ? window.__stepfishGetState() : null;
+        return window.StepFishGame?.getStateSnapshot?.() || null;
     }
 
     function escapeHtml(str) {

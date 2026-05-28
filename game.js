@@ -602,6 +602,161 @@ const ZONE_DATA = [
 /** Multiplicateur de valeur de base selon la zone. */
 const ZONE_FISH_VALUE_MULT = { bonta: 1.35, abyss: 1.5 };
 
+function safeParse(key, defaultValue) {
+    const data = localStorage.getItem(key);
+    try { return data ? JSON.parse(data) : defaultValue; } catch (e) { return defaultValue; }
+}
+
+/** Anti-triche : pas d'API console, sauvegarde locale signée, données plafonnées. */
+const IS_DEV_BUILD = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname)
+    || /[?&]dev=1/.test(location.search);
+const SAVE_STORAGE_KEY = 'stepFishingSaveV2';
+const SAVE_INTEGRITY_SALT = 'SF_ac_v3_x7';
+const VALID_ROD_IDS = new Set(ALL_RODS.map(r => Number(r.id)));
+const VALID_ZONE_IDS = new Set(ZONE_DATA.map(z => z.id));
+const SAVE_LIMITS = {
+    maxMoney: 50_000_000,
+    maxTotalScore: 999_999_999,
+    maxKeys: 9_999,
+    maxFishesCaught: 999_999,
+    maxCommonStreak: 99_999,
+    maxFishPerTank: 15
+};
+
+function clampNum(n, min, max) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return min;
+    return Math.min(max, Math.max(min, v));
+}
+
+function stableSaveString(payload) {
+    return JSON.stringify(payload);
+}
+
+function computeSaveSignature(payload) {
+    let h = 5381;
+    const s = SAVE_INTEGRITY_SALT + stableSaveString(payload);
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+    return (h >>> 0).toString(36);
+}
+
+function verifySaveSignature(payload, sig) {
+    return typeof sig === 'string' && sig.length > 0 && computeSaveSignature(payload) === sig;
+}
+
+const AQ_TANK_COUNT = 5;
+
+function sanitizeInventory(inv) {
+    const out = {};
+    if (!inv || typeof inv !== 'object') return { aq0: [] };
+    for (let i = 0; i < AQ_TANK_COUNT; i++) {
+        const id = `aq${i}`;
+        const list = Array.isArray(inv[id]) ? inv[id].slice(0, SAVE_LIMITS.maxFishPerTank) : [];
+        out[id] = list.filter(f => f && typeof f === 'object');
+    }
+    return out;
+}
+
+function sanitizeSavePayload(raw) {
+    const data = raw && typeof raw === 'object' ? raw : {};
+    const totalScore = clampNum(data.totalScore, 0, SAVE_LIMITS.maxTotalScore);
+    const money = clampNum(data.money, 0, SAVE_LIMITS.maxMoney);
+    const maxMoney = clampNum(data.maxMoney, 0, SAVE_LIMITS.maxMoney);
+    let ownedRods = Array.isArray(data.ownedRods)
+        ? [...new Set(data.ownedRods.map(id => Number(id)).filter(id => VALID_ROD_IDS.has(id)))]
+        : [0];
+    if (!ownedRods.includes(0)) ownedRods.unshift(0);
+    let equippedRod = Number(data.equippedRod);
+    if (!VALID_ROD_IDS.has(equippedRod) || !ownedRods.includes(equippedRod)) equippedRod = 0;
+    let unlockedAquariums = Array.isArray(data.unlockedAquariums)
+        ? [...new Set(data.unlockedAquariums.map(n => Number(n)).filter(n => n >= 0 && n < AQ_TANK_COUNT))]
+        : [0];
+    if (!unlockedAquariums.includes(0)) unlockedAquariums.unshift(0);
+    const discoveredFishes = Array.isArray(data.discoveredFishes)
+        ? [...new Set(data.discoveredFishes.filter(p => typeof p === 'string' && p.startsWith('assets/fish/')))]
+        : [];
+    const currentZone = VALID_ZONE_IDS.has(data.currentZone) ? data.currentZone : 'lac';
+    let commonStreakCurrent = clampNum(data.commonStreakCurrent, 0, SAVE_LIMITS.maxCommonStreak);
+    let commonStreakBest = clampNum(data.commonStreakBest, 0, SAVE_LIMITS.maxCommonStreak);
+    if (commonStreakBest < commonStreakCurrent) commonStreakBest = commonStreakCurrent;
+
+    return {
+        totalScore,
+        money,
+        maxMoney: Math.max(maxMoney, money),
+        totalFishesCaught: clampNum(data.totalFishesCaught, 0, SAVE_LIMITS.maxFishesCaught),
+        highScore: clampNum(data.highScore, 0, SAVE_LIMITS.maxTotalScore),
+        inventory: sanitizeInventory(data.inventory),
+        unlockedAquariums,
+        ownedRods,
+        equippedRod,
+        discoveredFishes,
+        keys: clampNum(data.keys, 0, SAVE_LIMITS.maxKeys),
+        currentZone,
+        bestFish: data.bestFish && typeof data.bestFish === 'object' ? data.bestFish : null,
+        ownedCosmetics: Array.isArray(data.ownedCosmetics) ? data.ownedCosmetics : ['default'],
+        equippedCosmetic: typeof data.equippedCosmetic === 'string' ? data.equippedCosmetic : 'default',
+        unlockedAchievements: Array.isArray(data.unlockedAchievements) ? data.unlockedAchievements : [],
+        ownedTitleIds: Array.isArray(data.ownedTitleIds) ? data.ownedTitleIds : [],
+        ownedColorIds: Array.isArray(data.ownedColorIds) ? data.ownedColorIds : [],
+        equippedTitleId: data.equippedTitleId || null,
+        equippedColorId: data.equippedColorId || null,
+        achievementStats: data.achievementStats && typeof data.achievementStats === 'object' ? data.achievementStats : null,
+        commonStreakCurrent,
+        commonStreakBest
+    };
+}
+
+function loadLegacyLocalSavePayload() {
+    return sanitizeSavePayload({
+        totalScore: parseFloat(localStorage.getItem('stepFishingTotalScore')) || 0,
+        money: parseFloat(localStorage.getItem('stepFishingMoney')) || 0,
+        maxMoney: parseFloat(localStorage.getItem('stepFishingMaxMoney')) || 0,
+        totalFishesCaught: parseInt(localStorage.getItem('stepFishingTotalCaught'), 10) || 0,
+        highScore: localStorage.getItem('stepFishingHighScore') || 0,
+        inventory: safeParse('stepFishingInventory', { aq0: [] }),
+        unlockedAquariums: safeParse('stepFishingUnlocked', [0]),
+        ownedRods: safeParse('stepFishingOwnedRods', [0]),
+        equippedRod: parseInt(localStorage.getItem('stepFishingEquippedRod'), 10) || 0,
+        discoveredFishes: safeParse('stepFishingDiscovered', []),
+        keys: parseInt(localStorage.getItem('stepFishingKeys'), 10) || 0,
+        currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
+        bestFish: safeParse('stepFishingBestFish', null),
+        ownedCosmetics: safeParse('stepFishingOwnedCosmetics', ['default']),
+        equippedCosmetic: localStorage.getItem('stepFishingEquippedCosmetic') || 'default',
+        unlockedAchievements: safeParse('stepFishingAchievements', []),
+        ownedTitleIds: safeParse('stepFishingAchTitles', []),
+        ownedColorIds: safeParse('stepFishingAchColors', []),
+        equippedTitleId: localStorage.getItem('stepFishingEquippedAchTitle') || null,
+        equippedColorId: localStorage.getItem('stepFishingEquippedAchColor') || null,
+        achievementStats: safeParse('stepFishingAchStats', null),
+        commonStreakCurrent: parseInt(localStorage.getItem('stepFishingCommonStreakCur'), 10) || 0,
+        commonStreakBest: parseInt(localStorage.getItem('stepFishingCommonStreakBest'), 10) || 0
+    });
+}
+
+function readSecureLocalSave() {
+    try {
+        const raw = localStorage.getItem(SAVE_STORAGE_KEY);
+        if (!raw) return loadLegacyLocalSavePayload();
+        const blob = JSON.parse(raw);
+        if (!blob?.data || !verifySaveSignature(blob.data, blob.sig)) {
+            console.warn('Sauvegarde locale invalide — réinitialisation anti-triche.');
+            return sanitizeSavePayload({});
+        }
+        return sanitizeSavePayload(blob.data);
+    } catch (e) {
+        return loadLegacyLocalSavePayload();
+    }
+}
+
+function writeSecureLocalSave(payload) {
+    const data = sanitizeSavePayload(payload);
+    const sig = computeSaveSignature(data);
+    localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify({ v: 2, data, sig, t: Date.now() }));
+    return data;
+}
+
 const FISH_DATA = {
     prefixes: window.STEPFISH_PREFIX_WORDS || {
         'Commun': ['Petit'], 'Peu Commun': ['Vif'], 'Rare': ['Brillant'], 'Épique': ['Souverain'],
@@ -811,13 +966,8 @@ function rollFishRarityIndex(rodOrLuck = 0) {
     return 0;
 }
 
-function safeParse(key, defaultValue) {
-    const data = localStorage.getItem(key);
-    try { return data ? JSON.parse(data) : defaultValue; } catch (e) { return defaultValue; }
-}
-
 function getSavePayload() {
-    return {
+    return sanitizeSavePayload({
         totalScore: state.totalScore,
         money: state.money,
         maxMoney: state.maxMoney,
@@ -841,41 +991,79 @@ function getSavePayload() {
         achievementStats: state.achievementStats || null,
         commonStreakCurrent: state.commonStreakCurrent || 0,
         commonStreakBest: state.commonStreakBest || 0
-    };
+    });
+}
+
+function getStateSnapshot() {
+    return getSavePayload();
+}
+
+function applySanitizedSaveToState(data) {
+    state.totalScore = data.totalScore;
+    state.money = data.money;
+    state.maxMoney = data.maxMoney;
+    state.totalFishesCaught = data.totalFishesCaught;
+    state.highScore = data.highScore;
+    state.inventory = data.inventory;
+    state.unlockedAquariums = data.unlockedAquariums;
+    normalizeInventory();
+    normalizeUnlockedAquariums();
+    state.ownedRods = data.ownedRods;
+    state.equippedRod = data.equippedRod;
+    state.discoveredFishes = data.discoveredFishes;
+    state.keys = data.keys;
+    state.currentZone = data.currentZone;
+    state.bestFish = data.bestFish;
+    if (window.StepFishCosmetics) {
+        window.StepFishCosmetics.loadFromSave(data);
+    } else {
+        state.ownedCosmetics = data.ownedCosmetics;
+        state.equippedCosmetic = data.equippedCosmetic;
+    }
+    if (window.StepFishAchievements) {
+        window.StepFishAchievements.loadFromSave(data);
+    } else {
+        state.unlockedAchievements = data.unlockedAchievements;
+        state.ownedTitleIds = data.ownedTitleIds;
+        state.ownedColorIds = data.ownedColorIds;
+        state.equippedTitleId = data.equippedTitleId;
+        state.equippedColorId = data.equippedColorId;
+        state.achievementStats = data.achievementStats;
+    }
+    state.commonStreakCurrent = data.commonStreakCurrent;
+    state.commonStreakBest = data.commonStreakBest;
+    if (!state.bestFish?.value) {
+        const derived = findBestFishInInventory(state.inventory);
+        if (derived) state.bestFish = derived;
+    }
+    ensureFishUidsInInventory();
 }
 
 function persistGameLocal() {
     normalizeInventory();
     normalizeUnlockedAquariums();
-    localStorage.setItem('stepFishingTotalScore', state.totalScore);
-    localStorage.setItem('stepFishingMoney', state.money);
-    localStorage.setItem('stepFishingMaxMoney', state.maxMoney);
-    localStorage.setItem('stepFishingTotalCaught', state.totalFishesCaught);
-    localStorage.setItem('stepFishingHighScore', state.highScore);
-    localStorage.setItem('stepFishingInventory', JSON.stringify(state.inventory));
-    localStorage.setItem('stepFishingUnlocked', JSON.stringify(state.unlockedAquariums));
-    localStorage.setItem('stepFishingOwnedRods', JSON.stringify(state.ownedRods));
-    localStorage.setItem('stepFishingEquippedRod', state.equippedRod);
-    localStorage.setItem('stepFishingDiscovered', JSON.stringify(state.discoveredFishes));
-    localStorage.setItem('stepFishingKeys', state.keys);
-    localStorage.setItem('stepFishingCurrentZone', state.currentZone);
-    if (state.bestFish) {
-        localStorage.setItem('stepFishingBestFish', JSON.stringify(state.bestFish));
-    }
-    localStorage.setItem('stepFishingOwnedCosmetics', JSON.stringify(state.ownedCosmetics || ['default']));
-    localStorage.setItem('stepFishingEquippedCosmetic', state.equippedCosmetic || 'default');
-    localStorage.setItem('stepFishingAchievements', JSON.stringify(state.unlockedAchievements || []));
-    localStorage.setItem('stepFishingAchTitles', JSON.stringify(state.ownedTitleIds || []));
-    localStorage.setItem('stepFishingAchColors', JSON.stringify(state.ownedColorIds || []));
-    localStorage.setItem('stepFishingEquippedAchTitle', state.equippedTitleId || '');
-    localStorage.setItem('stepFishingEquippedAchColor', state.equippedColorId || '');
-    localStorage.setItem('stepFishingAchStats', JSON.stringify(state.achievementStats || {}));
-    localStorage.setItem('stepFishingCommonStreakCur', String(state.commonStreakCurrent || 0));
-    localStorage.setItem('stepFishingCommonStreakBest', String(state.commonStreakBest || 0));
+    const sanitized = writeSecureLocalSave(getSavePayload());
+    applySanitizedSaveToState(sanitized);
     updateAquariumCapacityHUD();
 }
 
 let cloudSaveTimer = null;
+let gameInterval = null;
+
+function enforceRuntimeAntiCheat() {
+    const s = sanitizeSavePayload(getSavePayload());
+    state.totalScore = s.totalScore;
+    state.money = s.money;
+    state.maxMoney = s.maxMoney;
+    state.totalFishesCaught = s.totalFishesCaught;
+    state.highScore = s.highScore;
+    state.keys = s.keys;
+    state.ownedRods = s.ownedRods;
+    state.equippedRod = s.equippedRod;
+    state.commonStreakCurrent = s.commonStreakCurrent;
+    state.commonStreakBest = s.commonStreakBest;
+}
+
 function persistGame() {
     persistGameLocal();
     if (window.StepFishAuth?.isLoggedIn()) {
@@ -884,48 +1072,22 @@ function persistGame() {
     }
 }
 
-function applySaveData(data) {
+/** trusted: 'cloud' | 'trade' — sinon données rejetées si incohérentes. */
+function applySaveData(data, options = {}) {
     if (!data) return;
-    state.totalScore = parseFloat(data.totalScore) || 0;
-    state.money = parseFloat(data.money) || 0;
-    state.maxMoney = parseFloat(data.maxMoney) || 0;
-    state.totalFishesCaught = parseInt(data.totalFishesCaught, 10) || 0;
-    state.highScore = data.highScore || 0;
-    state.inventory = data.inventory || { aq0: [] };
-    state.unlockedAquariums = data.unlockedAquariums || [0];
-    normalizeInventory();
-    normalizeUnlockedAquariums();
-    state.ownedRods = data.ownedRods || [0];
-    state.equippedRod = parseInt(data.equippedRod, 10) || 0;
-    state.discoveredFishes = data.discoveredFishes || [];
-    state.keys = parseInt(data.keys, 10) || 0;
-    state.currentZone = data.currentZone || 'lac';
-    state.bestFish = data.bestFish || null;
-    if (window.StepFishCosmetics) {
-        window.StepFishCosmetics.loadFromSave(data);
-    } else {
-        state.ownedCosmetics = Array.isArray(data.ownedCosmetics) ? data.ownedCosmetics : ['default'];
-        state.equippedCosmetic = data.equippedCosmetic || 'default';
+    const trusted = options.trusted === 'cloud' || options.trusted === 'trade';
+    let sanitized = sanitizeSavePayload(data);
+    if (!trusted) {
+        const local = readSecureLocalSave();
+        sanitized = sanitizeSavePayload({
+            ...local,
+            discoveredFishes: sanitized.discoveredFishes,
+            bestFish: sanitized.bestFish
+        });
     }
-    if (window.StepFishAchievements) {
-        window.StepFishAchievements.loadFromSave(data);
-    } else {
-        state.unlockedAchievements = Array.isArray(data.unlockedAchievements) ? data.unlockedAchievements : [];
-        state.ownedTitleIds = Array.isArray(data.ownedTitleIds) ? data.ownedTitleIds : [];
-        state.ownedColorIds = Array.isArray(data.ownedColorIds) ? data.ownedColorIds : [];
-        state.equippedTitleId = data.equippedTitleId || null;
-        state.equippedColorId = data.equippedColorId || null;
-        state.achievementStats = data.achievementStats || null;
-    }
-    state.commonStreakCurrent = parseInt(data.commonStreakCurrent, 10) || 0;
-    state.commonStreakBest = parseInt(data.commonStreakBest, 10) || 0;
-    if (!state.bestFish?.value) {
-        const derived = findBestFishInInventory(state.inventory);
-        if (derived) state.bestFish = derived;
-    }
-    ensureFishUidsInInventory();
+    applySanitizedSaveToState(sanitized);
     updateProgression();
-    persistGameLocal();
+    writeSecureLocalSave(getSavePayload());
     updateMoneyDisplay();
     updateKeysDisplay();
     ensureValidZone();
@@ -933,51 +1095,51 @@ function applySaveData(data) {
     updateFishingRodDisplay();
 }
 
-window.getSavePayload = getSavePayload;
-window.getLocalSavePayload = getSavePayload;
-window.applySaveData = applySaveData;
+function createInitialState() {
+    const saved = readSecureLocalSave();
+    return {
+        score: 0,
+        totalScore: saved.totalScore,
+        money: saved.money,
+        maxMoney: saved.maxMoney,
+        totalFishesCaught: saved.totalFishesCaught,
+        level: 1,
+        prestige: 0,
+        timeLeft: 30,
+        gameActive: false,
+        currentPhase: 'MENU',
+        currentCycle: 0,
+        highScore: saved.highScore,
+        inventory: saved.inventory,
+        unlockedAquariums: saved.unlockedAquariums,
+        currentAqIndex: 0,
+        combo: 0,
+        reelProgress: 20,
+        fishPos: 100,
+        fishTargetY: 100,
+        playerPos: 100,
+        currentFish: null,
+        catchModalFishUid: null,
+        ownedRods: saved.ownedRods,
+        equippedRod: saved.equippedRod,
+        discoveredFishes: saved.discoveredFishes,
+        bestFish: saved.bestFish,
+        currentZone: saved.currentZone,
+        keys: saved.keys,
+        ownedCosmetics: saved.ownedCosmetics,
+        equippedCosmetic: saved.equippedCosmetic,
+        unlockedAchievements: saved.unlockedAchievements,
+        ownedTitleIds: saved.ownedTitleIds,
+        ownedColorIds: saved.ownedColorIds,
+        equippedTitleId: saved.equippedTitleId,
+        equippedColorId: saved.equippedColorId,
+        achievementStats: saved.achievementStats,
+        commonStreakCurrent: saved.commonStreakCurrent,
+        commonStreakBest: saved.commonStreakBest
+    };
+}
 
-let state = {
-    score: 0, 
-    totalScore: parseFloat(localStorage.getItem('stepFishingTotalScore')) || 0,
-    money: parseFloat(localStorage.getItem('stepFishingMoney')) || 0,
-    maxMoney: parseFloat(localStorage.getItem('stepFishingMaxMoney')) || 0,
-    totalFishesCaught: parseInt(localStorage.getItem('stepFishingTotalCaught')) || 0,
-    level: 1, 
-    prestige: 0, 
-    timeLeft: 30, 
-    gameActive: false, 
-    currentPhase: 'MENU',
-    currentCycle: 0,
-    highScore: localStorage.getItem('stepFishingHighScore') || 0,
-    inventory: safeParse('stepFishingInventory', { "aq0": [] }),
-    unlockedAquariums: safeParse('stepFishingUnlocked', [0]),
-    currentAqIndex: 0,
-    combo: 0, 
-    reelProgress: 20, 
-    fishPos: 100, 
-    fishTargetY: 100, 
-    playerPos: 100, 
-    currentFish: null,
-    /** UID du poisson affiché sur l'écran de capture (conservé après stopFishingSession). */
-    catchModalFishUid: null,
-    ownedRods: safeParse('stepFishingOwnedRods', [0]), 
-    equippedRod: parseInt(localStorage.getItem('stepFishingEquippedRod')) || 0,
-    discoveredFishes: safeParse('stepFishingDiscovered', []),
-    bestFish: safeParse('stepFishingBestFish', null),
-    currentZone: localStorage.getItem('stepFishingCurrentZone') || 'lac',
-    keys: parseInt(localStorage.getItem('stepFishingKeys')) || 0,
-    ownedCosmetics: safeParse('stepFishingOwnedCosmetics', ['default']),
-    equippedCosmetic: localStorage.getItem('stepFishingEquippedCosmetic') || 'default',
-    unlockedAchievements: safeParse('stepFishingAchievements', []),
-    ownedTitleIds: safeParse('stepFishingAchTitles', []),
-    ownedColorIds: safeParse('stepFishingAchColors', []),
-    equippedTitleId: localStorage.getItem('stepFishingEquippedAchTitle') || null,
-    equippedColorId: localStorage.getItem('stepFishingEquippedAchColor') || null,
-    achievementStats: safeParse('stepFishingAchStats', null),
-    commonStreakCurrent: parseInt(localStorage.getItem('stepFishingCommonStreakCur'), 10) || 0,
-    commonStreakBest: parseInt(localStorage.getItem('stepFishingCommonStreakBest'), 10) || 0
-};
+let state = createInitialState();
 
 const getEl = (id) => document.getElementById(id);
 const elements = {
@@ -1693,6 +1855,7 @@ function startAutoDayNightCycle() {
 }
 
 function updateProgression() {
+    enforceRuntimeAntiCheat();
     state.level = computeLevelFromScore(state.totalScore);
     state.prestige = computePrestigeFromLevel(state.level);
     if(elements.userLevel) elements.userLevel.innerText = state.level;
@@ -2739,9 +2902,9 @@ function setPhase(phase) {
 
 
 function clearGameTimer() {
-    if (window.gameInterval) {
-        clearInterval(window.gameInterval);
-        window.gameInterval = null;
+    if (gameInterval) {
+        clearInterval(gameInterval);
+        gameInterval = null;
     }
 }
 
@@ -2770,7 +2933,7 @@ function startGame() {
         addLog("Ligne lancée... Bonne chance !");
     }, 100);
 
-    window.gameInterval = setInterval(() => {
+    gameInterval = setInterval(() => {
         if (!state.gameActive) return;
         state.timeLeft--; 
         elements.timer.innerText = state.timeLeft;
@@ -2931,9 +3094,7 @@ function giveRandomMutatedFish(count = 1, aqIndex = state.currentAqIndex) {
     return added;
 }
 
-window.giveRandomMutatedFish = giveRandomMutatedFish;
-
-/** Console : giveKeys(3) */
+/** Console : giveKeys(3) — dev local uniquement */
 function giveKeys(count = 1) {
     state.keys = (parseInt(state.keys, 10) || 0) + Math.max(1, count);
     updateKeysDisplay();
@@ -2941,8 +3102,6 @@ function giveKeys(count = 1) {
     addLog(`🔑 +${count} clé(s) (total : ${state.keys})`, 'epic');
     return state.keys;
 }
-window.giveKeys = giveKeys;
-
 /** Console : testTreasureBox('bourse') — ouvre le mini-jeu roll directement */
 function testTreasureBox(boxId) {
     const id = boxId || 'bourse';
@@ -2952,8 +3111,6 @@ function testTreasureBox(boxId) {
     }
     startTreasureRollMinigame(id);
 }
-window.testTreasureBox = testTreasureBox;
-
 /** Console : testAllTreasureBoxes() — affiche les 3 commandes à lancer une par une */
 function testAllTreasureBoxes() {
     TREASURE_BOXES.forEach(box => {
@@ -2961,8 +3118,6 @@ function testAllTreasureBoxes() {
     });
     addLog('Voir la console (F12) pour tester chaque coffre.', 'system');
 }
-window.testAllTreasureBoxes = testAllTreasureBoxes;
-
 /**
  * Console : testTreasureFishing('coffre_leger')
  * Simule une capture (osu + remontée) avec le coffre choisi.
@@ -2981,8 +3136,6 @@ function testTreasureFishing(boxId = 'bourse') {
     startReelGame();
     addLog(`[TEST] Remontée ${box.name}…`, 'system');
 }
-window.testTreasureFishing = testTreasureFishing;
-
 /** Console : testKeyFishing() — simule une clé à remonter */
 function testKeyFishing() {
     if (!state.gameActive) startGame();
@@ -2993,8 +3146,6 @@ function testKeyFishing() {
     startReelGame();
     addLog('[TEST] Remontée clé mystérieuse…', 'system');
 }
-window.testKeyFishing = testKeyFishing;
-
 /** Console : testDevHelp() — liste les commandes de test */
 function testDevHelp() {
     const lines = [
@@ -3009,7 +3160,17 @@ function testDevHelp() {
     addLog('Commandes de test listées dans la console (F12).', 'system');
     return lines;
 }
-window.testDevHelp = testDevHelp;
+if (IS_DEV_BUILD) {
+    window.__stepfishDev = {
+        giveKeys,
+        giveRandomMutatedFish,
+        testTreasureBox,
+        testAllTreasureBoxes,
+        testTreasureFishing,
+        testKeyFishing,
+        testDevHelp
+    };
+}
 
 let discoveryToastTimer = null;
 
@@ -3507,7 +3668,8 @@ function openCrate() {
 }
 
 async function boot() {
-    window.__stepfishGetState = () => state;
+    ensureFishUidsInInventory();
+    updateProgression();
     masterVolume = loadMasterVolume();
     volumeMuted = masterVolume <= 0;
     setupAudio();
@@ -3526,6 +3688,15 @@ async function boot() {
     if (window.StepFishTrade) StepFishTrade.start();
 }
 
+window.StepFishGame = {
+    getSavePayload,
+    getStateSnapshot,
+    applySaveDataFromCloud: (data) => applySaveData(data, { trusted: 'cloud' }),
+    applySaveDataFromTrade: (data) => applySaveData(data, { trusted: 'trade' }),
+    sanitizeSavePayload,
+    isDevBuild: () => IS_DEV_BUILD
+};
+
 window.StepFishGameTrade = {
     listTradeableFish,
     findFishByUid,
@@ -3537,7 +3708,7 @@ window.StepFishGameTrade = {
     getRarityNameFromClass,
     getFishPrefixMult,
     aquariumFishWidthPx,
-    applySaveData,
+    applySaveData: (data) => applySaveData(data, { trusted: 'trade' }),
     refreshInventoryAfterCloudSync,
     updateAquariumCapacityHUD,
     addLog,
@@ -3557,7 +3728,7 @@ window.StepFishGameMeta = {
     getAbyssFishCount: () => getAbyssFishCount(),
     getDiscoveredAbyssCount: () => getDiscoveredAbyssCount(),
     getAllFishSpeciesCount: () => getAllFishSpeciesCount(),
-    getDiscoveredSpeciesCount: () => (window.__stepfishGetState?.()?.discoveredFishes || []).length
+    getDiscoveredSpeciesCount: () => (getStateSnapshot().discoveredFishes || []).length
 };
 
 window.StepFishAquariumPreview = {

@@ -80,7 +80,7 @@
                 let n = row.best_common_streak || 0;
                 const myPseudo = getMyPseudo();
                 if (myPseudo && row.pseudo === myPseudo) {
-                    const local = window.__stepfishGetState?.()?.commonStreakBest;
+                    const local = window.StepFishGame?.getStateSnapshot?.()?.commonStreakBest;
                     if (typeof local === 'number' && local > n) n = local;
                 }
                 return n > 0
@@ -94,7 +94,7 @@
 
     function bestFishDataForRow(row, myPseudo) {
         if (myPseudo && row.pseudo === myPseudo) {
-            const local = window.__stepfishGetState?.()?.bestFish;
+            const local = window.StepFishGame?.getStateSnapshot?.()?.bestFish;
             if (local?.name) {
                 return {
                     name: local.name,
@@ -178,7 +178,7 @@
         let id = row.cosmetic_id;
         if (myPseudo && row.pseudo === myPseudo) {
             const local = window.StepFishCosmetics?.getEquippedId?.()
-                || window.__stepfishGetState?.()?.equippedCosmetic;
+                || window.StepFishGame?.getStateSnapshot?.()?.equippedCosmetic;
             if (local && local !== 'default') id = local;
         }
         return resolveCosmeticId(id);
@@ -188,7 +188,7 @@
         let titleId = row.achievement_title_id || null;
         let colorId = row.achievement_color_id || null;
         if (myPseudo && row.pseudo === myPseudo) {
-            const s = window.__stepfishGetState?.();
+            const s = window.StepFishGame?.getStateSnapshot?.();
             if (s) {
                 titleId = s.equippedTitleId || titleId;
                 colorId = s.equippedColorId || colorId;

@@ -99,7 +99,7 @@
     const achById = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 
     function getState() {
-        return typeof window.__stepfishGetState === 'function' ? window.__stepfishGetState() : null;
+        return window.StepFishGame?.getStateSnapshot?.() || null;
     }
 
     function defaultStats() {
