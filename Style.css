@@ -3316,7 +3316,7 @@ button.index-legend-item {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    transform: translateY(1px);
+    transform: translateY(-0.35em);
 }
 
 .cos-pseudo-ornament-wrap .cos-pseudo-wrap {
@@ -3326,9 +3326,9 @@ button.index-legend-item {
 .cos-pseudo-ornament-wrap .cos-pseudo-text,
 .cos-pseudo-ornament-wrap .ach-pseudo-text {
     display: inline-block;
-    padding: 2px 10px 4px;
+    padding: 0 8px;
     white-space: nowrap;
-    line-height: 1.1;
+    line-height: 1;
     vertical-align: middle;
 }
 
@@ -3337,23 +3337,29 @@ button.index-legend-item {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap {
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    width: calc(100% + 4px);
-    height: calc(100% + 3px);
-    min-width: calc(100% + 4px);
-    min-height: calc(100% + 3px);
-    margin: -1px -2px;
-    transform: scale(0.72) translateY(-2px);
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    margin: 0;
+    transform: scale(0.5) translateY(2px);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(0);
+    transform: translateY(-0.3em);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text,
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .ach-pseudo-text {
-    padding: 0 5px 1px;
+    padding: 0 4px;
     font-size: inherit;
+    line-height: 1;
 }
 
 .cos-pseudo-wrap {
@@ -4687,17 +4693,33 @@ button.index-legend-item {
     vertical-align: middle;
 }
 
+#user-pseudo .cos-pseudo-ornament-wrap {
+    line-height: 1;
+    vertical-align: middle;
+}
+
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(0);
+    transform: translateY(-0.58em);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    transform: scale(1.06) translateY(-3px);
+    transform: scale(1.02) translateY(6px);
+}
+
+#user-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-wrap,
+#user-pseudo .cos-pseudo-ornament-wrap .ach-pseudo-color {
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+#user-pseudo .player-pseudo-full {
+    align-items: center;
 }
 
 .profile-info #user-pseudo {
     display: block;
-    line-height: 1.2;
+    line-height: 1;
 }
 
 #screen-achievements {
