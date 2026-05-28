@@ -2,8 +2,18 @@
  * StepFishing — Boutique cosmétiques (styles de pseudo)
  */
 (function () {
+    const FREE_COSMETIC_IDS = ['default', 'ornement1'];
+
     const COSMETIC_CATALOG = [
         { id: 'default', name: 'Classique', desc: 'Simple et sobre', price: 0, tier: '' },
+        {
+            id: 'ornement1',
+            name: 'Ornement I',
+            desc: 'Cadre décoratif · s\'étire avec la longueur du pseudo',
+            price: 0,
+            tier: '',
+            ornament: 'assets/ornements/Ornement1.png'
+        },
         { id: 'ember', name: 'Flammes rouges', desc: 'Braises qui montent · texte qui tremble', price: 10000, tier: '' },
         { id: 'ocean', name: 'Bleu océan', desc: 'Bulles · soulignement ondulé', price: 35000, tier: '' },
         { id: 'violet', name: 'Violet royal', desc: 'Italique · losanges scintillants', price: 80000, tier: '' },
@@ -46,8 +56,10 @@
     }
 
     function normalizeOwned(list) {
-        const owned = Array.isArray(list) ? [...list] : ['default'];
-        if (!owned.includes('default')) owned.unshift('default');
+        const owned = Array.isArray(list) ? [...list] : [];
+        FREE_COSMETIC_IDS.forEach(id => {
+            if (!owned.includes(id)) owned.push(id);
+        });
         return owned;
     }
 
@@ -73,7 +85,14 @@
     }
 
     function renderPseudoHTML(pseudo, cosmeticId) {
-        const cid = catalogById[cosmeticId] ? cosmeticId : 'default';
+        const item = catalogById[cosmeticId] || catalogById.default;
+        const cid = item.id;
+        if (item.ornament) {
+            return `<span class="${getCosmeticClass(cid)} cos-pseudo-ornament-wrap" data-ornament="1">
+                <img src="${escapeHtml(item.ornament)}" class="cos-ornament-frame" alt="" aria-hidden="true">
+                <span class="cos-pseudo-text">${escapeHtml(pseudo)}</span>
+            </span>`;
+        }
         const particles = cid !== 'default'
             ? `<span class="cos-particles cos-particles-${cid}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>`
             : '';

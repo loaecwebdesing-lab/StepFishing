@@ -3282,6 +3282,49 @@ button.index-legend-item {
 }
 
 /* --- COSMÉTIQUES PSEUDO --- */
+.cos-pseudo-ornament-wrap {
+    position: relative;
+    display: inline-grid;
+    align-items: center;
+    justify-items: center;
+    vertical-align: middle;
+    max-width: 100%;
+    isolation: isolate;
+}
+
+.cos-pseudo-ornament-wrap .cos-ornament-frame {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+}
+
+.cos-pseudo-ornament-wrap .cos-pseudo-text {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    padding: 5px 14px 6px;
+    color: #f5ebe0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+    white-space: nowrap;
+    line-height: 1.15;
+}
+
+.cos-pseudo-ornement1 .cos-pseudo-text {
+    font-family: var(--font-game);
+    font-weight: normal;
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text {
+    font-size: 0.95em;
+}
+
 .cos-pseudo-wrap {
     position: relative;
     display: inline-block;
@@ -3865,10 +3908,11 @@ button.index-legend-item {
     text-align: center;
 }
 
-#screen-leaderboard .lb-pseudo .cos-pseudo-wrap {
+#screen-leaderboard .lb-pseudo .cos-pseudo-wrap,
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap {
     max-width: 100%;
     overflow: visible;
-    display: inline-block;
+    display: inline-grid;
     vertical-align: middle;
     line-height: 1.3;
 }
