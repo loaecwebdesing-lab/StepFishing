@@ -3338,18 +3338,23 @@ button.index-legend-item {
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap {
-    font-size: 1rem;
+    font-size: 0.9rem;
     line-height: 1;
     max-width: 100%;
-    padding: 84px 96px 72px;
+    padding: 16px 20px 14px;
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap:has(.cos-pseudo-ornament-inner--stack) {
+    padding: 22px 24px 18px;
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-0.15em);
+    transform: translateY(-0.22em);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner--stack {
-    padding: 0 6px;
+    padding: 0 4px;
+    transform: translateY(-0.1em);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-stack .ach-player-title {
@@ -4721,11 +4726,11 @@ button.index-legend-item {
     line-height: 1;
     vertical-align: middle;
     max-width: 100%;
-    padding: 28px 60px 22px;
+    padding: 42px 64px 14px;
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-0.28em);
+    transform: translateY(-0.52em);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-wrap,
