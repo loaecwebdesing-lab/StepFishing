@@ -1001,7 +1001,12 @@ const MUTATIONS = [
     { name: "Cristallin", weight: 18, multiplier: 18, filter: 'brightness(1.5) saturate(0.5) contrast(1.2)', color: '#e0ffff', effect: 'crystal' },
     { name: "Néon", weight: 14, multiplier: 15, filter: 'hue-rotate(90deg) saturate(5) brightness(1.2)', color: '#00ff00', effect: 'neon' },
     { name: "Abyssal", weight: 5, multiplier: 50, filter: 'brightness(0.5) hue-rotate(250deg) saturate(2)', color: '#4b0082', effect: 'void' },
-    { name: "Cosmique", weight: 3, multiplier: 100, filter: 'brightness(0.85) hue-rotate(270deg) saturate(1.5)', color: '#9370db', effect: 'cosmic' }
+    { name: "Cosmique", weight: 3, multiplier: 100, filter: 'brightness(0.85) hue-rotate(270deg) saturate(1.5)', color: '#9370db', effect: 'cosmic' },
+    { name: "Prismatique", weight: 2, multiplier: 105, filter: 'saturate(2.8) brightness(1.2) contrast(1.25)', color: '#e040fb', effect: 'prism' },
+    { name: "Infernal", weight: 1, multiplier: 110, filter: 'contrast(1.8) saturate(4) hue-rotate(-15deg) brightness(1.25)', color: '#ff1744', effect: 'infernal' },
+    { name: "Néant", weight: 1, multiplier: 115, filter: 'brightness(0.35) contrast(2) saturate(3) hue-rotate(265deg)', color: '#7c4dff', effect: 'neant' },
+    { name: "Chronomatique", weight: 1, multiplier: 120, filter: 'saturate(2.5) contrast(1.4) brightness(1.15)', color: '#00e5ff', effect: 'chronomatique', sizeMult: 1.1 },
+    { name: "Transcendant", weight: 1, multiplier: 125, filter: 'brightness(1.15) saturate(2.2) contrast(1.2)', color: '#fff59d', effect: 'transcendent' }
 ];
 
 function pickWeightedMutation(pool) {
@@ -2364,8 +2369,30 @@ function placeFishInAquarium(fish) {
     return { placed: false };
 }
 
+function normalizeMutationName(name) {
+    if (name === 'Chronoflux') return 'Chronomatique';
+    return name || 'Normal';
+}
+
 function getMutationData(mutationName) {
-    return MUTATIONS.find(m => m.name === mutationName) || MUTATIONS[0];
+    const key = normalizeMutationName(mutationName);
+    return MUTATIONS.find(m => m.name === key) || MUTATIONS[0];
+}
+
+function getMutationSizeMult(mutationName) {
+    const mut = getMutationData(mutationName);
+    return typeof mut.sizeMult === 'number' && mut.sizeMult > 1 ? mut.sizeMult : 1;
+}
+
+function applyMutationWeightBonus(kg, mutationName) {
+    const mult = getMutationSizeMult(mutationName);
+    if (mult <= 1) return kg;
+    const boosted = Math.min(AQ_WEIGHT_MAX_KG, (kg || 0) * mult);
+    return parseFloat(boosted.toFixed(2));
+}
+
+function fishDisplayWidthPx(kg, mutationName) {
+    return Math.round(aquariumFishWidthPx(kg) * getMutationSizeMult(mutationName));
 }
 
 /** Taille du poisson à l'écran de capture (= 2× la taille aquarium) */
@@ -2375,7 +2402,7 @@ function getCatchRevealFishSize(fish) {
     if (fish.isKey || fish.isTreasureBox || fish.isDofus) {
         return isMobile ? 200 : 220;
     }
-    const aqSize = aquariumFishWidthPx(fish.weight);
+    const aqSize = fishDisplayWidthPx(fish.weight, fish.mutation);
     const doubled = (aqSize + 20) * 2;
     return Math.min(isMobile ? 300 : 380, Math.max(140, Math.round(doubled)));
 }
@@ -2537,7 +2564,9 @@ function buildFishVisualHTML(fish, width) {
 function spawnFishParticleInLayer(fishEl, layerEl) {
     const mutationName = fishEl.dataset.mutation;
     if (!mutationName || mutationName === 'Normal') return;
-    if (Math.random() > 0.04) return;
+    const ultraRare = ['Prismatique', 'Infernal', 'Néant', 'Chronomatique', 'Transcendant', 'Cosmique', 'Abyssal'];
+    const spawnChance = ultraRare.includes(mutationName) ? 0.07 : 0.04;
+    if (Math.random() > spawnChance) return;
 
     const mut = getMutationData(mutationName);
     if (!layerEl) return;
@@ -2571,7 +2600,7 @@ function renderAquariumFishLayer(layerEl, fishes) {
         fDiv.dataset.mutation = mutation.name;
         fDiv.style.setProperty('--mut-color', mutation.color);
         const weightKg = getFishWeightKg(fish);
-        const finalWidth = aquariumFishWidthPx(weightKg);
+        const finalWidth = fishDisplayWidthPx(weightKg, mutation.name);
         const locked = Boolean(fish.locked);
         if (locked) fDiv.classList.add('aq-fish-locked');
         const pMult = getFishPrefixMult(fish);
@@ -2663,7 +2692,7 @@ function renderAquarium() {
         fDiv.dataset.mutation = mutation.name;
         fDiv.style.setProperty('--mut-color', mutation.color);
         const weightKg = getFishWeightKg(fish);
-        const finalWidth = aquariumFishWidthPx(weightKg);
+        const finalWidth = fishDisplayWidthPx(weightKg, mutation.name);
         const locked = Boolean(fish.locked);
         if (locked) fDiv.classList.add('aq-fish-locked');
         fDiv.title = `${fish.name} · ${formatFishWeight(weightKg)}${locked ? ' · 🔒 protégé' : ''}`;
@@ -2850,7 +2879,7 @@ function openFishModal(index, aqId) {
     if(!fish) return;
     const weightKg = getFishWeightKg(fish);
     const locked = isFishLocked(fish);
-    elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, aquariumFishWidthPx(weightKg) + 37);
+    elements.modalFishVisual.innerHTML = buildFishVisualHTML(fish, fishDisplayWidthPx(weightKg, fish.mutation) + 37);
     elements.modalFishName.innerText = fish.name;
     elements.modalFishName.className = `rarity-text ${fish.class}`;
     const rarityInfo = RARITIES.find(r => r.class === fish.class);
@@ -3041,7 +3070,7 @@ function triggerCatch() {
     }
 
     const mutation = rollMutation();
-    const weight = rollFishWeight(rIdx);
+    const weight = applyMutationWeightBonus(rollFishWeight(rIdx), mutation.name);
     const naming = generateProceduralName(rIdx, fishSpecies);
     state.currentFish = ensureFishUid({
         ...rData,
@@ -3445,7 +3474,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
     const randomFishFile = possibleFishes[Math.floor(Math.random() * possibleFishes.length)];
     const fishSpecies = speciesLabelFromFile(randomFishFile);
     const mutation = rollRandomMutation();
-    const weight = rollFishWeight(rIdx);
+    const weight = applyMutationWeightBonus(rollFishWeight(rIdx), mutation.name);
     const naming = generateProceduralName(rIdx, fishSpecies);
     return ensureFishUid({
         ...rData,
@@ -4132,6 +4161,7 @@ window.StepFishGameTrade = {
     getRarityNameFromClass,
     getFishPrefixMult,
     aquariumFishWidthPx,
+    fishDisplayWidthPx,
     refreshInventoryAfterCloudSync,
     updateAquariumCapacityHUD,
     addLog,
@@ -4169,7 +4199,8 @@ window.StepFishAquariumPreview = {
     getMutationData,
     getRarityNameFromClass,
     getFishPrefixMult,
-    aquariumFishWidthPx
+    aquariumFishWidthPx,
+    fishDisplayWidthPx
 };
 
 boot();

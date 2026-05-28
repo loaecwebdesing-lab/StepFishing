@@ -41,7 +41,10 @@
     function buildFishThumbHTML(fish) {
         const p = getPreview();
         if (!fish?.img) return '<span class="pp-fish-placeholder">🐟</span>';
-        const w = p.aquariumFishWidthPx ? p.aquariumFishWidthPx(p.getFishWeightKg?.(fish) ?? fish.weight) : 64;
+        const kg = p.getFishWeightKg?.(fish) ?? fish.weight;
+        const w = p.fishDisplayWidthPx
+            ? p.fishDisplayWidthPx(kg, fish.mutation)
+            : (p.aquariumFishWidthPx ? p.aquariumFishWidthPx(kg) : 64);
         const mut = escapeHtml(fish.mutation || 'Normal');
         return `<span class="pp-fish-thumb" data-mutation="${mut}">
             <img src="${escapeHtml(fish.img)}" alt="" loading="lazy" style="width:${w}px">
@@ -167,7 +170,7 @@
         const pMult = p.getFishPrefixMult ? p.getFishPrefixMult(fish) : 1;
         const pNote = fish.prefixTier ? ` · Préfixe ${fish.prefixTier} (×${pMult})` : '';
         const visual = p.buildFishVisualHTML
-            ? p.buildFishVisualHTML(fish, (p.aquariumFishWidthPx?.(weightKg) || 64) + 28)
+            ? p.buildFishVisualHTML(fish, (p.fishDisplayWidthPx?.(weightKg, fish.mutation) || p.aquariumFishWidthPx?.(weightKg) || 64) + 28)
             : buildFishThumbHTML(fish);
 
         el.classList.remove('hidden');

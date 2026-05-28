@@ -2326,6 +2326,160 @@ button.index-legend-item {
     filter: drop-shadow(0 0 20px #9370db) drop-shadow(0 0 10px #ffd700) drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
 }
 
+/* --- Mutations ultra-rares (plus rares que Cosmique) --- */
+
+[data-mutation="Prismatique"] .aq-fish-img,
+[data-mutation="Prismatique"] .fish-mut-img {
+    animation: tailWiggle 1s infinite ease-in-out, prismShift 2.2s infinite linear, prismSpark 0.35s infinite alternate;
+}
+.aq-fish[data-mutation="Prismatique"],
+.fish-visual-wrap[data-mutation="Prismatique"] {
+    filter: drop-shadow(-3px 0 10px #ff0080) drop-shadow(3px 0 10px #00e5ff) drop-shadow(0 0 18px #e040fb) drop-shadow(0 8px 8px rgba(0, 0, 0, 0.4));
+}
+
+[data-mutation="Infernal"] .aq-fish-img,
+[data-mutation="Infernal"] .fish-mut-img {
+    animation: tailWiggle 1s infinite ease-in-out, infernalRage 0.28s infinite alternate, infernalScale 1.1s infinite ease-in-out;
+}
+.aq-fish[data-mutation="Infernal"],
+.fish-visual-wrap[data-mutation="Infernal"] {
+    filter: drop-shadow(0 0 20px #ff5722) drop-shadow(0 0 35px #ff1744) drop-shadow(0 0 8px #ffeb3b) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.55));
+}
+
+[data-mutation="Néant"] .aq-fish-img,
+[data-mutation="Néant"] .fish-mut-img {
+    animation: tailWiggle 1s infinite ease-in-out, neantPulse 2.5s infinite ease-in-out, neantVortex 4s infinite linear;
+}
+.aq-fish[data-mutation="Néant"],
+.fish-visual-wrap[data-mutation="Néant"] {
+    filter: drop-shadow(0 0 24px #7c4dff) drop-shadow(0 0 12px #000) drop-shadow(0 0 40px rgba(124, 77, 255, 0.45)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.7));
+}
+
+[data-mutation="Chronomatique"] .aq-fish-img,
+[data-mutation="Chronomatique"] .fish-mut-img {
+    animation: tailWiggle 1s infinite ease-in-out, chronomatiquePhase 2.4s infinite ease-in-out, chronomatiqueTick 0.7s infinite steps(3);
+    transform-origin: center center;
+}
+.aq-fish[data-mutation="Chronomatique"],
+.fish-visual-wrap[data-mutation="Chronomatique"] {
+    position: relative;
+    filter: drop-shadow(0 0 22px #00e5ff) drop-shadow(0 0 14px #ffd54f) drop-shadow(0 0 8px #e040fb) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+    animation: chronomatiqueAura 1.6s infinite ease-in-out;
+}
+.aq-fish[data-mutation="Chronomatique"]::before,
+.fish-visual-wrap[data-mutation="Chronomatique"]::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 140%;
+    height: 140%;
+    margin: -70% 0 0 -70%;
+    border-radius: 50%;
+    border: 2px dashed rgba(0, 229, 255, 0.55);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.35), inset 0 0 18px rgba(255, 213, 79, 0.2);
+    pointer-events: none;
+    z-index: -1;
+    animation: chronomatiqueRing 4s infinite linear;
+}
+.aq-fish[data-mutation="Chronomatique"]::after,
+.fish-visual-wrap[data-mutation="Chronomatique"]::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120%;
+    height: 120%;
+    margin: -60% 0 0 -60%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 229, 255, 0.35) 40deg, transparent 80deg, rgba(255, 23, 68, 0.25) 120deg, transparent 160deg, rgba(255, 213, 79, 0.3) 200deg, transparent 240deg);
+    pointer-events: none;
+    z-index: -1;
+    animation: chronomatiqueSweep 2.2s infinite linear;
+    opacity: 0.85;
+}
+
+[data-mutation="Transcendant"] .aq-fish-img,
+[data-mutation="Transcendant"] .fish-mut-img {
+    animation: tailWiggle 1s infinite ease-in-out, transcendentGod 2.8s infinite ease-in-out, transcendentSpin 6s infinite linear;
+}
+.aq-fish[data-mutation="Transcendant"],
+.fish-visual-wrap[data-mutation="Transcendant"] {
+    filter: drop-shadow(0 0 28px #ffd700) drop-shadow(0 0 20px #ff00ff) drop-shadow(0 0 14px #00ffff) drop-shadow(0 0 8px #ffffff) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.55));
+    animation: transcendentAura 1.2s infinite ease-in-out;
+}
+
+@keyframes prismShift {
+    0% { filter: hue-rotate(0deg) saturate(3) brightness(1.25) contrast(1.3); }
+    100% { filter: hue-rotate(360deg) saturate(3.5) brightness(1.35) contrast(1.4); }
+}
+@keyframes prismSpark {
+    from { transform: scale(1) skewX(0deg); }
+    to { transform: scale(1.04) skewX(-2deg); }
+}
+@keyframes infernalRage {
+    from { filter: contrast(1.6) saturate(3.5) hue-rotate(-20deg) brightness(1.1); }
+    to { filter: contrast(2) saturate(5) hue-rotate(5deg) brightness(1.45); }
+}
+@keyframes infernalScale {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+@keyframes neantPulse {
+    0%, 100% { filter: brightness(0.3) contrast(2.2) saturate(2.5) hue-rotate(255deg); }
+    50% { filter: brightness(0.55) contrast(2.5) saturate(3.5) hue-rotate(280deg); }
+}
+@keyframes neantVortex {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(1deg) scale(1.03); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+@keyframes chronomatiquePhase {
+    0%, 100% { filter: saturate(2.6) contrast(1.35) brightness(1.15) hue-rotate(0deg); }
+    50% { filter: saturate(3.2) contrast(1.5) brightness(1.35) hue-rotate(25deg); }
+}
+@keyframes chronomatiqueTick {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-2px, 1px) scale(1.03); }
+    66% { transform: translate(2px, -1px) scale(0.98); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes chronomatiqueAura {
+    0%, 100% {
+        filter: drop-shadow(0 0 22px #00e5ff) drop-shadow(0 0 14px #ffd54f) drop-shadow(0 0 8px #e040fb) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 32px #00ffff) drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 12px #ff1744) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.55));
+    }
+}
+@keyframes chronomatiqueRing {
+    0% { transform: rotate(0deg) scale(1); opacity: 0.75; }
+    50% { opacity: 1; }
+    100% { transform: rotate(360deg) scale(1.05); opacity: 0.75; }
+}
+@keyframes chronomatiqueSweep {
+    0% { transform: rotate(0deg); opacity: 0.7; }
+    100% { transform: rotate(360deg); opacity: 0.95; }
+}
+@keyframes transcendentGod {
+    0%, 100% { filter: brightness(1.1) saturate(2.5) hue-rotate(0deg) contrast(1.25); }
+    33% { filter: brightness(1.35) saturate(3) hue-rotate(120deg) contrast(1.35); }
+    66% { filter: brightness(1.25) saturate(2.8) hue-rotate(240deg) contrast(1.3); }
+}
+@keyframes transcendentSpin {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+@keyframes transcendentAura {
+    0%, 100% {
+        filter: drop-shadow(0 0 22px #ffd700) drop-shadow(0 0 16px #ff00ff) drop-shadow(0 0 10px #00ffff) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 32px #ffffff) drop-shadow(0 0 24px #ffd700) drop-shadow(0 0 18px #e040fb) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.55));
+    }
+}
+
 @keyframes iceShimmer {
     0%, 100% { filter: brightness(1.3) saturate(0.5) hue-rotate(185deg); }
     50% { filter: brightness(1.5) saturate(0.7) hue-rotate(195deg); }
@@ -2391,6 +2545,65 @@ button.index-legend-item {
 .particle-rainbow { width: 6px; height: 6px; animation: particleRainbow 1s forwards; }
 .particle-crystal { width: 4px; height: 4px; transform: rotate(45deg); border-radius: 1px; box-shadow: 0 0 10px #e0ffff; animation: particleCrystal 1.1s forwards; }
 .particle-cosmic { width: 3px; height: 3px; box-shadow: 0 0 8px #ffd700, 0 0 4px #9370db; animation: particleCosmic 1.5s forwards; }
+.particle-prism {
+    width: 5px;
+    height: 5px;
+    border-radius: 1px;
+    transform: rotate(45deg);
+    animation: particlePrism 0.85s forwards, particleRainbow 0.85s forwards;
+}
+.particle-infernal {
+    width: 10px;
+    height: 10px;
+    border-radius: 50% 20% 50% 20%;
+    box-shadow: 0 0 14px #ff1744, 0 0 6px #ffeb3b;
+    animation: particleInfernal 0.65s forwards;
+}
+.particle-neant {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    opacity: 0.55;
+    box-shadow: inset 0 0 10px #7c4dff, 0 0 16px rgba(0, 0, 0, 0.9);
+    animation: particleNeant 1.2s forwards;
+}
+.particle-chronomatique {
+    width: 3px;
+    height: 14px;
+    border-radius: 1px;
+    background: linear-gradient(180deg, #ffd54f 0%, #00e5ff 50%, #e040fb 100%) !important;
+    box-shadow: 0 0 10px #00e5ff, 0 0 6px #ffd54f, -6px 0 10px rgba(0, 229, 255, 0.5), 6px 0 10px rgba(255, 23, 68, 0.4);
+    animation: particleChronomatique 0.65s forwards;
+}
+.particle-transcendent {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 12px #ffd700, 0 0 8px #ff00ff, 0 0 6px #00ffff;
+    animation: particleTranscendent 1.4s forwards;
+}
+
+@keyframes particlePrism {
+    0% { opacity: 1; transform: rotate(45deg) scale(1); }
+    100% { opacity: 0; transform: rotate(225deg) scale(2.2) translateY(-20px); }
+}
+@keyframes particleInfernal {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(2.5) translateY(-35px); }
+}
+@keyframes particleNeant {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.05); }
+}
+@keyframes particleChronomatique {
+    0% { opacity: 1; transform: scaleY(1) rotate(0deg) translate(0, 0); filter: hue-rotate(0deg); }
+    40% { opacity: 1; transform: scaleY(1.6) rotate(90deg) translate(4px, -4px); filter: hue-rotate(90deg); }
+    100% { opacity: 0; transform: scaleY(0.2) rotate(180deg) translate(-6px, -18px); filter: hue-rotate(180deg); }
+}
+@keyframes particleTranscendent {
+    0% { opacity: 1; transform: scale(1); filter: hue-rotate(0deg); }
+    100% { opacity: 0; transform: scale(3) translateY(-28px); filter: hue-rotate(180deg); }
+}
 
 @keyframes particleFade { 0% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(0.2) translateY(20px); } }
 @keyframes particleSparkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
