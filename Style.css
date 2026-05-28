@@ -104,6 +104,18 @@ body, html {
     background: rgba(50, 12, 12, 0.82);
 }
 
+.aq-capacity-hud.aq-capacity-low {
+    color: #ffe082;
+    border-color: rgba(255, 152, 0, 0.75);
+    background: rgba(60, 40, 8, 0.88);
+    animation: aqCapacityPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes aqCapacityPulse {
+    0%, 100% { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+    50% { box-shadow: 0 0 14px rgba(255, 152, 0, 0.55); }
+}
+
 #sidebar {
     width: 300px; height: 100vh;
     background: rgba(40, 30, 20, 0.7) !important;
@@ -1427,6 +1439,11 @@ button.index-legend-item {
         transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
         opacity 0.35s ease,
         visibility 0s;
+}
+
+.toast-notification.toast-warn {
+    border-color: #ff9800;
+    background: rgba(40, 22, 6, 0.92);
 }
 .toast-content { display: flex; align-items: center; gap: 15px; font-family: var(--font-game); color: white; font-size: 1.2rem; }
 .toast-icon { font-size: 1.5rem; }

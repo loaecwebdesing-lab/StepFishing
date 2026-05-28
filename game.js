@@ -2151,15 +2151,43 @@ function getAquariumCapacityStats() {
         used += (state.inventory[`aq${idx}`] || []).length;
         total += AQ_SLOTS_PER_TANK;
     });
-    return { used, total };
+    return { used, total, free: Math.max(0, total - used) };
 }
+
+function getAquariumFreeSlots() {
+    return getAquariumCapacityStats().free;
+}
+
+const AQUARIUM_LOW_SLOTS_WARN = 3;
 
 function updateAquariumCapacityHUD() {
     const el = elements.aqCapacityHud || document.getElementById('aq-capacity-hud');
-    if (!el) return;
-    const { used, total } = getAquariumCapacityStats();
-    el.textContent = `🐠 ${used}/${total}`;
-    el.classList.toggle('aq-capacity-full', total > 0 && used >= total);
+    const { used, total, free } = getAquariumCapacityStats();
+    if (el) {
+        el.textContent = `🐠 ${used}/${total}`;
+        el.classList.toggle('aq-capacity-full', total > 0 && used >= total);
+        el.classList.toggle('aq-capacity-low', free > 0 && free <= AQUARIUM_LOW_SLOTS_WARN);
+    }
+    maybeWarnAquariumLowCapacity(free);
+}
+
+/** Toast si ≤ 3 places libres (tous aquariums) — une alerte par palier 3, 2, 1. */
+function maybeWarnAquariumLowCapacity(freeSlots) {
+    const free = typeof freeSlots === 'number' ? freeSlots : getAquariumFreeSlots();
+    if (free > AQUARIUM_LOW_SLOTS_WARN) {
+        state.aquariumCapacityWarnAt = null;
+        return;
+    }
+    if (free <= 0) return;
+    if (state.aquariumCapacityWarnAt === free) return;
+    state.aquariumCapacityWarnAt = free;
+    const placeWord = free === 1 ? 'place' : 'places';
+    showGameToast(
+        `Attention !<br><span style="color:var(--wood-gold)">Plus que ${free} ${placeWord} libre${free > 1 ? 's' : ''}</span> dans tous tes aquariums.<br><small>Vends des poissons ou débloque un bac avant de pêcher.</small>`,
+        '⚠️',
+        6000
+    );
+    addLog(`⚠️ Aquariums presque pleins : ${free} ${placeWord} restante${free > 1 ? 's' : ''} au total.`, 'system');
 }
 
 function newFishUid() {
@@ -3450,16 +3478,30 @@ if (IS_DEV_BUILD) {
 
 let discoveryToastTimer = null;
 
-function showDiscoveryToast(fishName, rarity, mutation) {
+function showGameToast(html, icon = '🌟', durationMs = 5000) {
     const toast = document.getElementById('discovery-toast');
     const text = document.getElementById('toast-text');
-    if(!toast || !text) return;
-    text.innerHTML = `FÉLICITATIONS ! <br> <span style="color:var(--wood-gold)">${fishName}</span> [${rarity}] <br> <small>Mutation: ${mutation}</small>`;
+    const iconEl = toast?.querySelector('.toast-icon');
+    if (!toast || !text) return;
+    if (iconEl) iconEl.textContent = icon;
+    text.innerHTML = html;
+    toast.classList.toggle('toast-warn', icon === '⚠️');
     clearTimeout(discoveryToastTimer);
     toast.classList.remove('show');
     void toast.offsetHeight;
     toast.classList.add('show');
-    discoveryToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+    discoveryToastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.remove('toast-warn');
+    }, durationMs);
+}
+
+function showDiscoveryToast(fishName, rarity, mutation) {
+    showGameToast(
+        `FÉLICITATIONS ! <br> <span style="color:var(--wood-gold)">${escapeHtml(fishName)}</span> [${escapeHtml(rarity)}] <br> <small>Mutation: ${escapeHtml(mutation)}</small>`,
+        '🌟',
+        5000
+    );
 }
 
 function renderShop() {
