@@ -98,8 +98,19 @@
 
     const achById = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
 
+    let stateBridge = null;
+
+    function registerStateBridge(bridge) {
+        stateBridge = bridge;
+    }
+
     function getState() {
-        return window.StepFishGame?.getStateSnapshot?.() || null;
+        return stateBridge?.getState?.() || null;
+    }
+
+    function persistGameState() {
+        if (stateBridge?.persist) stateBridge.persist();
+        else if (typeof persistGame === 'function') persistGame();
     }
 
     function defaultStats() {
@@ -113,6 +124,20 @@
             fishSold: 0,
             maxCombo: 0
         };
+    }
+
+    function syncOwnedRewardsFromUnlocks(s) {
+        if (!s || !Array.isArray(s.unlockedAchievements)) return;
+        ACHIEVEMENTS.forEach(ach => {
+            if (!s.unlockedAchievements.includes(ach.id)) return;
+            (ach.rewards || []).forEach(r => {
+                if (r.type === 'title' && TITLE_REWARDS[r.id] && !s.ownedTitleIds.includes(r.id)) {
+                    s.ownedTitleIds.push(r.id);
+                } else if (r.type === 'color' && COLOR_REWARDS[r.id] && !s.ownedColorIds.includes(r.id)) {
+                    s.ownedColorIds.push(r.id);
+                }
+            });
+        });
     }
 
     function ensureAchievementState(s) {
@@ -130,6 +155,7 @@
         ['cratesOpened', 'keysFound', 'chatSent', 'tradesDone', 'totalSold', 'fishSold', 'maxCombo'].forEach(k => {
             if (typeof st[k] !== 'number') st[k] = 0;
         });
+        syncOwnedRewardsFromUnlocks(s);
     }
 
     function escapeHtml(str) {
@@ -225,7 +251,7 @@
         if (typeof addLog === 'function') {
             addLog(`🏅 Succès débloqué : ${ach.name}`, 'epic');
         }
-        if (typeof persistGame === 'function') persistGame();
+        persistGameState();
         refreshPseudoDisplays();
         const toast = document.getElementById('discovery-toast');
         const toastText = document.getElementById('toast-text');
@@ -460,7 +486,7 @@
     }
 
     function persistAndRefresh() {
-        if (typeof persistGame === 'function') persistGame();
+        persistGameState();
         refreshPseudoDisplays();
         renderScreen();
     }
@@ -557,6 +583,7 @@
         ACHIEVEMENTS,
         TITLE_REWARDS,
         COLOR_REWARDS,
+        registerStateBridge,
         init,
         loadFromSave,
         open,

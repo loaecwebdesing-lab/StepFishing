@@ -22,8 +22,19 @@
 
     const catalogById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));
 
+    let stateBridge = null;
+
+    function registerStateBridge(bridge) {
+        stateBridge = bridge;
+    }
+
     function getState() {
-        return window.StepFishGame?.getStateSnapshot?.() || null;
+        return stateBridge?.getState?.() || null;
+    }
+
+    function persistGameState() {
+        if (stateBridge?.persist) stateBridge.persist();
+        else if (typeof persistGame === 'function') persistGame();
     }
 
     function escapeHtml(str) {
@@ -107,7 +118,7 @@
         s.money -= item.price;
         s.ownedCosmetics.push(cosmeticId);
         if (typeof updateMoneyDisplay === 'function') updateMoneyDisplay();
-        if (typeof persistGame === 'function') persistGame();
+        persistGameState();
         return { ok: true, msg: `${item.name} acheté !` };
     }
 
@@ -203,6 +214,7 @@
 
     window.StepFishCosmetics = {
         catalog: COSMETIC_CATALOG,
+        registerStateBridge,
         init,
         loadFromSave,
         open,

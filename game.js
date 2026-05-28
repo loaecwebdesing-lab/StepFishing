@@ -1166,6 +1166,21 @@ function createInitialState() {
 
 let state = createInitialState();
 
+function registerInternalStateBridges() {
+    const stateBridge = {
+        getState: () => state,
+        persist: () => persistGame()
+    };
+    if (window.StepFishAchievements?.registerStateBridge) {
+        window.StepFishAchievements.registerStateBridge(stateBridge);
+    }
+    if (window.StepFishCosmetics?.registerStateBridge) {
+        window.StepFishCosmetics.registerStateBridge(stateBridge);
+    }
+}
+
+registerInternalStateBridges();
+
 const getEl = (id) => document.getElementById(id);
 const elements = {
     screens: { 
@@ -3693,6 +3708,7 @@ function openCrate() {
 }
 
 function registerAntiCheatBridges() {
+    registerInternalStateBridges();
     if (window.StepFishAuth?.registerSaveBridge) {
         window.StepFishAuth.registerSaveBridge({
             getSavePayload,
