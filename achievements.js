@@ -76,7 +76,6 @@
         { id: 'index_lac', name: 'Index du lac', desc: 'Découvrir toutes les espèces du lac (hors myt./div.).', cat: 'coll', icon: '📖', cond: { type: 'zone_lac' }, rewards: [{ type: 'title', id: 'title_explorer' }] },
         { id: 'index_ocean', name: 'Haute mer complète', desc: 'Découvrir toutes les espèces océan requises.', cat: 'coll', icon: '🌊', cond: { type: 'zone_ocean' }, rewards: [{ type: 'color', id: 'color_cyan' }] },
         { id: 'index_abyss', name: 'Maître de l\'abysse', desc: 'Découvrir toutes les espèces abysse requises.', cat: 'coll', icon: '🌑', cond: { type: 'zone_abyss' }, rewards: [{ type: 'title', id: 'title_abyss' }] },
-        { id: 'index_bonta', name: 'Écumeur de Bonta', desc: 'Compléter à 100 % le FishIndex de Bonta.', cat: 'coll', icon: '🏰', cond: { type: 'zone_bonta' }, rewards: [{ type: 'title', id: 'title_eccumeur' }] },
         { id: 'index_complete', name: 'FishIndex 100 %', desc: 'Découvrir chaque espèce du jeu.', cat: 'coll', icon: '📚', cond: { type: 'all_fish' }, rewards: [{ type: 'title', id: 'title_collector' }, { type: 'color', id: 'color_gold' }] },
         { id: 'rod_promax', name: 'Équipement pro', desc: 'Posséder la Canne ProMax.', cat: 'prog', icon: '🛠️', cond: { type: 'rod', id: 5 }, rewards: [{ type: 'money', n: 10000 }] },
         { id: 'rod_excalibur', name: 'Excalibur', desc: 'Posséder l\'Excalibur des Mers.', cat: 'prog', icon: '⚔️', cond: { type: 'rod', id: 14 }, rewards: [{ type: 'title', id: 'title_champion' }] },
@@ -103,7 +102,8 @@
         { id: 'dofus_turquoise', name: 'Dofus Turquoise', desc: 'Trouver le Dofus Turquoise dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '🩵', cond: { type: 'dofus', id: 'turquoise' }, rewards: [] },
         { id: 'dofus_pourpre', name: 'Dofus Pourpre', desc: 'Trouver le Dofus Pourpre dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '💜', cond: { type: 'dofus', id: 'pourpre' }, rewards: [] },
         { id: 'dofus_ivoire', name: 'Dofus Ivoire', desc: 'Trouver le Dofus Ivoire dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '🤍', cond: { type: 'dofus', id: 'ivoire' }, rewards: [] },
-        { id: 'dofus_bonta', name: 'Porte de Bonta', desc: 'Réunir les 6 Dofus + niveau 150 pour accéder à Bonta.', cat: 'dofus', icon: '🏰', cond: { type: 'all_dofus' }, rewards: [] }
+        { id: 'dofus_bonta', name: 'Porte de Bonta', desc: 'Réunir les 6 Dofus + niveau 150 pour accéder à Bonta.', cat: 'dofus', icon: '🏰', cond: { type: 'all_dofus' }, rewards: [] },
+        { id: 'index_bonta', name: 'Écumeur de Bonta', desc: 'Compléter à 100 % le FishIndex de Bonta.', cat: 'dofus', icon: '🏰', cond: { type: 'zone_bonta' }, rewards: [{ type: 'title', id: 'title_eccumeur' }] }
     ];
 
     const achById = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
