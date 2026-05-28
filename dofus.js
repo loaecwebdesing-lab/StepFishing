@@ -1,6 +1,7 @@
 /**
  * StepFishing — Les 6 Dofus (déblocage zone Bonta)
- * Pêche : Émeraude, Ébène, Ocre · Coffres/bourses : Turquoise, Pourpre, Ivoire
+ * Pêche (1/100, Lac / Mer / Abysse / Bonta) : Émeraude, Ébène, Ocre
+ * Coffres/bourses (1/10) : Turquoise, Pourpre, Ivoire
  */
 (function () {
     const DOFUS_LIST = [

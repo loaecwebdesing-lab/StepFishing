@@ -505,11 +505,23 @@ function makeTreasureCatchFish(box) {
     };
 }
 
-const DOFUS_CATCH_CHANCE = 1 / 100;
+const DOFUS_FISH_CATCH_CHANCE = 1 / 100;
+const DOFUS_TREASURE_CATCH_CHANCE = 1 / 10;
 const TREASURE_DOFUS_BOX_IDS = new Set(['bourse', 'coffre_leger', 'coffre_moyen']);
 
 function ensureCollectedDofus() {
-    if (!Array.isArray(state.collectedDofus)) state.collectedDofus = [];
+    if (!Array.isArray(state.collectedDofus)) {
+        state.collectedDofus = [];
+        return;
+    }
+    state.collectedDofus = [...new Set(
+        state.collectedDofus.filter(id => window.STEPFISH_DOFUS?.byId?.[id])
+    )];
+}
+
+function hasDofus(dofusId) {
+    ensureCollectedDofus();
+    return state.collectedDofus.includes(dofusId);
 }
 
 function hasAllDofus() {
@@ -526,7 +538,7 @@ function getCollectedDofusCount() {
 
 function collectDofus(dofusId) {
     ensureCollectedDofus();
-    if (!dofusId || state.collectedDofus.includes(dofusId)) return false;
+    if (!dofusId || hasDofus(dofusId)) return false;
     const def = window.STEPFISH_DOFUS?.byId?.[dofusId];
     if (!def) return false;
     state.collectedDofus.push(dofusId);
@@ -537,26 +549,33 @@ function collectDofus(dofusId) {
     return true;
 }
 
-function rollFishableDofusCatch() {
-    if (Math.random() >= DOFUS_CATCH_CHANCE) return null;
+/** Dofus Émeraude / Ébène / Ocre : 1/100, toutes zones (Lac, Mer, Abysse, Bonta). */
+function canCatchFishableDofusInZone(zoneId = state.currentZone) {
+    return VALID_ZONE_IDS.has(zoneId);
+}
+
+function rollFishableDofusCatch(zoneId = state.currentZone) {
+    if (!canCatchFishableDofusInZone(zoneId)) return null;
+    if (Math.random() >= DOFUS_FISH_CATCH_CHANCE) return null;
     ensureCollectedDofus();
-    const pool = (window.STEPFISH_DOFUS?.fishable || []).filter(d => !state.collectedDofus.includes(d.id));
+    const pool = (window.STEPFISH_DOFUS?.fishable || []).filter(d => !hasDofus(d.id));
     if (!pool.length) return null;
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function rollTreasureBoxDofus(boxId) {
     if (!TREASURE_DOFUS_BOX_IDS.has(boxId)) return null;
-    if (Math.random() >= DOFUS_CATCH_CHANCE) return null;
+    if (Math.random() >= DOFUS_TREASURE_CATCH_CHANCE) return null;
     ensureCollectedDofus();
     const last = state.lastBoxDofusId || null;
     const pool = (window.STEPFISH_DOFUS?.treasure || []).filter(d => {
-        if (state.collectedDofus.includes(d.id)) return false;
+        if (hasDofus(d.id)) return false;
         if (last && d.id === last) return false;
         return true;
     });
     if (!pool.length) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    return pick && !hasDofus(pick.id) ? pick : null;
 }
 
 function makeDofusCatchFish(dofus) {
@@ -1661,7 +1680,7 @@ function renderCrateLootInfo() {
     const keyChanceLabel = `1 chance sur ${Math.round(1 / KEY_CATCH_CHANCE)} par poisson pêché`;
     const treasureHints = TREASURE_BOXES.map(b =>
         `${b.name} : 1/${Math.round(1 / b.catchChance)}`
-    ).join(' · ') + ` · Dofus (bourse/coffres) : 1/${Math.round(1 / DOFUS_CATCH_CHANCE)}`;
+    ).join(' · ') + ` · Dofus (bourse/coffres) : 1/${Math.round(1 / DOFUS_TREASURE_CATCH_CHANCE)}`;
 
     const moneyRows = p.money.map(m => `
         <li class="crate-loot-row">
@@ -1785,9 +1804,42 @@ function buildTreasureReelStrip(pool, winEntry, count = 50, winIndex = 45) {
 }
 
 function getTreasureReelItemHTML(entry) {
+    if (entry.type === 'dofus') {
+        const tag = entry.tag || 'Dofus';
+        return `<img src="${entry.img}" class="crate-dofus-reel-img" alt="${escapeHtml(entry.label)}">
+            <div class="crate-money-display crate-dofus-reel-label" style="color:${entry.color}">${escapeHtml(entry.label)}</div>
+            <div class="rarity-tag" style="color:${entry.color}">${tag}</div>`;
+    }
     const tag = entry.tag || 'Argent';
     return `<div class="crate-money-display" style="color:${entry.color}">${entry.label}</div>
         <div class="rarity-tag" style="color:${entry.color}">${tag}</div>`;
+}
+
+function makeDofusReelEntry(dofus) {
+    return {
+        type: 'dofus',
+        dofusId: dofus.id,
+        label: `Dofus ${dofus.name}`,
+        color: dofus.color || '#E040FB',
+        img: dofus.img,
+        tag: 'Dofus'
+    };
+}
+
+/** Bande roulette coffre : le gain central est le Dofus (remplace l'argent, pas en plus). */
+function buildTreasureDofusReelStrip(box, dofus, count = 50, winIndex = 45) {
+    const fillerPool = box.baseLoot || box.loot || [{ amount: 10, weight: 1, label: '10 $', color: '#BDBDBD' }];
+    const winEntry = makeDofusReelEntry(dofus);
+    const strip = [];
+    for (let i = 0; i < count; i++) {
+        if (i === winIndex) {
+            strip.push(winEntry);
+        } else {
+            const filler = pickWeightedLoot(fillerPool);
+            strip.push({ ...filler, tag: 'Argent' });
+        }
+    }
+    return strip;
 }
 
 function runTreasureReelSpin(listEl, strip, winIndex, durationMs) {
@@ -1801,7 +1853,7 @@ function runTreasureReelSpin(listEl, strip, winIndex, durationMs) {
         listEl.innerHTML = '';
         strip.forEach(entry => {
             const div = document.createElement('div');
-            div.className = 'crate-item';
+            div.className = 'crate-item' + (entry.type === 'dofus' ? ' crate-item-dofus' : '');
             div.style.borderColor = entry.color;
             div.innerHTML = getTreasureReelItemHTML(entry);
             listEl.appendChild(div);
@@ -1858,8 +1910,16 @@ function finishTreasureRoll(reward, box) {
     isTreasureOpening = false;
 }
 
+/** Récompense coffre = Dofus uniquement (pas d'argent ni mini-jeu argent en parallèle). */
 async function finishTreasureDofusReward(dofus, box) {
-    const isNew = collectDofus(dofus.id);
+    if (!dofus?.id || hasDofus(dofus.id)) {
+        isTreasureOpening = false;
+        return false;
+    }
+    if (!collectDofus(dofus.id)) {
+        isTreasureOpening = false;
+        return false;
+    }
     state.lastBoxDofusId = dofus.id;
     persistGame();
 
@@ -1869,27 +1929,22 @@ async function finishTreasureDofusReward(dofus, box) {
     const phase = document.getElementById('treasure-roll-phase');
     const headerImg = document.getElementById('treasure-roll-img');
 
-    if (sub) sub.textContent = 'Ouverture terminée';
+    if (sub) sub.textContent = 'Gain du coffre (à la place de l\'argent)';
     if (phase) phase.classList.add('hidden');
     if (headerImg) {
         headerImg.src = dofus.img;
         headerImg.alt = dofus.name;
     }
     if (resultEl) {
-        resultEl.innerHTML = `💎 Dofus ${escapeHtml(dofus.name)}${isNew ? '' : ' (déjà possédé)'}<br><span class="treasure-dofus-hint">Collection · Succès → 6 Dofus</span>`;
+        resultEl.innerHTML = `💎 Dofus ${escapeHtml(dofus.name)}<br><span class="treasure-dofus-hint">Pas d'argent · collection Succès → 6 Dofus</span>`;
         resultEl.style.color = dofus.color || box.color;
         resultEl.classList.remove('hidden');
     }
     if (closeBtn) closeBtn.classList.remove('hidden');
 
-    addLog(
-        isNew
-            ? `💎 ${box.name} : Dofus ${dofus.name} obtenu ! (${getCollectedDofusCount()}/6)`
-            : `💎 ${box.name} : Dofus ${dofus.name} (déjà en collection)`,
-        'epic'
-    );
-    alert(`💎 ${box.name}\nDofus ${dofus.name}${isNew ? ' ajouté à ta collection !' : ' — déjà possédé.'}\n(${getCollectedDofusCount()}/6 Dofus)`);
+    addLog(`💎 ${box.name} : Dofus ${dofus.name} (remplace le gain d'argent) · ${getCollectedDofusCount()}/6`, 'epic');
     isTreasureOpening = false;
+    return true;
 }
 
 async function startTreasureRollMinigame(boxId) {
@@ -1900,35 +1955,6 @@ async function startTreasureRollMinigame(boxId) {
     isTreasureOpening = true;
 
     const dofusDrop = rollTreasureBoxDofus(boxId);
-    if (dofusDrop) {
-        const title = document.getElementById('treasure-roll-title');
-        const sub = document.getElementById('treasure-roll-subtitle');
-        const phase = document.getElementById('treasure-roll-phase');
-        const resultEl = document.getElementById('treasure-roll-result');
-        const closeBtn = document.getElementById('btn-treasure-close');
-        const list = document.getElementById('treasure-list');
-        const headerImg = document.getElementById('treasure-roll-img');
-
-        if (title) title.textContent = box.name;
-        if (headerImg) {
-            headerImg.src = dofusDrop.img;
-            headerImg.alt = dofusDrop.name;
-        }
-        if (sub) sub.textContent = 'Un Dofus se cache dans le coffre…';
-        if (phase) phase.classList.add('hidden');
-        if (resultEl) {
-            resultEl.classList.add('hidden');
-            resultEl.textContent = '';
-        }
-        if (closeBtn) closeBtn.classList.add('hidden');
-        if (list) list.innerHTML = '';
-
-        showScreen('treasure-roll');
-        playChestSound();
-        await new Promise(r => setTimeout(r, 900));
-        await finishTreasureDofusReward(dofusDrop, box);
-        return;
-    }
     const title = document.getElementById('treasure-roll-title');
     const sub = document.getElementById('treasure-roll-subtitle');
     const phase = document.getElementById('treasure-roll-phase');
@@ -1954,6 +1980,22 @@ async function startTreasureRollMinigame(boxId) {
     playChestSound();
 
     try {
+        if (dofusDrop && !hasDofus(dofusDrop.id)) {
+            if (sub) sub.textContent = 'Roulette — le Dofus remplace l\'argent';
+            if (phase) {
+                phase.textContent = 'Gain possible : Dofus (collection)';
+                phase.classList.remove('hidden');
+            }
+            if (resultEl) {
+                resultEl.classList.add('hidden');
+                resultEl.textContent = '';
+            }
+            const dofusStrip = buildTreasureDofusReelStrip(box, dofusDrop);
+            await runTreasureReelSpin(list, dofusStrip, 45, 5000);
+            const awarded = await finishTreasureDofusReward(dofusDrop, box);
+            if (awarded) return;
+        }
+
         if (boxId === 'coffre_moyen') {
             const baseWin = pickWeightedLoot(box.baseLoot);
             const baseStrip = buildTreasureReelStrip(box.baseLoot, baseWin).map(e => ({ ...e, tag: 'Base' }));
@@ -2847,19 +2889,20 @@ function triggerCatch() {
         return;
     }
 
+    const dofusCatch = rollFishableDofusCatch(state.currentZone);
+    if (dofusCatch) {
+        state.currentFish = makeDofusCatchFish(dofusCatch);
+        setPhase('REELING');
+        const zoneName = ZONE_DATA.find(z => z.id === state.currentZone)?.name || 'cette zone';
+        addLog(`💎 Un Dofus ${dofusCatch.name} mord à l\'hameçon (${zoneName})…`, 'epic');
+        return;
+    }
+
     const treasureBox = rollTreasureBoxCatch();
     if (treasureBox) {
         state.currentFish = makeTreasureCatchFish(treasureBox);
         setPhase('REELING');
         addLog(`📦 ${treasureBox.name} accroché ! Remontez-le pour l\'ouvrir…`, 'epic');
-        return;
-    }
-
-    const dofusCatch = rollFishableDofusCatch();
-    if (dofusCatch) {
-        state.currentFish = makeDofusCatchFish(dofusCatch);
-        setPhase('REELING');
-        addLog(`💎 Un Dofus ${dofusCatch.name} mord à l\'hameçon…`, 'epic');
         return;
     }
 
@@ -3021,26 +3064,22 @@ function catchFish(success) {
     if (success && state.currentFish?.isDofus) {
         const dofusId = state.currentFish.dofusId;
         const def = window.STEPFISH_DOFUS?.byId?.[dofusId];
-        const isNew = collectDofus(dofusId);
+        if (!dofusId || hasDofus(dofusId) || !collectDofus(dofusId)) {
+            stopFishingSession();
+            return;
+        }
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
         updateProgression();
         elements.score.innerText = state.score;
         persistGame();
         state.catchModalFishUid = null;
-        elements.catchTitle.innerText = isNew ? 'DOFUS TROUVÉ !' : 'DOFUS (déjà possédé)';
-        elements.catchText.innerText = isNew
-            ? `Dofus ${def?.name || ''} ajouté — voir Succès → 6 Dofus (${getCollectedDofusCount()}/6)`
-            : 'Tu possèdes déjà ce Dofus.';
+        elements.catchTitle.innerText = 'DOFUS TROUVÉ !';
+        elements.catchText.innerText = `Dofus ${def?.name || ''} ajouté — voir Succès → 6 Dofus (${getCollectedDofusCount()}/6)`;
         renderCatchReveal(state.currentFish);
         updateCatchLockUI();
         showScreen('catch-modal');
-        addLog(
-            isNew
-                ? `💎 Dofus ${def?.name || ''} capturé ! (${getCollectedDofusCount()}/6)`
-                : `💎 Dofus ${def?.name || ''} (déjà en collection)`,
-            'epic'
-        );
+        addLog(`💎 Dofus ${def?.name || ''} capturé ! (${getCollectedDofusCount()}/6)`, 'epic');
         stopFishingSession();
         return;
     }

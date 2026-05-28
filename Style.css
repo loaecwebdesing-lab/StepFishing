@@ -1897,6 +1897,29 @@ button.index-legend-item {
     font-weight: bold;
 }
 
+.crate-item-dofus {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 4px 18px;
+    border-color: #ce93d8 !important;
+    background: rgba(126, 87, 194, 0.18);
+    box-shadow: 0 0 12px rgba(206, 147, 216, 0.35);
+}
+
+.crate-dofus-reel-img {
+    width: 52px !important;
+    height: 52px !important;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(255, 202, 40, 0.5));
+}
+
+.crate-dofus-reel-label {
+    font-size: 0.72rem !important;
+    line-height: 1.1;
+    text-align: center;
+    padding: 0 4px;
+}
+
 .crate-money-display {
     font-family: var(--font-game);
     font-size: 1.35rem;

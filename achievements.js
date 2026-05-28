@@ -95,12 +95,12 @@
         { id: 'aquariums_5', name: 'Conservateur', desc: 'Débloquer les 5 aquariums.', cat: 'eco', icon: '🐠', cond: { type: 'aquariums', n: 5 }, rewards: [{ type: 'title', id: 'title_curator' }] },
         { id: 'level_100', name: 'Sage des mers', desc: 'Atteindre le niveau 100.', cat: 'prog', icon: '🧙', cond: { type: 'level', n: 100 }, rewards: [{ type: 'title', id: 'title_sage' }] },
         { id: 'trades_10', name: 'Courtier expert', desc: 'Réussir 10 échanges.', cat: 'social', icon: '🤝', cond: { type: 'trades', n: 10 }, rewards: [{ type: 'title', id: 'title_broker' }] },
-        { id: 'dofus_emeraude', name: 'Dofus Émeraude', desc: 'Pêcher le Dofus Émeraude (1/100 à la pêche).', cat: 'dofus', icon: '💚', cond: { type: 'dofus', id: 'emeraude' }, rewards: [] },
-        { id: 'dofus_ebene', name: 'Dofus Ébène', desc: 'Pêcher le Dofus Ébène (1/100 à la pêche).', cat: 'dofus', icon: '🖤', cond: { type: 'dofus', id: 'ebene' }, rewards: [] },
-        { id: 'dofus_ocre', name: 'Dofus Ocre', desc: 'Pêcher le Dofus Ocre (1/100 à la pêche).', cat: 'dofus', icon: '🧡', cond: { type: 'dofus', id: 'ocre' }, rewards: [] },
-        { id: 'dofus_turquoise', name: 'Dofus Turquoise', desc: 'Trouver le Dofus Turquoise dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '🩵', cond: { type: 'dofus', id: 'turquoise' }, rewards: [] },
-        { id: 'dofus_pourpre', name: 'Dofus Pourpre', desc: 'Trouver le Dofus Pourpre dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '💜', cond: { type: 'dofus', id: 'pourpre' }, rewards: [] },
-        { id: 'dofus_ivoire', name: 'Dofus Ivoire', desc: 'Trouver le Dofus Ivoire dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '🤍', cond: { type: 'dofus', id: 'ivoire' }, rewards: [] },
+        { id: 'dofus_emeraude', name: 'Dofus Émeraude', desc: 'Pêcher le Dofus Émeraude (1/100) — toutes les zones.', cat: 'dofus', icon: '💚', cond: { type: 'dofus', id: 'emeraude' }, rewards: [] },
+        { id: 'dofus_ebene', name: 'Dofus Ébène', desc: 'Pêcher le Dofus Ébène (1/100) — toutes les zones.', cat: 'dofus', icon: '🖤', cond: { type: 'dofus', id: 'ebene' }, rewards: [] },
+        { id: 'dofus_ocre', name: 'Dofus Ocre', desc: 'Pêcher le Dofus Ocre (1/100) — toutes les zones.', cat: 'dofus', icon: '🧡', cond: { type: 'dofus', id: 'ocre' }, rewards: [] },
+        { id: 'dofus_turquoise', name: 'Dofus Turquoise', desc: 'Trouver le Dofus Turquoise dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '🩵', cond: { type: 'dofus', id: 'turquoise' }, rewards: [] },
+        { id: 'dofus_pourpre', name: 'Dofus Pourpre', desc: 'Trouver le Dofus Pourpre dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '💜', cond: { type: 'dofus', id: 'pourpre' }, rewards: [] },
+        { id: 'dofus_ivoire', name: 'Dofus Ivoire', desc: 'Trouver le Dofus Ivoire dans une bourse ou un coffre (1/10).', cat: 'dofus', icon: '🤍', cond: { type: 'dofus', id: 'ivoire' }, rewards: [] },
         { id: 'dofus_bonta', name: 'Porte de Bonta', desc: 'Réunir les 6 Dofus + niveau 150 pour accéder à Bonta.', cat: 'dofus', icon: '🏰', cond: { type: 'all_dofus' }, rewards: [] }
     ];
 
