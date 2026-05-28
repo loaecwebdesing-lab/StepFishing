@@ -46,9 +46,10 @@
     const CATEGORIES = [
         { id: 'peche', label: 'Pêche', icon: '🎣', order: 1 },
         { id: 'coll', label: 'Collection & Index', icon: '📖', order: 2 },
-        { id: 'eco', label: 'Économie', icon: '💰', order: 3 },
-        { id: 'prog', label: 'Progression', icon: '⭐', order: 4 },
-        { id: 'social', label: 'Social', icon: '💬', order: 5 }
+        { id: 'dofus', label: '6 Dofus', icon: '💎', order: 3 },
+        { id: 'eco', label: 'Économie', icon: '💰', order: 4 },
+        { id: 'prog', label: 'Progression', icon: '⭐', order: 5 },
+        { id: 'social', label: 'Social', icon: '💬', order: 6 }
     ];
 
     let activeAchFilter = 'all';
@@ -93,7 +94,14 @@
         { id: 'fish_sold_500', name: 'Grossiste', desc: 'Vendre 500 poissons au total.', cat: 'eco', icon: '🏪', cond: { type: 'fish_sold', n: 500 }, rewards: [{ type: 'title', id: 'title_merchant' }] },
         { id: 'aquariums_5', name: 'Conservateur', desc: 'Débloquer les 5 aquariums.', cat: 'eco', icon: '🐠', cond: { type: 'aquariums', n: 5 }, rewards: [{ type: 'title', id: 'title_curator' }] },
         { id: 'level_100', name: 'Sage des mers', desc: 'Atteindre le niveau 100.', cat: 'prog', icon: '🧙', cond: { type: 'level', n: 100 }, rewards: [{ type: 'title', id: 'title_sage' }] },
-        { id: 'trades_10', name: 'Courtier expert', desc: 'Réussir 10 échanges.', cat: 'social', icon: '🤝', cond: { type: 'trades', n: 10 }, rewards: [{ type: 'title', id: 'title_broker' }] }
+        { id: 'trades_10', name: 'Courtier expert', desc: 'Réussir 10 échanges.', cat: 'social', icon: '🤝', cond: { type: 'trades', n: 10 }, rewards: [{ type: 'title', id: 'title_broker' }] },
+        { id: 'dofus_emeraude', name: 'Dofus Émeraude', desc: 'Pêcher le Dofus Émeraude (1/100 à la pêche).', cat: 'dofus', icon: '💚', cond: { type: 'dofus', id: 'emeraude' }, rewards: [] },
+        { id: 'dofus_ebene', name: 'Dofus Ébène', desc: 'Pêcher le Dofus Ébène (1/100 à la pêche).', cat: 'dofus', icon: '🖤', cond: { type: 'dofus', id: 'ebene' }, rewards: [] },
+        { id: 'dofus_ocre', name: 'Dofus Ocre', desc: 'Pêcher le Dofus Ocre (1/100 à la pêche).', cat: 'dofus', icon: '🧡', cond: { type: 'dofus', id: 'ocre' }, rewards: [] },
+        { id: 'dofus_turquoise', name: 'Dofus Turquoise', desc: 'Trouver le Dofus Turquoise dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '🩵', cond: { type: 'dofus', id: 'turquoise' }, rewards: [] },
+        { id: 'dofus_pourpre', name: 'Dofus Pourpre', desc: 'Trouver le Dofus Pourpre dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '💜', cond: { type: 'dofus', id: 'pourpre' }, rewards: [] },
+        { id: 'dofus_ivoire', name: 'Dofus Ivoire', desc: 'Trouver le Dofus Ivoire dans une bourse ou un coffre (1/100).', cat: 'dofus', icon: '🤍', cond: { type: 'dofus', id: 'ivoire' }, rewards: [] },
+        { id: 'dofus_bonta', name: 'Porte de Bonta', desc: 'Réunir les 6 Dofus + niveau 150 pour accéder à Bonta.', cat: 'dofus', icon: '🏰', cond: { type: 'all_dofus' }, rewards: [] }
     ];
 
     const achById = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
@@ -217,6 +225,15 @@
                 return { cur, max: c.n };
             }
             case 'owned_rods': return { cur: (s.ownedRods || []).length, max: c.n };
+            case 'dofus': {
+                const owned = Array.isArray(s.collectedDofus) && s.collectedDofus.includes(c.id);
+                return { cur: owned ? 1 : 0, max: 1 };
+            }
+            case 'all_dofus': {
+                const total = window.STEPFISH_DOFUS?.count || 6;
+                const cur = Array.isArray(s.collectedDofus) ? s.collectedDofus.length : 0;
+                return { cur: Math.min(cur, total), max: total };
+            }
             default: return { cur: 0, max: 1 };
         }
     }
@@ -330,8 +347,21 @@
             }
             if (r.type === 'money') return `<span class="ach-reward-tag">+${Number(r.n).toLocaleString('fr-FR')} $</span>`;
             if (r.type === 'keys') return `<span class="ach-reward-tag">+${r.n} 🔑</span>`;
+            if (ach.cat === 'dofus') return '<span class="ach-reward-tag ach-reward-dofus">Collection</span>';
             return '';
         }).join('');
+    }
+
+    function getDofusIconHtml(ach) {
+        const id = ach.cond?.type === 'dofus' ? ach.cond.id : null;
+        const def = id && window.STEPFISH_DOFUS?.byId?.[id];
+        if (def) {
+            return `<img src="${def.img}" class="ach-dofus-thumb" alt="" width="40" height="40">`;
+        }
+        if (ach.cond?.type === 'all_dofus') {
+            return '<span class="ach-dofus-six" aria-hidden="true">💎×6</span>';
+        }
+        return ach.icon;
     }
 
     function filterAchievements(filter, unlocked) {
@@ -368,9 +398,10 @@
         } else {
             action = `<div class="ach-progress-bar"><div class="ach-progress-fill" style="width:${pct}%"></div></div><span class="ach-progress-text">${formatProgress(p, ach)}</span>`;
         }
-        return `<article class="ach-card${done ? ' ach-card-done' : ''}" data-id="${ach.id}" data-cat="${ach.cat}">
+        const iconContent = ach.cat === 'dofus' ? getDofusIconHtml(ach) : ach.icon;
+        return `<article class="ach-card${done ? ' ach-card-done' : ''}${ach.cat === 'dofus' ? ' ach-card-dofus' : ''}" data-id="${ach.id}" data-cat="${ach.cat}">
             <div class="ach-card-top">
-                <span class="ach-card-icon">${ach.icon}</span>
+                <span class="ach-card-icon">${iconContent}</span>
                 ${done ? '<span class="ach-card-badge">✓</span>' : ''}
             </div>
             <h3>${escapeHtml(ach.name)}</h3>
@@ -507,7 +538,7 @@
 
     function onFishCaught(fish) {
         const s = getState();
-        if (!s || !fish || fish.isKey || fish.isTreasureBox) return;
+        if (!s || !fish || fish.isKey || fish.isTreasureBox || fish.isDofus) return;
         ensureAchievementState(s);
         const r = fish.id ?? fish.rarity;
         if (r >= 3 && r <= 6) {

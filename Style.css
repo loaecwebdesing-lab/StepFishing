@@ -4643,6 +4643,41 @@ button.index-legend-item {
     font-weight: 700;
 }
 
+.ach-card-dofus .ach-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+}
+
+.ach-dofus-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(255, 202, 40, 0.45));
+}
+
+.ach-reward-dofus {
+    border-color: #7e57c2;
+    color: #ce93d8;
+}
+
+.dofus-catch-visual img {
+    animation: dofusPulse 2s ease-in-out infinite;
+}
+
+@keyframes dofusPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+
+.treasure-dofus-hint {
+    display: block;
+    font-size: 0.78rem;
+    opacity: 0.85;
+    margin-top: 4px;
+}
+
 .achievements-footer {
     margin-top: 12px;
     text-align: center;

@@ -505,6 +505,76 @@ function makeTreasureCatchFish(box) {
     };
 }
 
+const DOFUS_CATCH_CHANCE = 1 / 100;
+const TREASURE_DOFUS_BOX_IDS = new Set(['bourse', 'coffre_leger', 'coffre_moyen']);
+
+function ensureCollectedDofus() {
+    if (!Array.isArray(state.collectedDofus)) state.collectedDofus = [];
+}
+
+function hasAllDofus() {
+    ensureCollectedDofus();
+    const total = window.STEPFISH_DOFUS?.count || 6;
+    return state.collectedDofus.length >= total
+        && (window.STEPFISH_DOFUS?.all || []).every(d => state.collectedDofus.includes(d.id));
+}
+
+function getCollectedDofusCount() {
+    ensureCollectedDofus();
+    return state.collectedDofus.length;
+}
+
+function collectDofus(dofusId) {
+    ensureCollectedDofus();
+    if (!dofusId || state.collectedDofus.includes(dofusId)) return false;
+    const def = window.STEPFISH_DOFUS?.byId?.[dofusId];
+    if (!def) return false;
+    state.collectedDofus.push(dofusId);
+    window.StepFishAchievements?.checkAll?.();
+    if (hasAllDofus()) {
+        addLog('🏰 Les 6 Dofus sont réunis — Bonta est accessible ! (niveau 150)', 'epic');
+    }
+    return true;
+}
+
+function rollFishableDofusCatch() {
+    if (Math.random() >= DOFUS_CATCH_CHANCE) return null;
+    ensureCollectedDofus();
+    const pool = (window.STEPFISH_DOFUS?.fishable || []).filter(d => !state.collectedDofus.includes(d.id));
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function rollTreasureBoxDofus(boxId) {
+    if (!TREASURE_DOFUS_BOX_IDS.has(boxId)) return null;
+    if (Math.random() >= DOFUS_CATCH_CHANCE) return null;
+    ensureCollectedDofus();
+    const last = state.lastBoxDofusId || null;
+    const pool = (window.STEPFISH_DOFUS?.treasure || []).filter(d => {
+        if (state.collectedDofus.includes(d.id)) return false;
+        if (last && d.id === last) return false;
+        return true;
+    });
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function makeDofusCatchFish(dofus) {
+    return {
+        isDofus: true,
+        dofusId: dofus.id,
+        id: -3,
+        name: `Dofus ${dofus.name}`,
+        img: dofus.img,
+        points: 40,
+        color: dofus.color || '#E040FB',
+        difficulty: 9,
+        class: 'rarity-5',
+        value: 0,
+        mutation: 'Normal'
+    };
+}
+
 /** Poissons abyss (hors Mythique / Divin). */
 const ABYSS_FISH_NO_TOP = {
     commun: ['Alepisore.png', 'CrocoFish.png', 'GrockFish.png'],
@@ -702,6 +772,10 @@ function sanitizeSavePayload(raw) {
         equippedTitleId: data.equippedTitleId || null,
         equippedColorId: data.equippedColorId || null,
         achievementStats: data.achievementStats && typeof data.achievementStats === 'object' ? data.achievementStats : null,
+        collectedDofus: Array.isArray(data.collectedDofus)
+            ? [...new Set(data.collectedDofus.filter(id => window.STEPFISH_DOFUS?.byId?.[id]))]
+            : [],
+        lastBoxDofusId: window.STEPFISH_DOFUS?.byId?.[data.lastBoxDofusId] ? data.lastBoxDofusId : null,
         commonStreakCurrent,
         commonStreakBest
     };
@@ -731,7 +805,9 @@ function loadLegacyLocalSavePayload() {
         equippedColorId: localStorage.getItem('stepFishingEquippedAchColor') || null,
         achievementStats: safeParse('stepFishingAchStats', null),
         commonStreakCurrent: parseInt(localStorage.getItem('stepFishingCommonStreakCur'), 10) || 0,
-        commonStreakBest: parseInt(localStorage.getItem('stepFishingCommonStreakBest'), 10) || 0
+        commonStreakBest: parseInt(localStorage.getItem('stepFishingCommonStreakBest'), 10) || 0,
+        collectedDofus: safeParse('stepFishingDofus', []),
+        lastBoxDofusId: localStorage.getItem('stepFishingLastBoxDofus') || null
     });
 }
 
@@ -989,6 +1065,8 @@ function getSavePayload() {
         equippedTitleId: state.equippedTitleId || null,
         equippedColorId: state.equippedColorId || null,
         achievementStats: state.achievementStats || null,
+        collectedDofus: state.collectedDofus || [],
+        lastBoxDofusId: state.lastBoxDofusId || null,
         commonStreakCurrent: state.commonStreakCurrent || 0,
         commonStreakBest: state.commonStreakBest || 0
     });
@@ -1032,6 +1110,9 @@ function applySanitizedSaveToState(data) {
     }
     state.commonStreakCurrent = data.commonStreakCurrent;
     state.commonStreakBest = data.commonStreakBest;
+    state.collectedDofus = data.collectedDofus;
+    state.lastBoxDofusId = data.lastBoxDofusId;
+    ensureCollectedDofus();
     if (!state.bestFish?.value) {
         const derived = findBestFishInInventory(state.inventory);
         if (derived) state.bestFish = derived;
@@ -1160,7 +1241,9 @@ function createInitialState() {
         equippedColorId: saved.equippedColorId,
         achievementStats: saved.achievementStats,
         commonStreakCurrent: saved.commonStreakCurrent,
-        commonStreakBest: saved.commonStreakBest
+        commonStreakBest: saved.commonStreakBest,
+        collectedDofus: saved.collectedDofus,
+        lastBoxDofusId: saved.lastBoxDofusId
     };
 }
 
@@ -1258,7 +1341,7 @@ function getRarityNameFromClass(className) {
 
 /** Poisson « Commun » (rarity-0), hors clé / coffre. */
 function isCommonCatchFish(fish) {
-    if (!fish || fish.isKey || fish.isTreasureBox) return false;
+    if (!fish || fish.isKey || fish.isTreasureBox || fish.isDofus) return false;
     return fish.id === 0 || fish.class === 'rarity-0';
 }
 
@@ -1426,7 +1509,7 @@ function isZoneUnlocked(zone) {
     if (state.level < getZoneMinLevel(zone)) return false;
     if (zone.id === 'ocean') return hasDiscoveredAllLacFish();
     if (zone.id === 'abyss') return hasDiscoveredAllOceanFish();
-    if (zone.id === 'bonta') return hasDiscoveredAllAbyssFish();
+    if (zone.id === 'bonta') return hasAllDofus();
     return true;
 }
 
@@ -1446,10 +1529,10 @@ function getZoneLockMessage(zone) {
         const found = getDiscoveredOceanCountForAbyss();
         return `Niveau 100 OK · Océan : ${found}/${total} espèces (sans Mythique ni Divin)`;
     }
-    if (zone.id === 'bonta' && !hasDiscoveredAllAbyssFish()) {
-        const total = getAbyssFishCount();
-        const found = getDiscoveredAbyssCount();
-        return `Niveau 150 requis · Abysse : ${found}/${total} espèces dans le FishIndex`;
+    if (zone.id === 'bonta' && !hasAllDofus()) {
+        const total = window.STEPFISH_DOFUS?.count || 6;
+        const found = getCollectedDofusCount();
+        return `Niveau 150 · Dofus : ${found}/${total} (Succès → 6 Dofus)`;
     }
     return '';
 }
@@ -1578,7 +1661,7 @@ function renderCrateLootInfo() {
     const keyChanceLabel = `1 chance sur ${Math.round(1 / KEY_CATCH_CHANCE)} par poisson pêché`;
     const treasureHints = TREASURE_BOXES.map(b =>
         `${b.name} : 1/${Math.round(1 / b.catchChance)}`
-    ).join(' · ');
+    ).join(' · ') + ` · Dofus (bourse/coffres) : 1/${Math.round(1 / DOFUS_CATCH_CHANCE)}`;
 
     const moneyRows = p.money.map(m => `
         <li class="crate-loot-row">
@@ -1775,12 +1858,77 @@ function finishTreasureRoll(reward, box) {
     isTreasureOpening = false;
 }
 
+async function finishTreasureDofusReward(dofus, box) {
+    const isNew = collectDofus(dofus.id);
+    state.lastBoxDofusId = dofus.id;
+    persistGame();
+
+    const sub = document.getElementById('treasure-roll-subtitle');
+    const resultEl = document.getElementById('treasure-roll-result');
+    const closeBtn = document.getElementById('btn-treasure-close');
+    const phase = document.getElementById('treasure-roll-phase');
+    const headerImg = document.getElementById('treasure-roll-img');
+
+    if (sub) sub.textContent = 'Ouverture terminée';
+    if (phase) phase.classList.add('hidden');
+    if (headerImg) {
+        headerImg.src = dofus.img;
+        headerImg.alt = dofus.name;
+    }
+    if (resultEl) {
+        resultEl.innerHTML = `💎 Dofus ${escapeHtml(dofus.name)}${isNew ? '' : ' (déjà possédé)'}<br><span class="treasure-dofus-hint">Collection · Succès → 6 Dofus</span>`;
+        resultEl.style.color = dofus.color || box.color;
+        resultEl.classList.remove('hidden');
+    }
+    if (closeBtn) closeBtn.classList.remove('hidden');
+
+    addLog(
+        isNew
+            ? `💎 ${box.name} : Dofus ${dofus.name} obtenu ! (${getCollectedDofusCount()}/6)`
+            : `💎 ${box.name} : Dofus ${dofus.name} (déjà en collection)`,
+        'epic'
+    );
+    alert(`💎 ${box.name}\nDofus ${dofus.name}${isNew ? ' ajouté à ta collection !' : ' — déjà possédé.'}\n(${getCollectedDofusCount()}/6 Dofus)`);
+    isTreasureOpening = false;
+}
+
 async function startTreasureRollMinigame(boxId) {
     if (isTreasureOpening) return;
     const box = TREASURE_BOX_BY_ID[boxId];
     if (!box) return;
 
     isTreasureOpening = true;
+
+    const dofusDrop = rollTreasureBoxDofus(boxId);
+    if (dofusDrop) {
+        const title = document.getElementById('treasure-roll-title');
+        const sub = document.getElementById('treasure-roll-subtitle');
+        const phase = document.getElementById('treasure-roll-phase');
+        const resultEl = document.getElementById('treasure-roll-result');
+        const closeBtn = document.getElementById('btn-treasure-close');
+        const list = document.getElementById('treasure-list');
+        const headerImg = document.getElementById('treasure-roll-img');
+
+        if (title) title.textContent = box.name;
+        if (headerImg) {
+            headerImg.src = dofusDrop.img;
+            headerImg.alt = dofusDrop.name;
+        }
+        if (sub) sub.textContent = 'Un Dofus se cache dans le coffre…';
+        if (phase) phase.classList.add('hidden');
+        if (resultEl) {
+            resultEl.classList.add('hidden');
+            resultEl.textContent = '';
+        }
+        if (closeBtn) closeBtn.classList.add('hidden');
+        if (list) list.innerHTML = '';
+
+        showScreen('treasure-roll');
+        playChestSound();
+        await new Promise(r => setTimeout(r, 900));
+        await finishTreasureDofusReward(dofusDrop, box);
+        return;
+    }
     const title = document.getElementById('treasure-roll-title');
     const sub = document.getElementById('treasure-roll-subtitle');
     const phase = document.getElementById('treasure-roll-phase');
@@ -1993,7 +2141,7 @@ function ensureFishUidsInInventory() {
 }
 
 function canTradeFish(fish) {
-    return Boolean(fish && !fish.isKey && !fish.isTreasureBox && !isFishLocked(fish) && fish.uid);
+    return Boolean(fish && !fish.isKey && !fish.isTreasureBox && !fish.isDofus && !isFishLocked(fish) && fish.uid);
 }
 
 function findFishByUid(uid) {
@@ -2081,7 +2229,7 @@ function getMutationData(mutationName) {
 function getCatchRevealFishSize(fish) {
     if (!fish) return 200;
     const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
-    if (fish.isKey || fish.isTreasureBox) {
+    if (fish.isKey || fish.isTreasureBox || fish.isDofus) {
         return isMobile ? 200 : 220;
     }
     const aqSize = aquariumFishWidthPx(fish.weight);
@@ -2142,6 +2290,9 @@ function renderCatchReveal(fish) {
         } else if (fish.isTreasureBox) {
             rarityEl.textContent = 'Coffre pêché — ouverture au remontage';
             rarityEl.style.color = fish.color || '#8BC34A';
+        } else if (fish.isDofus) {
+            rarityEl.textContent = 'Dofus — collection (pas d\'aquarium)';
+            rarityEl.style.color = fish.color || '#E040FB';
         } else {
             const mutation = getMutationData(fish.mutation);
             rarityEl.innerHTML = `${escapeHtml(getRarityNameFromClass(fish.class))}${buildPrefixNoteHTML(fish)} · ${escapeHtml(formatFishWeight(fish.weight))} · ${escapeHtml(mutation.name)}`;
@@ -2149,7 +2300,7 @@ function renderCatchReveal(fish) {
         }
     }
     if (priceEl) {
-        if (fish.isKey || fish.isTreasureBox) {
+        if (fish.isKey || fish.isTreasureBox || fish.isDofus) {
             priceEl.innerHTML = '';
             priceEl.classList.add('hidden');
         } else {
@@ -2207,13 +2358,14 @@ function toggleLockFromCatchModal() {
 
 function buildCatchRevealVisualHTML(fish, width) {
     const w = Math.round(width);
-    if (fish.isKey || fish.isTreasureBox) {
+    if (fish.isKey || fish.isTreasureBox || fish.isDofus) {
         const img = fish.img || KEY_IMG;
         const icon = Math.round(w * 0.88);
         const glow = fish.color || '#ffca28';
         const alt = fish.isKey ? 'Clé mystérieuse' : fish.name;
-        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual catch-reveal-wrap" style="width:${w}px;--catch-glow:${glow}">
-            <img src="${img}" class="key-catch-img catch-reveal-img" style="width:${icon}px;height:${icon}px;filter:drop-shadow(0 0 12px ${glow})" alt="${alt}">
+        const extraClass = fish.isDofus ? ' dofus-catch-visual' : '';
+        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual catch-reveal-wrap${extraClass}" style="width:${w}px;--catch-glow:${glow}">
+            <img src="${img}" class="key-catch-img catch-reveal-img" style="width:${icon}px;height:${icon}px;filter:drop-shadow(0 0 16px ${glow})" alt="${alt}">
         </div>`;
     }
     const mutation = getMutationData(fish.mutation);
@@ -2223,13 +2375,14 @@ function buildCatchRevealVisualHTML(fish, width) {
 }
 
 function buildFishVisualHTML(fish, width) {
-    if (fish.isKey || fish.isTreasureBox) {
+    if (fish.isKey || fish.isTreasureBox || fish.isDofus) {
         const img = fish.img || KEY_IMG;
         const size = Math.round(width * 0.88);
         const glow = fish.color || '#ffca28';
         const alt = fish.isKey ? 'Clé mystérieuse' : fish.name;
-        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual" style="width:${width}px;height:${width}px;--catch-glow:${glow}">
-            <img src="${img}" class="key-catch-img" style="width:${size}px;height:${size}px;filter:drop-shadow(0 0 12px ${glow})" alt="${alt}">
+        const extraClass = fish.isDofus ? ' dofus-catch-visual' : '';
+        return `<div class="fish-visual-wrap key-catch-visual treasure-catch-visual${extraClass}" style="width:${width}px;height:${width}px;--catch-glow:${glow}">
+            <img src="${img}" class="key-catch-img" style="width:${size}px;height:${size}px;filter:drop-shadow(0 0 16px ${glow})" alt="${alt}">
         </div>`;
     }
     const mutation = getMutationData(fish.mutation);
@@ -2702,6 +2855,14 @@ function triggerCatch() {
         return;
     }
 
+    const dofusCatch = rollFishableDofusCatch();
+    if (dofusCatch) {
+        state.currentFish = makeDofusCatchFish(dofusCatch);
+        setPhase('REELING');
+        addLog(`💎 Un Dofus ${dofusCatch.name} mord à l\'hameçon…`, 'epic');
+        return;
+    }
+
     const currentRod = ALL_RODS.find(r => r.id === Number(state.equippedRod)) || ALL_RODS[0];
     const zone = ZONE_DATA.find(z => z.id === state.currentZone);
     const activeZone = zone || ZONE_DATA[0];
@@ -2857,6 +3018,33 @@ function catchFish(success) {
         return;
     }
 
+    if (success && state.currentFish?.isDofus) {
+        const dofusId = state.currentFish.dofusId;
+        const def = window.STEPFISH_DOFUS?.byId?.[dofusId];
+        const isNew = collectDofus(dofusId);
+        state.score += state.currentFish.points;
+        state.totalScore += state.currentFish.points;
+        updateProgression();
+        elements.score.innerText = state.score;
+        persistGame();
+        state.catchModalFishUid = null;
+        elements.catchTitle.innerText = isNew ? 'DOFUS TROUVÉ !' : 'DOFUS (déjà possédé)';
+        elements.catchText.innerText = isNew
+            ? `Dofus ${def?.name || ''} ajouté — voir Succès → 6 Dofus (${getCollectedDofusCount()}/6)`
+            : 'Tu possèdes déjà ce Dofus.';
+        renderCatchReveal(state.currentFish);
+        updateCatchLockUI();
+        showScreen('catch-modal');
+        addLog(
+            isNew
+                ? `💎 Dofus ${def?.name || ''} capturé ! (${getCollectedDofusCount()}/6)`
+                : `💎 Dofus ${def?.name || ''} (déjà en collection)`,
+            'epic'
+        );
+        stopFishingSession();
+        return;
+    }
+
     if (success) {
         state.score += state.currentFish.points;
         state.totalScore += state.currentFish.points;
@@ -2888,9 +3076,6 @@ function catchFish(success) {
             if (hasDiscoveredAllOceanFish() && state.level >= 100) {
                 addLog('🌑 Abysse débloqué ! Toutes les espèces de Haute Mer requises sont dans ton FishIndex.', 'epic');
             }
-            if (hasDiscoveredAllAbyssFish() && state.level >= 150) {
-                addLog('🏰 Bonta débloquée ! Toutes les espèces de l\'Abysse sont dans ton FishIndex.', 'epic');
-            }
         }
     } else {
         state.catchModalFishUid = null;
@@ -2900,6 +3085,9 @@ function catchFish(success) {
         } else if (state.currentFish?.isTreasureBox) {
             elements.catchTitle.innerText = 'COFFRE PERDU...';
             elements.catchText.innerText = `${state.currentFish.name} est retombé au fond…`;
+        } else if (state.currentFish?.isDofus) {
+            elements.catchTitle.innerText = 'DOFUS PERDU...';
+            elements.catchText.innerText = 'Le Dofus est retombé au fond de l\'eau…';
         } else {
             elements.catchTitle.innerText = "ÉCHEC...";
             elements.catchText.innerText = `Le ${state.currentFish.name} s'est échappé...`;
@@ -3789,6 +3977,8 @@ window.StepFishGameMeta = {
     hasDiscoveredAllOceanFish: () => hasDiscoveredAllOceanFish(),
     hasDiscoveredAllAbyssFish: () => hasDiscoveredAllAbyssFish(),
     hasDiscoveredAllFishInGame: () => hasDiscoveredAllFishInGame(),
+    hasAllDofus: () => hasAllDofus(),
+    getCollectedDofusCount: () => getCollectedDofusCount(),
     getLacFishCount: () => getLacFishCount(),
     getDiscoveredLacCount: () => getDiscoveredLacCount(),
     getOceanFishCountForAbyss: () => getOceanFishCountForAbyss(),
