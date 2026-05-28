@@ -3338,16 +3338,16 @@ button.index-legend-item {
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    width: calc(100% + 8px);
-    height: calc(100% + 6px);
-    min-width: calc(100% + 8px);
-    min-height: calc(100% + 6px);
-    margin: -3px -4px;
-    transform: scale(0.88) translateY(1px);
+    width: calc(100% + 4px);
+    height: calc(100% + 3px);
+    min-width: calc(100% + 4px);
+    min-height: calc(100% + 3px);
+    margin: -1px -2px;
+    transform: scale(0.72) translateY(-2px);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(2px);
+    transform: translateY(0);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text,
@@ -4688,11 +4688,11 @@ button.index-legend-item {
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(5px);
+    transform: translateY(0);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    transform: scale(1.06) translateY(3px);
+    transform: scale(1.06) translateY(-3px);
 }
 
 .profile-info #user-pseudo {
