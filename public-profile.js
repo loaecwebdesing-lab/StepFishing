@@ -51,18 +51,22 @@
         </span>`;
     }
 
-    function renderPseudoHeader(pseudo, cosmeticId, titleId, colorId) {
+    function renderPseudoHeader(pseudo, cosmeticId, titleId, colorId, ornamentId) {
         const el = document.getElementById('pp-pseudo-header');
         if (!el) return;
+        const styleId = cosmeticId && window.StepFishCosmetics?.isOrnamentId?.(cosmeticId)
+            ? 'default'
+            : (cosmeticId || 'default');
         if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
             el.innerHTML = window.StepFishAchievements.renderPlayerPseudoHTML(
                 pseudo,
-                cosmeticId || 'default',
+                styleId,
                 titleId,
-                colorId
+                colorId,
+                ornamentId || null
             );
         } else if (window.StepFishCosmetics?.renderPseudoHTML) {
-            el.innerHTML = window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default');
+            el.innerHTML = window.StepFishCosmetics.renderPseudoHTML(pseudo, styleId, ornamentId || null);
         } else {
             el.textContent = pseudo;
         }
@@ -132,7 +136,7 @@
     function renderStatsView() {
         const p = currentProfile;
         if (!p) return;
-        renderPseudoHeader(p.pseudo, p.cosmetic_id, p.achievement_title_id, p.achievement_color_id);
+        renderPseudoHeader(p.pseudo, p.cosmetic_id, p.achievement_title_id, p.achievement_color_id, p.ornament_id);
         const set = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;

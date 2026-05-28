@@ -1,19 +1,23 @@
 /**
- * StepFishing — Boutique cosmétiques (styles de pseudo)
+ * StepFishing — Boutique cosmétiques (styles + ornements pseudo, cumulables)
  */
 (function () {
-    const FREE_COSMETIC_IDS = ['default', 'ornement1'];
+    const FREE_STYLE_IDS = ['default'];
+    const FREE_ORNAMENT_IDS = ['ornement1'];
 
-    const COSMETIC_CATALOG = [
-        { id: 'default', name: 'Classique', desc: 'Simple et sobre', price: 0, tier: '' },
+    const ORNAMENT_CATALOG = [
         {
             id: 'ornement1',
             name: 'Ornement I',
             desc: 'Cadre décoratif · s\'étire avec la longueur du pseudo',
             price: 0,
             tier: '',
-            ornament: 'assets/ornements/Ornement1.png'
-        },
+            img: 'assets/ornements/Ornement1.png'
+        }
+    ];
+
+    const COSMETIC_CATALOG = [
+        { id: 'default', name: 'Classique', desc: 'Simple et sobre', price: 0, tier: '' },
         { id: 'ember', name: 'Flammes rouges', desc: 'Braises qui montent · texte qui tremble', price: 10000, tier: '' },
         { id: 'ocean', name: 'Bleu océan', desc: 'Bulles · soulignement ondulé', price: 35000, tier: '' },
         { id: 'violet', name: 'Violet royal', desc: 'Italique · losanges scintillants', price: 80000, tier: '' },
@@ -30,7 +34,9 @@
         { id: 'infinity', name: 'Infini', desc: 'Dégradé vertical · orbites multicolores', price: 20000000, tier: 'Ultime' }
     ];
 
-    const catalogById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));
+    const styleById = Object.fromEntries(COSMETIC_CATALOG.map(c => [c.id, c]));
+    const ornamentById = Object.fromEntries(ORNAMENT_CATALOG.map(o => [o.id, o]));
+    const catalogById = { ...styleById, ...ornamentById };
 
     let stateBridge = null;
 
@@ -55,53 +61,106 @@
             .replace(/"/g, '&quot;');
     }
 
-    function normalizeOwned(list) {
+    function isOrnamentId(id) {
+        return Boolean(id && ornamentById[id]);
+    }
+
+    function isStyleId(id) {
+        return Boolean(id && styleById[id]);
+    }
+
+    function normalizeOwnedStyles(list) {
         const owned = Array.isArray(list) ? [...list] : [];
-        FREE_COSMETIC_IDS.forEach(id => {
+        FREE_STYLE_IDS.forEach(id => {
             if (!owned.includes(id)) owned.push(id);
         });
-        return owned;
+        return owned.filter(id => isStyleId(id));
+    }
+
+    function normalizeOwnedOrnaments(list) {
+        const owned = Array.isArray(list) ? [...list] : [];
+        FREE_ORNAMENT_IDS.forEach(id => {
+            if (!owned.includes(id)) owned.push(id);
+        });
+        return owned.filter(id => isOrnamentId(id));
+    }
+
+    function migrateLegacyOrnamentEquip(s) {
+        if (isOrnamentId(s.equippedCosmetic)) {
+            if (!s.equippedOrnament) s.equippedOrnament = s.equippedCosmetic;
+            s.equippedCosmetic = 'default';
+        }
+        if (Array.isArray(s.ownedCosmetics)) {
+            s.ownedCosmetics = s.ownedCosmetics.filter(id => !isOrnamentId(id));
+        }
     }
 
     function loadFromSave(data) {
         const s = getState();
         if (!s) return;
-        s.ownedCosmetics = normalizeOwned(data?.ownedCosmetics);
-        s.equippedCosmetic = catalogById[data?.equippedCosmetic] ? data.equippedCosmetic : 'default';
+        s.ownedCosmetics = normalizeOwnedStyles(data?.ownedCosmetics);
+        s.ownedOrnaments = normalizeOwnedOrnaments(data?.ownedOrnaments);
+        s.equippedCosmetic = isStyleId(data?.equippedCosmetic) ? data.equippedCosmetic : 'default';
+        s.equippedOrnament = isOrnamentId(data?.equippedOrnament) ? data.equippedOrnament : null;
+        migrateLegacyOrnamentEquip(s);
         if (!s.ownedCosmetics.includes(s.equippedCosmetic)) {
             s.equippedCosmetic = 'default';
+        }
+        if (s.equippedOrnament && !s.ownedOrnaments.includes(s.equippedOrnament)) {
+            s.equippedOrnament = null;
         }
         refreshPseudoDisplays();
     }
 
-    function getEquippedId() {
+    function getEquippedStyleId() {
         const s = getState();
-        return s?.equippedCosmetic || 'default';
+        const id = s?.equippedCosmetic || 'default';
+        return isStyleId(id) ? id : 'default';
+    }
+
+    function getEquippedOrnamentId() {
+        const s = getState();
+        const id = s?.equippedOrnament || null;
+        return isOrnamentId(id) ? id : null;
+    }
+
+    /** @deprecated Utiliser getEquippedStyleId */
+    function getEquippedId() {
+        return getEquippedStyleId();
     }
 
     function getCosmeticClass(id) {
-        const cid = catalogById[id] ? id : 'default';
+        const cid = isStyleId(id) ? id : 'default';
         return 'cos-pseudo cos-pseudo-' + cid;
     }
 
-    function renderPseudoHTML(pseudo, cosmeticId) {
-        const item = catalogById[cosmeticId] || catalogById.default;
-        const cid = item.id;
-        if (item.ornament) {
-            return `<span class="${getCosmeticClass(cid)} cos-pseudo-ornament-wrap" data-ornament="1">
-                <img src="${escapeHtml(item.ornament)}" class="cos-ornament-frame" alt="" aria-hidden="true">
-                <span class="cos-pseudo-text">${escapeHtml(pseudo)}</span>
-            </span>`;
-        }
-        const particles = cid !== 'default'
-            ? `<span class="cos-particles cos-particles-${cid}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>`
+    function renderStyleInnerHTML(pseudo, cosmeticId) {
+        const styleId = isStyleId(cosmeticId) ? cosmeticId : 'default';
+        const particles = styleId !== 'default'
+            ? `<span class="cos-particles cos-particles-${styleId}" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>`
             : '';
-        return `<span class="${getCosmeticClass(cid)} cos-pseudo-wrap">${particles}<span class="cos-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
+        return `<span class="${getCosmeticClass(styleId)} cos-pseudo-wrap">${particles}<span class="cos-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
     }
 
-    function applyToElement(el, pseudo, cosmeticId) {
+    function wrapWithOrnament(innerHtml, ornamentId) {
+        const orn = ornamentById[ornamentId];
+        if (!orn || !innerHtml) return innerHtml;
+        return `<span class="cos-pseudo-ornament-wrap cos-pseudo-ornament-${escapeHtml(orn.id)}" data-ornament="1">
+            <img src="${escapeHtml(orn.img)}" class="cos-ornament-frame" alt="" aria-hidden="true">
+            <span class="cos-pseudo-ornament-inner">${innerHtml}</span>
+        </span>`;
+    }
+
+    function renderPseudoHTML(pseudo, cosmeticId, ornamentId) {
+        const styleId = isStyleId(cosmeticId) ? cosmeticId : getEquippedStyleId();
+        const ornId = ornamentId !== undefined ? ornamentId : getEquippedOrnamentId();
+        const inner = renderStyleInnerHTML(pseudo, styleId);
+        return wrapWithOrnament(inner, ornId) || inner;
+    }
+
+    function applyToElement(el, pseudo, cosmeticId, ornamentId) {
         if (!el) return;
-        el.innerHTML = renderPseudoHTML(pseudo, cosmeticId);
+        el.innerHTML = renderPseudoHTML(pseudo, cosmeticId, ornamentId);
     }
 
     function refreshPseudoDisplays() {
@@ -110,24 +169,28 @@
             return;
         }
         const pseudo = window.StepFishAuth?.getPseudo?.() || 'Pêcheur';
-        const cid = getEquippedId();
-        applyToElement(document.getElementById('user-pseudo'), pseudo, cid);
+        applyToElement(
+            document.getElementById('user-pseudo'),
+            pseudo,
+            getEquippedStyleId(),
+            getEquippedOrnamentId()
+        );
         const prof = document.getElementById('prof-pseudo-display');
-        if (prof) applyToElement(prof, pseudo, cid);
+        if (prof) applyToElement(prof, pseudo, getEquippedStyleId(), getEquippedOrnamentId());
     }
 
     function formatPrice(n) {
         return Number(n).toLocaleString('fr-FR') + ' $';
     }
 
-    function buy(cosmeticId) {
+    function buyStyle(cosmeticId) {
         const s = getState();
-        const item = catalogById[cosmeticId];
+        const item = styleById[cosmeticId];
         if (!s || !item) return { ok: false, msg: 'Style introuvable.' };
         if (!window.StepFishAuth?.isLoggedIn?.()) {
             return { ok: false, msg: 'Connecte-toi pour acheter des cosmétiques.' };
         }
-        s.ownedCosmetics = normalizeOwned(s.ownedCosmetics);
+        s.ownedCosmetics = normalizeOwnedStyles(s.ownedCosmetics);
         if (s.ownedCosmetics.includes(cosmeticId)) {
             return { ok: false, msg: 'Tu possèdes déjà ce style.' };
         }
@@ -141,81 +204,176 @@
         return { ok: true, msg: `${item.name} acheté !` };
     }
 
-    function equip(cosmeticId) {
+    function buyOrnament(ornamentId) {
         const s = getState();
-        if (!s || !catalogById[cosmeticId]) return { ok: false, msg: 'Style introuvable.' };
-        s.ownedCosmetics = normalizeOwned(s.ownedCosmetics);
+        const item = ornamentById[ornamentId];
+        if (!s || !item) return { ok: false, msg: 'Ornement introuvable.' };
+        if (!window.StepFishAuth?.isLoggedIn?.()) {
+            return { ok: false, msg: 'Connecte-toi pour acheter des ornements.' };
+        }
+        s.ownedOrnaments = normalizeOwnedOrnaments(s.ownedOrnaments);
+        if (s.ownedOrnaments.includes(ornamentId)) {
+            return { ok: false, msg: 'Tu possèdes déjà cet ornement.' };
+        }
+        if (s.money < item.price) {
+            return { ok: false, msg: `Il te manque ${formatPrice(item.price - s.money)}.` };
+        }
+        s.money -= item.price;
+        s.ownedOrnaments.push(ornamentId);
+        if (typeof updateMoneyDisplay === 'function') updateMoneyDisplay();
+        persistGameState();
+        return { ok: true, msg: `${item.name} acheté !` };
+    }
+
+    function equipStyle(cosmeticId) {
+        const s = getState();
+        if (!s || !isStyleId(cosmeticId)) return { ok: false, msg: 'Style introuvable.' };
+        s.ownedCosmetics = normalizeOwnedStyles(s.ownedCosmetics);
         if (!s.ownedCosmetics.includes(cosmeticId)) {
             return { ok: false, msg: 'Achète ce style d\'abord.' };
         }
         s.equippedCosmetic = cosmeticId;
-        if (typeof persistGame === 'function') persistGame();
+        persistGameState();
         refreshPseudoDisplays();
-        return { ok: true, msg: `${catalogById[cosmeticId].name} équipé !` };
+        return { ok: true, msg: `${styleById[cosmeticId].name} équipé !` };
+    }
+
+    function equipOrnament(ornamentId) {
+        const s = getState();
+        if (!s || !isOrnamentId(ornamentId)) return { ok: false, msg: 'Ornement introuvable.' };
+        s.ownedOrnaments = normalizeOwnedOrnaments(s.ownedOrnaments);
+        if (!s.ownedOrnaments.includes(ornamentId)) {
+            return { ok: false, msg: 'Achète cet ornement d\'abord.' };
+        }
+        const wasEquipped = s.equippedOrnament === ornamentId;
+        s.equippedOrnament = wasEquipped ? null : ornamentId;
+        persistGameState();
+        refreshPseudoDisplays();
+        return {
+            ok: true,
+            msg: wasEquipped ? `${ornamentById[ornamentId].name} retiré.` : `${ornamentById[ornamentId].name} équipé !`
+        };
+    }
+
+    function renderCardHtml(item, kind, owned, equippedStyle, equippedOrnament, loggedIn) {
+        const has = owned.includes(item.id);
+        const isStyle = kind === 'style';
+        const isEquipped = isStyle
+            ? equippedStyle === item.id
+            : equippedOrnament === item.id;
+        let action = '';
+        if (item.price === 0) {
+            if (isStyle) {
+                action = isEquipped
+                    ? '<span class="cos-card-tag equipped">Style équipé</span>'
+                    : `<button type="button" class="cos-card-btn" data-equip-style="${item.id}">Équiper style</button>`;
+            } else {
+                action = isEquipped
+                    ? `<button type="button" class="cos-card-btn equipped" data-equip-ornament="${item.id}">Retirer ornement</button>`
+                    : `<button type="button" class="cos-card-btn" data-equip-ornament="${item.id}">Équiper ornement</button>`;
+            }
+        } else if (!loggedIn) {
+            action = '<span class="cos-card-tag locked">Compte requis</span>';
+        } else if (has) {
+            if (isStyle) {
+                action = isEquipped
+                    ? '<span class="cos-card-tag equipped">Style équipé</span>'
+                    : `<button type="button" class="cos-card-btn" data-equip-style="${item.id}">Équiper style</button>`;
+            } else {
+                action = isEquipped
+                    ? `<button type="button" class="cos-card-btn equipped" data-equip-ornament="${item.id}">Retirer ornement</button>`
+                    : `<button type="button" class="cos-card-btn" data-equip-ornament="${item.id}">Équiper ornement</button>`;
+            }
+        } else {
+            const buyAttr = isStyle ? 'data-buy-style' : 'data-buy-ornament';
+            action = `<button type="button" class="cos-card-btn buy" ${buyAttr}="${item.id}">${formatPrice(item.price)}</button>`;
+        }
+
+        const tierBadge = item.tier
+            ? `<span class="cos-tier cos-tier-${item.tier.toLowerCase().replace('é', 'e')}">${item.tier}</span>`
+            : '';
+
+        const previewStyle = isStyle ? item.id : equippedStyle;
+        const previewOrnament = isStyle ? equippedOrnament : item.id;
+
+        return `<article class="cos-card${item.price >= 2000000 ? ' cos-card-premium' : ''}${!isStyle ? ' cos-card-ornament' : ''}">
+            ${tierBadge}
+            <div class="cos-preview">${renderPseudoHTML('Aperçu', previewStyle, previewOrnament)}</div>
+            <h3>${escapeHtml(item.name)}</h3>
+            <p>${escapeHtml(item.desc)}</p>
+            ${action}
+        </article>`;
+    }
+
+    function bindShopButtons(root, status) {
+        if (!root) return;
+        root.querySelectorAll('[data-buy-style]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const r = buyStyle(btn.dataset.buyStyle);
+                if (status) {
+                    status.textContent = r.msg;
+                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
+                }
+                if (r.ok) renderShop();
+            });
+        });
+        root.querySelectorAll('[data-buy-ornament]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const r = buyOrnament(btn.dataset.buyOrnament);
+                if (status) {
+                    status.textContent = r.msg;
+                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
+                }
+                if (r.ok) renderShop();
+            });
+        });
+        root.querySelectorAll('[data-equip-style]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const r = equipStyle(btn.dataset.equipStyle);
+                if (status) {
+                    status.textContent = r.msg;
+                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
+                }
+                if (r.ok) renderShop();
+            });
+        });
+        root.querySelectorAll('[data-equip-ornament]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const r = equipOrnament(btn.dataset.equipOrnament);
+                if (status) {
+                    status.textContent = r.msg;
+                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
+                }
+                if (r.ok) renderShop();
+            });
+        });
     }
 
     function renderShop() {
         const grid = document.getElementById('cosmetics-grid');
+        const ornGrid = document.getElementById('ornaments-grid');
         const status = document.getElementById('cosmetics-status');
         if (!grid) return;
 
         const s = getState();
-        const owned = normalizeOwned(s?.ownedCosmetics);
-        const equipped = getEquippedId();
+        const ownedStyles = normalizeOwnedStyles(s?.ownedCosmetics);
+        const ownedOrnaments = normalizeOwnedOrnaments(s?.ownedOrnaments);
+        const equippedStyle = getEquippedStyleId();
+        const equippedOrnament = getEquippedOrnamentId();
         const loggedIn = window.StepFishAuth?.isLoggedIn?.();
 
-        grid.innerHTML = COSMETIC_CATALOG.map(item => {
-            const has = owned.includes(item.id);
-            const isEquipped = equipped === item.id;
-            let action = '';
-            if (item.price === 0) {
-                action = isEquipped
-                    ? '<span class="cos-card-tag equipped">Équipé</span>'
-                    : `<button type="button" class="cos-card-btn" data-equip="${item.id}">Équiper</button>`;
-            } else if (!loggedIn) {
-                action = '<span class="cos-card-tag locked">Compte requis</span>';
-            } else if (has) {
-                action = isEquipped
-                    ? '<span class="cos-card-tag equipped">Équipé</span>'
-                    : `<button type="button" class="cos-card-btn" data-equip="${item.id}">Équiper</button>`;
-            } else {
-                action = `<button type="button" class="cos-card-btn buy" data-buy="${item.id}">${formatPrice(item.price)}</button>`;
-            }
+        grid.innerHTML = COSMETIC_CATALOG.map(item =>
+            renderCardHtml(item, 'style', ownedStyles, equippedStyle, equippedOrnament, loggedIn)
+        ).join('');
 
-            const tierBadge = item.tier
-                ? `<span class="cos-tier cos-tier-${item.tier.toLowerCase().replace('é', 'e')}">${item.tier}</span>`
-                : '';
+        if (ornGrid) {
+            ornGrid.innerHTML = ORNAMENT_CATALOG.map(item =>
+                renderCardHtml(item, 'ornament', ownedOrnaments, equippedStyle, equippedOrnament, loggedIn)
+            ).join('');
+        }
 
-            return `<article class="cos-card${item.price >= 2000000 ? ' cos-card-premium' : ''}">
-                ${tierBadge}
-                <div class="cos-preview">${renderPseudoHTML('Aperçu', item.id)}</div>
-                <h3>${escapeHtml(item.name)}</h3>
-                <p>${escapeHtml(item.desc)}</p>
-                ${action}
-            </article>`;
-        }).join('');
-
-        grid.querySelectorAll('[data-buy]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const r = buy(btn.dataset.buy);
-                if (status) {
-                    status.textContent = r.msg;
-                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
-                }
-                if (r.ok) renderShop();
-            });
-        });
-
-        grid.querySelectorAll('[data-equip]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const r = equip(btn.dataset.equip);
-                if (status) {
-                    status.textContent = r.msg;
-                    status.className = 'cosmetics-status' + (r.ok ? ' ok' : ' err');
-                }
-                if (r.ok) renderShop();
-            });
-        });
+        bindShopButtons(grid, status);
+        if (ornGrid) bindShopButtons(ornGrid, status);
     }
 
     function open() {
@@ -225,25 +383,39 @@
 
     function init() {
         const s = getState();
-        if (s && !s.ownedCosmetics) {
-            s.ownedCosmetics = ['default'];
-            s.equippedCosmetic = 'default';
-        }
+        if (!s) return;
+        if (!s.ownedCosmetics) s.ownedCosmetics = ['default'];
+        if (!s.ownedOrnaments) s.ownedOrnaments = [];
+        if (!s.equippedCosmetic) s.equippedCosmetic = 'default';
+        if (s.equippedOrnament === undefined) s.equippedOrnament = null;
+        migrateLegacyOrnamentEquip(s);
+        s.ownedCosmetics = normalizeOwnedStyles(s.ownedCosmetics);
+        s.ownedOrnaments = normalizeOwnedOrnaments(s.ownedOrnaments);
     }
 
     window.StepFishCosmetics = {
         catalog: COSMETIC_CATALOG,
+        ornamentCatalog: ORNAMENT_CATALOG,
         registerStateBridge,
         init,
         loadFromSave,
         open,
         renderShop,
-        buy,
-        equip,
+        buy: buyStyle,
+        buyStyle,
+        buyOrnament,
+        equip: equipStyle,
+        equipStyle,
+        equipOrnament,
         getEquippedId,
+        getEquippedStyleId,
+        getEquippedOrnamentId,
         renderPseudoHTML,
+        wrapWithOrnament,
         applyToElement,
         refreshPseudoDisplays,
-        escapeHtml
+        escapeHtml,
+        isOrnamentId,
+        isStyleId
     };
 })();

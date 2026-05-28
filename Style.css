@@ -3290,35 +3290,51 @@ button.index-legend-item {
     vertical-align: middle;
     max-width: 100%;
     isolation: isolate;
+    line-height: 1;
 }
 
 .cos-pseudo-ornament-wrap .cos-ornament-frame {
     grid-area: 1 / 1;
-    width: 100%;
-    height: 100%;
-    min-width: 100%;
-    min-height: 100%;
+    width: calc(100% + 28px);
+    height: calc(100% + 18px);
+    min-width: calc(100% + 28px);
+    min-height: calc(100% + 18px);
+    margin: -9px -14px;
     object-fit: fill;
     pointer-events: none;
     z-index: 0;
     user-select: none;
+    transform: scale(1.1);
+    transform-origin: center center;
 }
 
-.cos-pseudo-ornament-wrap .cos-pseudo-text {
+.cos-pseudo-ornament-inner {
     grid-area: 1 / 1;
     position: relative;
     z-index: 1;
-    display: inline-block;
-    padding: 5px 14px 6px;
-    color: #f5ebe0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
-    white-space: nowrap;
-    line-height: 1.15;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transform: translateY(-2px);
 }
 
-.cos-pseudo-ornement1 .cos-pseudo-text {
-    font-family: var(--font-game);
-    font-weight: normal;
+.cos-pseudo-ornament-wrap .cos-pseudo-wrap {
+    vertical-align: middle;
+}
+
+.cos-pseudo-ornament-wrap .cos-pseudo-text,
+.cos-pseudo-ornament-wrap .ach-pseudo-text {
+    display: inline-block;
+    padding: 2px 10px 4px;
+    white-space: nowrap;
+    line-height: 1.1;
+    vertical-align: middle;
+}
+
+.cos-pseudo-ornament-wrap .cos-pseudo-default .cos-pseudo-text {
+    color: #f5ebe0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text {
@@ -3771,6 +3787,26 @@ button.index-legend-item {
     font-size: 2.2rem !important;
     margin: 0 0 4px;
     line-height: 1.1;
+}
+
+.cosmetics-section-title {
+    font-size: 1rem;
+    color: var(--wood-gold);
+    margin: 18px 0 10px;
+    text-align: left;
+    font-weight: 800;
+}
+
+.cosmetics-section-title:first-of-type {
+    margin-top: 0;
+}
+
+.cosmetics-grid-ornaments {
+    margin-bottom: 8px;
+}
+
+.cos-card-ornament .cos-preview {
+    min-height: 52px;
 }
 
 .cosmetics-sub {
@@ -4621,10 +4657,32 @@ button.index-legend-item {
 .ach-color-silver .ach-pseudo-text { color: #cfd8dc; text-shadow: 0 0 8px rgba(207, 216, 220, 0.35); }
 .ach-color-coral .ach-pseudo-text { color: #ff8a80; text-shadow: 0 0 8px rgba(255, 138, 128, 0.35); }
 
-#user-pseudo .player-pseudo-full,
-#user-pseudo .ach-pseudo-color,
-#user-pseudo .cos-pseudo-wrap {
+#user-pseudo .player-pseudo-full {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
     justify-content: flex-start;
+    line-height: 1;
+}
+
+#user-pseudo .ach-pseudo-color,
+#user-pseudo .cos-pseudo-wrap,
+#user-pseudo .cos-pseudo-ornament-wrap {
+    vertical-align: middle;
+}
+
+#user-pseudo .cos-pseudo-ornament-inner {
+    transform: translateY(-3px);
+}
+
+#user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
+    transform: scale(1.12);
+}
+
+.profile-info #user-pseudo {
+    display: block;
+    line-height: 1.2;
 }
 
 #screen-achievements {

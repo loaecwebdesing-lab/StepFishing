@@ -3,11 +3,13 @@
 
 alter table public.leaderboard_stats
     add column if not exists achievement_title_id text,
-    add column if not exists achievement_color_id text;
+    add column if not exists achievement_color_id text,
+    add column if not exists ornament_id text;
 
 alter table public.global_chat
     add column if not exists achievement_title_id text,
-    add column if not exists achievement_color_id text;
+    add column if not exists achievement_color_id text,
+    add column if not exists ornament_id text;
 
 create or replace function public.sync_leaderboard_from_save()
 returns trigger
@@ -33,7 +35,7 @@ begin
         fishes_caught, best_fish_value, best_fish_name, best_fish_rarity,
         best_fish_img, best_fish_mutation, best_fish_class,
         best_common_streak,
-        cosmetic_id, achievement_title_id, achievement_color_id, updated_at
+        cosmetic_id, ornament_id, achievement_title_id, achievement_color_id, updated_at
     ) values (
         new.id,
         new.pseudo,
@@ -50,6 +52,7 @@ begin
         coalesce(bf->>'class', ''),
         coalesce((sd->>'commonStreakBest')::integer, 0),
         coalesce(sd->>'equippedCosmetic', 'default'),
+        nullif(sd->>'equippedOrnament', ''),
         nullif(sd->>'equippedTitleId', ''),
         nullif(sd->>'equippedColorId', ''),
         now()
@@ -69,6 +72,7 @@ begin
         best_fish_class = excluded.best_fish_class,
         best_common_streak = excluded.best_common_streak,
         cosmetic_id = excluded.cosmetic_id,
+        ornament_id = excluded.ornament_id,
         achievement_title_id = excluded.achievement_title_id,
         achievement_color_id = excluded.achievement_color_id,
         updated_at = now();

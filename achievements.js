@@ -318,20 +318,27 @@
         return `<span class="ach-pseudo-with-dofus">${innerHtml}<img src="${escapeHtml(img)}" class="ach-pseudo-dofus-badge" width="18" height="18" alt="" title="Écumeur de Bonta"></span>`;
     }
 
-    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId) {
+    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId) {
+        const resolvedOrnament = ornamentId !== undefined
+            ? ornamentId
+            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
         if (colorId && COLOR_REWARDS[colorId]) {
             const c = COLOR_REWARDS[colorId];
-            return `<span class="ach-pseudo-color ${c.class}"><span class="ach-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
+            const colored = `<span class="ach-pseudo-color ${c.class}"><span class="ach-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
+            if (window.StepFishCosmetics?.wrapWithOrnament) {
+                return window.StepFishCosmetics.wrapWithOrnament(colored, resolvedOrnament) || colored;
+            }
+            return colored;
         }
         if (window.StepFishCosmetics?.renderPseudoHTML) {
-            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default');
+            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default', resolvedOrnament);
         }
         return `<span class="ach-pseudo-plain">${escapeHtml(pseudo)}</span>`;
     }
 
-    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId) {
+    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId) {
         const titleHtml = titleId ? renderTitleHTML(titleId) : '';
-        let inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId);
+        let inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId);
         if (titleId === 'title_eccumeur' && TITLE_REWARDS.title_eccumeur?.pseudoDofus) {
             inner = wrapPseudoWithEccumeurDofus(inner);
         }
@@ -340,18 +347,22 @@
 
     function getDisplayIds(forSelf) {
         const s = getState();
-        if (!forSelf || !s) return { titleId: null, colorId: null, cosmeticId: 'default' };
+        if (!forSelf || !s) return { titleId: null, colorId: null, cosmeticId: 'default', ornamentId: null };
         return {
             titleId: s.equippedTitleId || null,
             colorId: s.equippedColorId || null,
-            cosmeticId: window.StepFishCosmetics?.getEquippedId?.() || s.equippedCosmetic || 'default'
+            cosmeticId: window.StepFishCosmetics?.getEquippedStyleId?.()
+                || window.StepFishCosmetics?.getEquippedId?.()
+                || s.equippedCosmetic
+                || 'default',
+            ornamentId: window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? s.equippedOrnament ?? null
         };
     }
 
     function refreshPseudoDisplays() {
         const pseudo = window.StepFishAuth?.getPseudo?.() || document.getElementById('user-pseudo')?.textContent || 'Pêcheur';
-        const { titleId, colorId, cosmeticId } = getDisplayIds(true);
-        const html = renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId);
+        const { titleId, colorId, cosmeticId, ornamentId } = getDisplayIds(true);
+        const html = renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId);
         const userEl = document.getElementById('user-pseudo');
         if (userEl) userEl.innerHTML = html;
         const prof = document.getElementById('prof-pseudo-display');

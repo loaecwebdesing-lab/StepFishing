@@ -17,7 +17,9 @@
         currentZone: 'lac',
         bestFish: null,
         ownedCosmetics: ['default'],
+        ownedOrnaments: [],
         equippedCosmetic: 'default',
+        equippedOrnament: null,
         commonStreakCurrent: 0,
         commonStreakBest: 0
     };
