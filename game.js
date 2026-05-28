@@ -591,10 +591,9 @@ const ZONE_DATA = [
         id: 'bonta',
         name: 'Bonta',
         minLevel: 150,
-        /* Remplacer par assets/bonta_day.png, bonta_dawn.png, bonta_night.png quand prêts */
-        bgDay: 'assets/abyss_day.png',
-        bgDawn: 'assets/abyss_dawn.png',
-        bgNight: 'assets/abyss_night.png',
+        bgDay: 'assets/bonta_day.png',
+        bgDawn: 'assets/bonta_dawn.png',
+        bgNight: 'assets/bonta_night.png',
         library: mergeFishLibraries(ABYSS_FISH_NO_TOP, BONTA_EXCLUSIVE_FISH)
     },
     {
