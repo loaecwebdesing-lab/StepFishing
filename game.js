@@ -3146,26 +3146,84 @@ const FISH_INDEX_ZONE_LEGEND = [
     { id: 'bonta', label: 'Bonta', className: 'zone-bonta' }
 ];
 
-function setupIndexLegend() {
-    const legend = document.getElementById('index-legend');
-    if (!legend || legend.dataset.ready) return;
-    legend.innerHTML = FISH_INDEX_ZONE_LEGEND.map(z =>
-        `<span class="index-legend-item ${z.className}"><i aria-hidden="true"></i>${z.label}</span>`
-    ).join('');
-    legend.dataset.ready = '1';
+let indexZoneFilter = null;
+let indexRarityFolder = 'commun';
+
+function indexSpeciesLabel(fileName) {
+    return fileName.replace(/\.(png|webp)$/i, '').replace(/_/g, ' ');
 }
 
-function renderIndex(selectedRarityFolder = 'commun') {
+function updateIndexZoneFilterButtons() {
+    const legend = document.getElementById('index-legend');
+    if (!legend) return;
+    legend.querySelectorAll('[data-index-zone]').forEach(btn => {
+        const z = btn.getAttribute('data-index-zone');
+        const active = z === 'all' ? !indexZoneFilter : indexZoneFilter === z;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function setIndexZoneFilter(zoneId) {
+    indexZoneFilter = zoneId || null;
+    updateIndexZoneFilterButtons();
+    renderIndex();
+}
+
+function setupIndexZoneFilters() {
+    const legend = document.getElementById('index-legend');
+    if (!legend) return;
+    legend.innerHTML = '';
+    legend.setAttribute('role', 'group');
+    legend.setAttribute('aria-label', 'Filtrer par zone');
+
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'index-legend-item index-legend-all';
+    allBtn.setAttribute('data-index-zone', 'all');
+    allBtn.textContent = 'Tous';
+    allBtn.title = 'Afficher toutes les zones';
+    allBtn.addEventListener('click', () => setIndexZoneFilter(null));
+    legend.appendChild(allBtn);
+
+    FISH_INDEX_ZONE_LEGEND.forEach(z => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `index-legend-item ${z.className}`;
+        btn.setAttribute('data-index-zone', z.id);
+        btn.title = `Afficher uniquement : ${z.label}`;
+        btn.innerHTML = `<i aria-hidden="true"></i>${z.label}`;
+        btn.addEventListener('click', () => setIndexZoneFilter(z.id));
+        legend.appendChild(btn);
+    });
+
+    updateIndexZoneFilterButtons();
+}
+
+function renderIndex(selectedRarityFolder) {
+    if (selectedRarityFolder) indexRarityFolder = selectedRarityFolder;
     const grid = document.getElementById('index-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    ZONE_DATA.forEach(zone => {
-        const folderFishes = zone.library[selectedRarityFolder] || [];
+
+    const zones = indexZoneFilter
+        ? ZONE_DATA.filter(z => z.id === indexZoneFilter)
+        : ZONE_DATA;
+
+    if (!zones.length) {
+        grid.innerHTML = '<p class="index-grid-empty">Zone introuvable.</p>';
+        return;
+    }
+
+    let slotCount = 0;
+    zones.forEach(zone => {
+        const folderFishes = zone.library[indexRarityFolder] || [];
         const zoneClass = `zone-${zone.id}`;
         folderFishes.forEach(fileName => {
-            const imgPath = `assets/fish/${selectedRarityFolder}/${fileName}`;
+            slotCount++;
+            const imgPath = `assets/fish/${indexRarityFolder}/${fileName}`;
             const isUnlocked = state.discoveredFishes.includes(imgPath);
-            const speciesName = fileName.replace('.png', '').replace(/_/g, ' ');
+            const speciesName = indexSpeciesLabel(fileName);
             const slot = document.createElement('div');
             slot.className = `fish-slot ${zoneClass} ${isUnlocked ? 'unlocked' : 'locked'}`;
             slot.title = `${zone.name} · ${isUnlocked ? speciesName : 'Non découvert'}`;
@@ -3173,16 +3231,23 @@ function renderIndex(selectedRarityFolder = 'commun') {
             grid.appendChild(slot);
         });
     });
+
+    if (!slotCount) {
+        const zoneName = indexZoneFilter
+            ? (ZONE_DATA.find(z => z.id === indexZoneFilter)?.name || 'cette zone')
+            : 'ces zones';
+        const rarityName = RARITIES.find(r => r.folder === indexRarityFolder)?.name || indexRarityFolder;
+        grid.innerHTML = `<p class="index-grid-empty">Aucun poisson ${rarityName} pour ${zoneName}.</p>`;
+    }
 }
 
 function setupIndexTabs() {
     const tabsContainer = document.getElementById('index-tabs');
     if (!tabsContainer) return;
-    setupIndexLegend();
     tabsContainer.innerHTML = '';
     RARITIES.forEach((rarity, idx) => {
         const tab = document.createElement('div');
-        tab.className = 'index-tab' + (idx === 0 ? ' active' : '');
+        tab.className = 'index-tab' + (rarity.folder === indexRarityFolder ? ' active' : '');
         tab.innerText = rarity.name;
         tab.onclick = () => {
             document.querySelectorAll('.index-tab').forEach(t => t.classList.remove('active'));
@@ -3191,6 +3256,15 @@ function setupIndexTabs() {
         };
         tabsContainer.appendChild(tab);
     });
+}
+
+function openFishIndex() {
+    indexZoneFilter = null;
+    indexRarityFolder = 'commun';
+    showScreen('index');
+    setupIndexTabs();
+    setupIndexZoneFilters();
+    renderIndex('commun');
 }
 
 function getEquippedRodData() {
@@ -3250,7 +3324,7 @@ function init() {
     });
     bind('btn-shop', () => { showScreen('shop'); renderShop(); });
     bind('btn-equipment', () => { showScreen('equipment'); renderEquipment(); });
-    bind('btn-index', () => { showScreen('index'); setupIndexTabs(); renderIndex('commun'); });
+    bind('btn-index', openFishIndex);
     bind('btn-map', () => { showScreen('map'); renderMap(); });
     bind('btn-leaderboard', () => {
         if (window.StepFishLeaderboard) StepFishLeaderboard.open();
