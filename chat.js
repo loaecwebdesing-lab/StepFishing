@@ -22,12 +22,12 @@
             : String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
     }
 
-    function renderPseudo(pseudo, cosmeticId, titleId, colorId, ornamentId) {
+    function renderPseudo(pseudo, cosmeticId, titleId, colorId) {
         if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
-            return window.StepFishAchievements.renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId);
+            return window.StepFishAchievements.renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId);
         }
         if (window.StepFishCosmetics?.renderPseudoHTML) {
-            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId, ornamentId);
+            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId);
         }
         return escapeHtml(pseudo);
     }
@@ -46,7 +46,7 @@
         }
         box.innerHTML = messages.map(m => {
             const time = new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            const pseudoBtn = `<button type="button" class="player-pseudo-link chat-pseudo-link" data-player-pseudo="${escapeHtml(m.pseudo)}" title="Voir le profil">${renderPseudo(m.pseudo, m.cosmetic_id, m.achievement_title_id, m.achievement_color_id, m.ornament_id)}</button>`;
+            const pseudoBtn = `<button type="button" class="player-pseudo-link chat-pseudo-link" data-player-pseudo="${escapeHtml(m.pseudo)}" title="Voir le profil">${renderPseudo(m.pseudo, m.cosmetic_id, m.achievement_title_id, m.achievement_color_id)}</button>`;
             return `<div class="chat-msg">
                 <span class="chat-time">${time}</span>
                 ${pseudoBtn} :
@@ -84,7 +84,7 @@
         if (!client) return;
         const { data, error } = await client
             .from('global_chat')
-            .select('pseudo, cosmetic_id, ornament_id, achievement_title_id, achievement_color_id, message, created_at')
+            .select('pseudo, cosmetic_id, achievement_title_id, achievement_color_id, message, created_at')
             .order('created_at', { ascending: true })
             .limit(MAX_MESSAGES);
         if (error) {
@@ -129,10 +129,7 @@
         const userId = window.StepFishAuth.getUserId?.();
         if (!client || !userId) return { ok: false, msg: 'Serveur indisponible.' };
 
-        const cosmeticId = window.StepFishCosmetics?.getEquippedStyleId?.()
-            || window.StepFishCosmetics?.getEquippedId?.()
-            || 'default';
-        const ornamentId = window.StepFishCosmetics?.getEquippedOrnamentId?.() || null;
+        const cosmeticId = window.StepFishCosmetics?.getEquippedId?.() || 'default';
         const achIds = window.StepFishAchievements?.getDisplayIds?.(true) || {};
         const row = {
             user_id: userId,
@@ -142,7 +139,6 @@
             achievement_color_id: achIds.colorId || null,
             message: msg
         };
-        if (ornamentId) row.ornament_id = ornamentId;
         const { error } = await client.from('global_chat').insert(row);
 
         if (error) {

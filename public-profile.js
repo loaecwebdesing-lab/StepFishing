@@ -51,22 +51,14 @@
         </span>`;
     }
 
-    function renderPseudoHeader(pseudo, cosmeticId, titleId, colorId, ornamentId) {
+    function renderPseudoHeader(pseudo, cosmeticId, titleId, colorId) {
         const el = document.getElementById('pp-pseudo-header');
         if (!el) return;
-        const styleId = cosmeticId && window.StepFishCosmetics?.isOrnamentId?.(cosmeticId)
-            ? 'default'
-            : (cosmeticId || 'default');
+        const styleId = cosmeticId === 'ornement1' ? 'default' : (cosmeticId || 'default');
         if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
-            el.innerHTML = window.StepFishAchievements.renderPlayerPseudoHTML(
-                pseudo,
-                styleId,
-                titleId,
-                colorId,
-                ornamentId || null
-            );
+            el.innerHTML = window.StepFishAchievements.renderPlayerPseudoHTML(pseudo, styleId, titleId, colorId);
         } else if (window.StepFishCosmetics?.renderPseudoHTML) {
-            el.innerHTML = window.StepFishCosmetics.renderPseudoHTML(pseudo, styleId, ornamentId || null);
+            el.innerHTML = window.StepFishCosmetics.renderPseudoHTML(pseudo, styleId);
         } else {
             el.textContent = pseudo;
         }
@@ -136,7 +128,7 @@
     function renderStatsView() {
         const p = currentProfile;
         if (!p) return;
-        renderPseudoHeader(p.pseudo, p.cosmetic_id, p.achievement_title_id, p.achievement_color_id, p.ornament_id);
+        renderPseudoHeader(p.pseudo, p.cosmetic_id, p.achievement_title_id, p.achievement_color_id);
         const set = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;

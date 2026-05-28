@@ -168,36 +168,21 @@
     }
 
     function resolveCosmeticId(id) {
-        if (id && window.StepFishCosmetics?.isOrnamentId?.(id)) return 'default';
         const catalog = window.StepFishCosmetics?.catalog || [];
         const valid = new Set(catalog.map(c => c.id));
+        if (id === 'ornement1') return 'default';
         return id && valid.has(id) ? id : 'default';
-    }
-
-    function resolveOrnamentId(id) {
-        return id && window.StepFishCosmetics?.isOrnamentId?.(id) ? id : null;
     }
 
     /** DB parfois en retard : pour ta ligne, utilise le style équipé en local. */
     function cosmeticIdForRow(row, myPseudo) {
         let id = row.cosmetic_id;
         if (myPseudo && row.pseudo === myPseudo) {
-            const local = window.StepFishCosmetics?.getEquippedStyleId?.()
-                || window.StepFishCosmetics?.getEquippedId?.()
+            const local = window.StepFishCosmetics?.getEquippedId?.()
                 || window.StepFishGame?.getStateSnapshot?.()?.equippedCosmetic;
             if (local && local !== 'default') id = local;
         }
         return resolveCosmeticId(id);
-    }
-
-    function ornamentIdForRow(row, myPseudo) {
-        let id = row.ornament_id;
-        if (myPseudo && row.pseudo === myPseudo) {
-            const local = window.StepFishCosmetics?.getEquippedOrnamentId?.()
-                || window.StepFishGame?.getStateSnapshot?.()?.equippedOrnament;
-            if (local) id = local;
-        }
-        return resolveOrnamentId(id);
     }
 
     function achievementIdsForRow(row, myPseudo) {
@@ -213,25 +198,17 @@
         return { titleId: titleId || null, colorId: colorId || null };
     }
 
-    function renderPseudoCell(pseudo, cosmeticId, titleId, colorId, ornamentId) {
-        const resolvedOrn = resolveOrnamentId(ornamentId);
-        const lbOpts = resolvedOrn && titleId ? { titleInsideOrnament: true } : {};
+    function renderPseudoCell(pseudo, cosmeticId, titleId, colorId) {
         let inner;
         if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
             inner = window.StepFishAchievements.renderPlayerPseudoHTML(
                 pseudo,
                 resolveCosmeticId(cosmeticId),
                 titleId,
-                colorId,
-                resolvedOrn,
-                lbOpts
+                colorId
             );
         } else if (window.StepFishCosmetics?.renderPseudoHTML) {
-            inner = window.StepFishCosmetics.renderPseudoHTML(
-                pseudo,
-                resolveCosmeticId(cosmeticId),
-                resolveOrnamentId(ornamentId)
-            );
+            inner = window.StepFishCosmetics.renderPseudoHTML(pseudo, resolveCosmeticId(cosmeticId));
         } else {
             inner = `<span class="lb-pseudo-plain">${escapeHtml(pseudo)}</span>`;
         }
@@ -255,7 +232,6 @@
             const rank = index + 1;
             const isMe = myPseudo && row.pseudo === myPseudo;
             const cosId = cosmeticIdForRow(row, myPseudo);
-            const ornId = ornamentIdForRow(row, myPseudo);
             const ach = achievementIdsForRow(row, myPseudo);
             const hasFx = cosId !== 'default';
             const valueCell = isBestFish
@@ -263,7 +239,7 @@
                 : escapeHtml(formatValue(row, activeCategory));
             return `<li class="lb-row${isMe ? ' lb-row-me' : ''}${hasFx ? ' lb-row-cos' : ''}${isBestFish ? ' lb-row-best-fish' : ''}">
                 <span class="lb-rank">${medalForRank(rank)}</span>
-                <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId, ach.titleId, ach.colorId, ornId)}</span>
+                <span class="lb-pseudo">${renderPseudoCell(row.pseudo, cosId, ach.titleId, ach.colorId)}</span>
                 <span class="lb-value${isBestFish ? ' lb-value-best-fish' : ''}">${valueCell}</span>
             </li>`;
         }).join('');
@@ -291,7 +267,7 @@
 
         let query = client
             .from('leaderboard_stats')
-            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, best_common_streak, cosmetic_id, ornament_id, achievement_title_id, achievement_color_id')
+            .select('pseudo, money, level, prestige, total_score, fishes_caught, best_fish_value, best_fish_name, best_fish_rarity, best_fish_img, best_fish_mutation, best_fish_class, best_common_streak, cosmetic_id, achievement_title_id, achievement_color_id')
             .limit(LIMIT);
 
         cat.orders.forEach((order, i) => {

@@ -318,82 +318,40 @@
         return `<span class="ach-pseudo-with-dofus">${innerHtml}<img src="${escapeHtml(img)}" class="ach-pseudo-dofus-badge" width="18" height="18" alt="" title="Écumeur de Bonta"></span>`;
     }
 
-    function hasOrnamentEquipped(ornamentId) {
-        return Boolean(ornamentId && window.StepFishCosmetics?.isOrnamentId?.(ornamentId));
-    }
-
-    function renderStyleOnlyHTML(pseudo, cosmeticId, colorId) {
+    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId) {
         if (colorId && COLOR_REWARDS[colorId]) {
             const c = COLOR_REWARDS[colorId];
             return `<span class="ach-pseudo-color ${c.class}"><span class="ach-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
         }
-        if (window.StepFishCosmetics?.renderStyleInnerHTML) {
-            return window.StepFishCosmetics.renderStyleInnerHTML(pseudo, cosmeticId || 'default');
+        if (window.StepFishCosmetics?.renderPseudoHTML) {
+            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default');
         }
         return `<span class="ach-pseudo-plain">${escapeHtml(pseudo)}</span>`;
     }
 
-    function applyEccumeurDofusIfNeeded(inner, titleId) {
-        if (titleId === 'title_eccumeur' && TITLE_REWARDS.title_eccumeur?.pseudoDofus) {
-            return wrapPseudoWithEccumeurDofus(inner);
-        }
-        return inner;
-    }
-
-    function wrapBodyWithOrnament(bodyHtml, ornamentId, variant) {
-        if (!hasOrnamentEquipped(ornamentId) || !window.StepFishCosmetics?.wrapWithOrnament) {
-            return bodyHtml;
-        }
-        return window.StepFishCosmetics.wrapWithOrnament(bodyHtml, ornamentId, variant) || bodyHtml;
-    }
-
-    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId) {
-        const resolvedOrnament = ornamentId !== undefined
-            ? ornamentId
-            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
-        const body = renderStyleOnlyHTML(pseudo, cosmeticId, colorId);
-        return wrapBodyWithOrnament(body, resolvedOrnament);
-    }
-
-    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId, opts) {
-        const options = opts || {};
+    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId) {
         const titleHtml = titleId ? renderTitleHTML(titleId) : '';
-        const resolvedOrnament = ornamentId !== undefined
-            ? ornamentId
-            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
-
-        if (hasOrnamentEquipped(resolvedOrnament) && options.titleInsideOrnament && titleId) {
-            let body = applyEccumeurDofusIfNeeded(renderStyleOnlyHTML(pseudo, cosmeticId, colorId), titleId);
-            const stack = `<span class="cos-pseudo-ornament-stack">${titleHtml}${body}</span>`;
-            const wrapped = wrapBodyWithOrnament(stack, resolvedOrnament, 'stack');
-            return `<span class="player-pseudo-full player-pseudo-full--ornament-stack">${wrapped}</span>`;
+        let inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId);
+        if (titleId === 'title_eccumeur' && TITLE_REWARDS.title_eccumeur?.pseudoDofus) {
+            inner = wrapPseudoWithEccumeurDofus(inner);
         }
-
-        let body = applyEccumeurDofusIfNeeded(renderStyleOnlyHTML(pseudo, cosmeticId, colorId), titleId);
-        if (hasOrnamentEquipped(resolvedOrnament)) {
-            body = wrapBodyWithOrnament(body, resolvedOrnament);
-        }
-        return `<span class="player-pseudo-full">${titleHtml}${body}</span>`;
+        return `<span class="player-pseudo-full">${titleHtml}${inner}</span>`;
     }
 
     function getDisplayIds(forSelf) {
         const s = getState();
-        if (!forSelf || !s) return { titleId: null, colorId: null, cosmeticId: 'default', ornamentId: null };
+        if (!forSelf || !s) return { titleId: null, colorId: null, cosmeticId: 'default' };
         return {
             titleId: s.equippedTitleId || null,
             colorId: s.equippedColorId || null,
-            cosmeticId: window.StepFishCosmetics?.getEquippedStyleId?.()
-                || window.StepFishCosmetics?.getEquippedId?.()
-                || s.equippedCosmetic
-                || 'default',
-            ornamentId: window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? s.equippedOrnament ?? null
+            cosmeticId: window.StepFishCosmetics?.getEquippedId?.() || s.equippedCosmetic || 'default'
         };
     }
 
     function refreshPseudoDisplays() {
         const pseudo = window.StepFishAuth?.getPseudo?.() || document.getElementById('user-pseudo')?.textContent || 'Pêcheur';
-        const { titleId, colorId, cosmeticId, ornamentId } = getDisplayIds(true);
-        const html = renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId);
+        const { titleId, colorId, cosmeticId } = getDisplayIds(true);
+        const html = renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId);
         const userEl = document.getElementById('user-pseudo');
         if (userEl) userEl.innerHTML = html;
         const prof = document.getElementById('prof-pseudo-display');
