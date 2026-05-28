@@ -3181,8 +3181,9 @@ function setupIndexZoneFilters() {
     allBtn.type = 'button';
     allBtn.className = 'index-legend-item index-legend-all';
     allBtn.setAttribute('data-index-zone', 'all');
-    allBtn.textContent = 'Tous';
-    allBtn.title = 'Afficher toutes les zones';
+    allBtn.textContent = '★';
+    allBtn.setAttribute('aria-label', 'Toutes les zones');
+    allBtn.title = 'Toutes les zones';
     allBtn.addEventListener('click', () => setIndexZoneFilter(null));
     legend.appendChild(allBtn);
 
@@ -3191,8 +3192,9 @@ function setupIndexZoneFilters() {
         btn.type = 'button';
         btn.className = `index-legend-item ${z.className}`;
         btn.setAttribute('data-index-zone', z.id);
-        btn.title = `Afficher uniquement : ${z.label}`;
-        btn.innerHTML = `<i aria-hidden="true"></i>${z.shortLabel || z.label}`;
+        btn.setAttribute('aria-label', z.label);
+        btn.title = z.label;
+        btn.innerHTML = '<i aria-hidden="true"></i>';
         btn.addEventListener('click', () => setIndexZoneFilter(z.id));
         legend.appendChild(btn);
     });

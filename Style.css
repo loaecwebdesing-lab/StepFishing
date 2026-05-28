@@ -1225,36 +1225,33 @@ button:active { transform: scale(0.95); filter: brightness(0.8); }
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     justify-content: center;
     width: 100%;
     max-width: 100%;
-    margin-bottom: 8px;
-    padding: 2px 0;
-    font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.9);
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    margin-bottom: 6px;
+    padding: 0;
+    overflow: hidden;
 }
 .index-legend-item {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: 999px;
-    border: 2px solid rgba(255, 255, 255, 0.22);
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.22);
     font-family: var(--font-game);
-    font-size: 0.72rem;
-    line-height: 1.15;
-    white-space: nowrap;
+    font-size: 0.65rem;
+    line-height: 1;
     color: rgba(255, 255, 255, 0.96);
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
     touch-action: manipulation;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 button.index-legend-item {
     appearance: none;
@@ -1265,14 +1262,15 @@ button.index-legend-item {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
 }
 .index-legend-item.active {
-    font-weight: 700;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.45);
+    transform: scale(1.12);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 .index-legend-all {
+    width: 28px;
+    min-width: 28px;
     border-color: rgba(255, 255, 255, 0.5);
     background: linear-gradient(180deg, rgba(60, 55, 48, 0.85), rgba(30, 28, 24, 0.9));
-    font-weight: 700;
-    padding: 4px 10px;
+    font-size: 0.7rem;
 }
 .index-legend-all:hover {
     border-color: rgba(255, 215, 0, 0.65);
@@ -1292,12 +1290,12 @@ button.index-legend-item {
     margin: 0;
 }
 .index-legend-item i {
-    width: 11px;
-    height: 11px;
+    width: 12px;
+    height: 12px;
     flex-shrink: 0;
     border-radius: 50%;
-    display: inline-block;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    display: block;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
 }
 .index-legend-item.zone-lac {
     border-color: #87ceeb;
@@ -1309,7 +1307,7 @@ button.index-legend-item {
 .index-legend-item.zone-lac.active {
     border-color: #e3f6fc;
     background: linear-gradient(180deg, rgba(135, 206, 235, 0.45), rgba(70, 130, 180, 0.35));
-    box-shadow: 0 0 0 2px rgba(184, 228, 245, 0.5), 0 0 14px rgba(135, 206, 235, 0.55);
+    box-shadow: 0 0 0 1.5px rgba(184, 228, 245, 0.55), 0 0 8px rgba(135, 206, 235, 0.45);
 }
 
 .index-legend-item.zone-ocean {
@@ -1322,7 +1320,7 @@ button.index-legend-item {
 .index-legend-item.zone-ocean.active {
     border-color: #7eb8e8;
     background: linear-gradient(180deg, rgba(45, 90, 150, 0.7), rgba(18, 45, 85, 0.55));
-    box-shadow: 0 0 0 2px rgba(90, 143, 196, 0.45), 0 0 14px rgba(30, 64, 120, 0.6);
+    box-shadow: 0 0 0 1.5px rgba(90, 143, 196, 0.45), 0 0 8px rgba(30, 64, 120, 0.5);
 }
 
 .index-legend-item.zone-abyss {
@@ -1335,7 +1333,7 @@ button.index-legend-item {
 .index-legend-item.zone-abyss.active {
     border-color: #ddd6fe;
     background: linear-gradient(180deg, rgba(124, 92, 191, 0.58), rgba(80, 50, 130, 0.48));
-    box-shadow: 0 0 0 2px rgba(196, 181, 253, 0.45), 0 0 14px rgba(124, 92, 191, 0.55);
+    box-shadow: 0 0 0 1.5px rgba(196, 181, 253, 0.45), 0 0 8px rgba(124, 92, 191, 0.5);
 }
 
 .index-legend-item.zone-bonta {
@@ -1348,7 +1346,7 @@ button.index-legend-item {
 .index-legend-item.zone-bonta.active {
     border-color: #f1f8e9;
     background: linear-gradient(180deg, rgba(124, 179, 66, 0.55), rgba(85, 139, 47, 0.42));
-    box-shadow: 0 0 0 2px rgba(220, 237, 200, 0.45), 0 0 14px rgba(124, 179, 66, 0.5);
+    box-shadow: 0 0 0 1.5px rgba(220, 237, 200, 0.45), 0 0 8px rgba(124, 179, 66, 0.45);
 }
 
 .index-grid {
