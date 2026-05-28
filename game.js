@@ -1728,19 +1728,51 @@ function pickWeightedLoot(pool) {
     return pool[pool.length - 1];
 }
 
+function isCrateRodOwned(rodId) {
+    return (state.ownedRods || []).map(Number).includes(Number(rodId));
+}
+
+/** Poids fixes par canne (non renormalisés quand une canne est déjà possédée). */
+function getCrateRodWeightEntries() {
+    if (!getCrateRodWeightEntries._cache) {
+        const rodWeightSum = Object.values(CRATE_ROD_WEIGHTS).reduce((a, b) => a + b, 0);
+        const countByRarity = {};
+        CRATE_RODS.forEach(rod => {
+            countByRarity[rod.rarity] = (countByRarity[rod.rarity] || 0) + 1;
+        });
+        getCrateRodWeightEntries._cache = CRATE_RODS.map(rod => ({
+            rod,
+            weight: CRATE_ROD_POOL_WEIGHT
+                * ((CRATE_ROD_WEIGHTS[rod.rarity] || 0) / rodWeightSum)
+                / (countByRarity[rod.rarity] || 1)
+        }));
+    }
+    return getCrateRodWeightEntries._cache;
+}
+
+function rollCrateMoneyLoot() {
+    const moneyLoot = pickWeightedLoot(CRATE_MONEY_LOOT);
+    return {
+        type: 'money',
+        amount: moneyLoot.amount,
+        label: moneyLoot.label,
+        color: moneyLoot.color
+    };
+}
+
 function rollCrateRod() {
-    const entries = Object.entries(CRATE_ROD_WEIGHTS);
-    const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+    const entries = getCrateRodWeightEntries();
+    const total = entries.reduce((sum, e) => sum + e.weight, 0);
     let roll = Math.random() * total;
-    for (const [rarity, weight] of entries) {
+    for (const { rod, weight } of entries) {
         if (roll < weight) {
-            const rods = CRATE_RODS.filter(r => r.rarity === rarity);
-            const rod = rods[Math.floor(Math.random() * rods.length)];
+            if (isCrateRodOwned(rod.id)) return rollCrateMoneyLoot();
             return { type: 'rod', rod, label: rod.name, color: rod.color };
         }
         roll -= weight;
     }
     const fallback = CRATE_RODS[0];
+    if (isCrateRodOwned(fallback.id)) return rollCrateMoneyLoot();
     return { type: 'rod', rod: fallback, label: fallback.name, color: fallback.color };
 }
 
@@ -1813,13 +1845,7 @@ function rollCrateLoot() {
     const moneyTotal = CRATE_MONEY_LOOT.reduce((sum, item) => sum + item.weight, 0);
     const grandTotal = moneyTotal + CRATE_ROD_POOL_WEIGHT;
     if (Math.random() * grandTotal >= moneyTotal) return rollCrateRod();
-    const moneyLoot = pickWeightedLoot(CRATE_MONEY_LOOT);
-    return {
-        type: 'money',
-        amount: moneyLoot.amount,
-        label: moneyLoot.label,
-        color: moneyLoot.color
-    };
+    return rollCrateMoneyLoot();
 }
 
 function getCrateItemHTML(loot) {
@@ -1865,6 +1891,12 @@ function applyCrateReward(loot) {
         updateMoneyDisplay();
         addLog(`Coffre : ${loot.label} obtenus !`, 'epic');
         alert(`💰 BRAVO ! Vous avez gagné ${loot.label} !`);
+        return;
+    }
+    if (isCrateRodOwned(loot.rod.id)) {
+        const moneyFallback = rollCrateMoneyLoot();
+        addLog(`Canne déjà possédée (${loot.rod.name}) — converti en ${moneyFallback.label}.`, 'system');
+        applyCrateReward(moneyFallback);
         return;
     }
     addLog(`FÉLICITATIONS ! Canne obtenue : ${loot.rod.name} !`, 'epic');
