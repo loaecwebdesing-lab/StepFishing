@@ -3338,7 +3338,7 @@ button.index-legend-item {
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap {
-    font-size: 0.82rem;
+    font-size: 0.92rem;
     line-height: 1;
 }
 
@@ -3348,11 +3348,11 @@ button.index-legend-item {
     min-width: 100%;
     min-height: 100%;
     margin: 0;
-    transform: scale(0.5) translateY(2px);
+    transform: scale(0.58) translateY(2px);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-0.3em);
+    transform: translateY(-0.28em);
 }
 
 #screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text,
@@ -4699,11 +4699,11 @@ button.index-legend-item {
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-0.58em);
+    transform: translateY(-0.42em);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    transform: scale(1.02) translateY(6px);
+    transform: scale(1.02) translateY(5px);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-wrap,
