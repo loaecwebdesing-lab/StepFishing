@@ -214,6 +214,8 @@
     }
 
     function renderPseudoCell(pseudo, cosmeticId, titleId, colorId, ornamentId) {
+        const resolvedOrn = resolveOrnamentId(ornamentId);
+        const lbOpts = resolvedOrn && titleId ? { titleInsideOrnament: true } : {};
         let inner;
         if (window.StepFishAchievements?.renderPlayerPseudoHTML) {
             inner = window.StepFishAchievements.renderPlayerPseudoHTML(
@@ -221,7 +223,8 @@
                 resolveCosmeticId(cosmeticId),
                 titleId,
                 colorId,
-                resolveOrnamentId(ornamentId)
+                resolvedOrn,
+                lbOpts
             );
         } else if (window.StepFishCosmetics?.renderPseudoHTML) {
             inner = window.StepFishCosmetics.renderPseudoHTML(

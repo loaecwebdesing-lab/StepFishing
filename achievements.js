@@ -318,31 +318,62 @@
         return `<span class="ach-pseudo-with-dofus">${innerHtml}<img src="${escapeHtml(img)}" class="ach-pseudo-dofus-badge" width="18" height="18" alt="" title="Écumeur de Bonta"></span>`;
     }
 
-    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId) {
-        const resolvedOrnament = ornamentId !== undefined
-            ? ornamentId
-            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
+    function hasOrnamentEquipped(ornamentId) {
+        return Boolean(ornamentId && window.StepFishCosmetics?.isOrnamentId?.(ornamentId));
+    }
+
+    function renderStyleOnlyHTML(pseudo, cosmeticId, colorId) {
         if (colorId && COLOR_REWARDS[colorId]) {
             const c = COLOR_REWARDS[colorId];
-            const colored = `<span class="ach-pseudo-color ${c.class}"><span class="ach-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
-            if (window.StepFishCosmetics?.wrapWithOrnament) {
-                return window.StepFishCosmetics.wrapWithOrnament(colored, resolvedOrnament) || colored;
-            }
-            return colored;
+            return `<span class="ach-pseudo-color ${c.class}"><span class="ach-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
         }
-        if (window.StepFishCosmetics?.renderPseudoHTML) {
-            return window.StepFishCosmetics.renderPseudoHTML(pseudo, cosmeticId || 'default', resolvedOrnament);
+        if (window.StepFishCosmetics?.renderStyleInnerHTML) {
+            return window.StepFishCosmetics.renderStyleInnerHTML(pseudo, cosmeticId || 'default');
         }
         return `<span class="ach-pseudo-plain">${escapeHtml(pseudo)}</span>`;
     }
 
-    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId) {
-        const titleHtml = titleId ? renderTitleHTML(titleId) : '';
-        let inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId);
+    function applyEccumeurDofusIfNeeded(inner, titleId) {
         if (titleId === 'title_eccumeur' && TITLE_REWARDS.title_eccumeur?.pseudoDofus) {
-            inner = wrapPseudoWithEccumeurDofus(inner);
+            return wrapPseudoWithEccumeurDofus(inner);
         }
-        return `<span class="player-pseudo-full">${titleHtml}${inner}</span>`;
+        return inner;
+    }
+
+    function wrapBodyWithOrnament(bodyHtml, ornamentId, variant) {
+        if (!hasOrnamentEquipped(ornamentId) || !window.StepFishCosmetics?.wrapWithOrnament) {
+            return bodyHtml;
+        }
+        return window.StepFishCosmetics.wrapWithOrnament(bodyHtml, ornamentId, variant) || bodyHtml;
+    }
+
+    function renderPseudoInnerHTML(pseudo, cosmeticId, colorId, ornamentId) {
+        const resolvedOrnament = ornamentId !== undefined
+            ? ornamentId
+            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
+        const body = renderStyleOnlyHTML(pseudo, cosmeticId, colorId);
+        return wrapBodyWithOrnament(body, resolvedOrnament);
+    }
+
+    function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId, ornamentId, opts) {
+        const options = opts || {};
+        const titleHtml = titleId ? renderTitleHTML(titleId) : '';
+        const resolvedOrnament = ornamentId !== undefined
+            ? ornamentId
+            : (window.StepFishCosmetics?.getEquippedOrnamentId?.() ?? null);
+
+        if (hasOrnamentEquipped(resolvedOrnament) && options.titleInsideOrnament && titleId) {
+            let body = applyEccumeurDofusIfNeeded(renderStyleOnlyHTML(pseudo, cosmeticId, colorId), titleId);
+            const stack = `<span class="cos-pseudo-ornament-stack">${titleHtml}${body}</span>`;
+            const wrapped = wrapBodyWithOrnament(stack, resolvedOrnament, 'stack');
+            return `<span class="player-pseudo-full player-pseudo-full--ornament-stack">${wrapped}</span>`;
+        }
+
+        let body = applyEccumeurDofusIfNeeded(renderStyleOnlyHTML(pseudo, cosmeticId, colorId), titleId);
+        if (hasOrnamentEquipped(resolvedOrnament)) {
+            body = wrapBodyWithOrnament(body, resolvedOrnament);
+        }
+        return `<span class="player-pseudo-full">${titleHtml}${body}</span>`;
     }
 
     function getDisplayIds(forSelf) {

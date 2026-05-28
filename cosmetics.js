@@ -142,12 +142,13 @@
         return `<span class="${getCosmeticClass(styleId)} cos-pseudo-wrap">${particles}<span class="cos-pseudo-text">${escapeHtml(pseudo)}</span></span>`;
     }
 
-    function wrapWithOrnament(innerHtml, ornamentId) {
+    function wrapWithOrnament(innerHtml, ornamentId, variant) {
         const orn = ornamentById[ornamentId];
         if (!orn || !innerHtml) return innerHtml;
+        const stackClass = variant === 'stack' ? ' cos-pseudo-ornament-inner--stack' : '';
         return `<span class="cos-pseudo-ornament-wrap cos-pseudo-ornament-${escapeHtml(orn.id)}" data-ornament="1">
             <img src="${escapeHtml(orn.img)}" class="cos-ornament-frame" alt="" aria-hidden="true">
-            <span class="cos-pseudo-ornament-inner">${innerHtml}</span>
+            <span class="cos-pseudo-ornament-inner${stackClass}">${innerHtml}</span>
         </span>`;
     }
 
@@ -411,6 +412,7 @@
         getEquippedStyleId,
         getEquippedOrnamentId,
         renderPseudoHTML,
+        renderStyleInnerHTML,
         wrapWithOrnament,
         applyToElement,
         refreshPseudoDisplays,
