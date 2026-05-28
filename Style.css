@@ -4699,11 +4699,11 @@ button.index-legend-item {
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-0.42em);
+    transform: translateY(-0.32em);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    transform: scale(1.02) translateY(5px);
+    transform: scale(1.02) translateY(4px);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-wrap,
