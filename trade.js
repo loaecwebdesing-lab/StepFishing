@@ -315,7 +315,7 @@
         try {
             const row = await window.StepFishAuth.fetchCloudSave(userId);
             if (row?.save_data) {
-                game.applySaveData(row.save_data);
+                game.applySaveDataFromTrade(row.save_data);
                 game.refreshInventoryAfterCloudSync();
             }
         } catch (e) {

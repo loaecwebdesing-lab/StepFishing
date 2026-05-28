@@ -1072,10 +1072,35 @@ function persistGame() {
     }
 }
 
-/** trusted: 'cloud' | 'trade' — sinon données rejetées si incohérentes. */
+let trustedCloudApplyActive = false;
+let trustedTradeApplyActive = false;
+
+/** Appliquer une sauvegarde cloud — réservé au module auth (pas la console). */
+function applySaveDataFromCloudInternal(data) {
+    trustedCloudApplyActive = true;
+    try {
+        applySaveData(data, { trusted: 'cloud' });
+    } finally {
+        trustedCloudApplyActive = false;
+    }
+}
+
+/** Appliquer une sauvegarde après échange — réservé au module trade. */
+function applySaveDataFromTradeInternal(data) {
+    trustedTradeApplyActive = true;
+    try {
+        applySaveData(data, { trusted: 'trade' });
+    } finally {
+        trustedTradeApplyActive = false;
+    }
+}
+
+/** trusted: 'cloud' | 'trade' — verrou interne, sinon rejet anti-triche. */
 function applySaveData(data, options = {}) {
     if (!data) return;
-    const trusted = options.trusted === 'cloud' || options.trusted === 'trade';
+    let trusted = false;
+    if (options.trusted === 'cloud' && trustedCloudApplyActive) trusted = true;
+    if (options.trusted === 'trade' && trustedTradeApplyActive) trusted = true;
     let sanitized = sanitizeSavePayload(data);
     if (!trusted) {
         const local = readSecureLocalSave();
@@ -3667,9 +3692,20 @@ function openCrate() {
     }, 5200);
 }
 
+function registerAntiCheatBridges() {
+    if (window.StepFishAuth?.registerSaveBridge) {
+        window.StepFishAuth.registerSaveBridge({
+            getSavePayload,
+            applyCloud: applySaveDataFromCloudInternal,
+            sanitizeSavePayload
+        });
+    }
+}
+
 async function boot() {
     ensureFishUidsInInventory();
     updateProgression();
+    registerAntiCheatBridges();
     masterVolume = loadMasterVolume();
     volumeMuted = masterVolume <= 0;
     setupAudio();
@@ -3691,9 +3727,6 @@ async function boot() {
 window.StepFishGame = {
     getSavePayload,
     getStateSnapshot,
-    applySaveDataFromCloud: (data) => applySaveData(data, { trusted: 'cloud' }),
-    applySaveDataFromTrade: (data) => applySaveData(data, { trusted: 'trade' }),
-    sanitizeSavePayload,
     isDevBuild: () => IS_DEV_BUILD
 };
 
@@ -3708,7 +3741,7 @@ window.StepFishGameTrade = {
     getRarityNameFromClass,
     getFishPrefixMult,
     aquariumFishWidthPx,
-    applySaveData: (data) => applySaveData(data, { trusted: 'trade' }),
+    applySaveDataFromTrade: applySaveDataFromTradeInternal,
     refreshInventoryAfterCloudSync,
     updateAquariumCapacityHUD,
     addLog,

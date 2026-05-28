@@ -27,6 +27,8 @@
     let guestMode = false;
     let pseudo = 'Pêcheur Anonyme';
     let readyResolve = null;
+    /** Pont jeu ↔ cloud (non exposé à la console). */
+    let saveBridge = null;
 
     function getConfig() {
         return window.STEPFISH_CONFIG || {};
@@ -148,9 +150,13 @@
         return err?.message || 'Erreur de connexion';
     }
 
+    function registerSaveBridge(bridge) {
+        saveBridge = bridge;
+    }
+
     function mergeLocalIntoSave(saveData) {
-        if (window.StepFishGame?.getSavePayload) {
-            const local = window.StepFishGame.getSavePayload();
+        if (saveBridge?.getSavePayload) {
+            const local = saveBridge.getSavePayload();
             const hasLocalProgress =
                 (local.totalScore || 0) > 0 ||
                 (local.money || 0) > 0 ||
@@ -231,16 +237,16 @@
 
         if (row?.pseudo) pseudo = row.pseudo;
         const save = mergeLocalIntoSave(row?.save_data);
-        if (window.StepFishGame?.applySaveDataFromCloud) {
-            window.StepFishGame.applySaveDataFromCloud(save);
+        if (saveBridge?.applyCloud) {
+            saveBridge.applyCloud(save);
         }
         if (!row) {
             await saveToCloud(save);
-        } else if (window.StepFishGame?.getSavePayload) {
-            const local = window.StepFishGame.getSavePayload();
+        } else if (saveBridge?.getSavePayload) {
+            const local = saveBridge.getSavePayload();
             if ((local.totalScore || 0) > (row.save_data?.totalScore || 0)) {
                 await saveToCloud(local);
-                window.StepFishGame.applySaveDataFromCloud(local);
+                saveBridge.applyCloud(local);
             }
         }
 
@@ -254,9 +260,9 @@
 
     async function saveToCloud(saveData) {
         if (!supabaseClient || !getUserId()) return;
-        const raw = saveData || (window.StepFishGame?.getSavePayload?.() || DEFAULT_SAVE);
-        const payload = window.StepFishGame?.sanitizeSavePayload
-            ? window.StepFishGame.sanitizeSavePayload(raw)
+        const raw = saveData || (saveBridge?.getSavePayload?.() || DEFAULT_SAVE);
+        const payload = saveBridge?.sanitizeSavePayload
+            ? saveBridge.sanitizeSavePayload(raw)
             : raw;
         const { error } = await supabaseClient.from('player_saves').upsert({
             id: getUserId(),
@@ -421,6 +427,7 @@
     }
 
     window.StepFishAuth = {
+        registerSaveBridge,
         init() {
             return new Promise((resolve) => {
                 readyResolve = resolve;
