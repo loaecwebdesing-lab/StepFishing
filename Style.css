@@ -3295,16 +3295,16 @@ button.index-legend-item {
 
 .cos-pseudo-ornament-wrap .cos-ornament-frame {
     grid-area: 1 / 1;
-    width: calc(100% + 28px);
-    height: calc(100% + 18px);
-    min-width: calc(100% + 28px);
-    min-height: calc(100% + 18px);
-    margin: -9px -14px;
+    width: calc(100% + 20px);
+    height: calc(100% + 14px);
+    min-width: calc(100% + 20px);
+    min-height: calc(100% + 14px);
+    margin: -7px -10px;
     object-fit: fill;
     pointer-events: none;
     z-index: 0;
     user-select: none;
-    transform: scale(1.1);
+    transform: scale(1.05);
     transform-origin: center center;
 }
 
@@ -3316,7 +3316,7 @@ button.index-legend-item {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    transform: translateY(-2px);
+    transform: translateY(1px);
 }
 
 .cos-pseudo-ornament-wrap .cos-pseudo-wrap {
@@ -3337,8 +3337,23 @@ button.index-legend-item {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
-#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text {
-    font-size: 0.95em;
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
+    width: calc(100% + 8px);
+    height: calc(100% + 6px);
+    min-width: calc(100% + 8px);
+    min-height: calc(100% + 6px);
+    margin: -3px -4px;
+    transform: scale(0.88) translateY(1px);
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-inner {
+    transform: translateY(2px);
+}
+
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .cos-pseudo-text,
+#screen-leaderboard .lb-pseudo .cos-pseudo-ornament-wrap .ach-pseudo-text {
+    padding: 0 5px 1px;
+    font-size: inherit;
 }
 
 .cos-pseudo-wrap {
@@ -4673,11 +4688,11 @@ button.index-legend-item {
 }
 
 #user-pseudo .cos-pseudo-ornament-inner {
-    transform: translateY(-3px);
+    transform: translateY(5px);
 }
 
 #user-pseudo .cos-pseudo-ornament-wrap .cos-ornament-frame {
-    transform: scale(1.12);
+    transform: scale(1.06) translateY(3px);
 }
 
 .profile-info #user-pseudo {
