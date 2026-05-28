@@ -3,6 +3,7 @@
  */
 (function () {
     const G = () => window.StepFishGameTrade;
+    let tradeSaveBridge = null;
     let channel = null;
     let trades = [];
     let activeTab = 'incoming';
@@ -314,8 +315,8 @@
         if (!userId || !game || !window.StepFishAuth?.fetchCloudSave) return;
         try {
             const row = await window.StepFishAuth.fetchCloudSave(userId);
-            if (row?.save_data) {
-                game.applySaveDataFromTrade(row.save_data);
+            if (row?.save_data && tradeSaveBridge?.applyTrade) {
+                tradeSaveBridge.applyTrade(row.save_data);
                 game.refreshInventoryAfterCloudSync();
             }
         } catch (e) {
@@ -521,7 +522,12 @@
         }
     }
 
+    function registerSaveBridge(bridge) {
+        tradeSaveBridge = bridge;
+    }
+
     window.StepFishTrade = {
+        registerSaveBridge,
         start,
         open,
         openWithFish,

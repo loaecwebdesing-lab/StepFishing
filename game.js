@@ -3700,6 +3700,11 @@ function registerAntiCheatBridges() {
             sanitizeSavePayload
         });
     }
+    if (window.StepFishTrade?.registerSaveBridge) {
+        window.StepFishTrade.registerSaveBridge({
+            applyTrade: applySaveDataFromTradeInternal
+        });
+    }
 }
 
 async function boot() {
@@ -3741,7 +3746,6 @@ window.StepFishGameTrade = {
     getRarityNameFromClass,
     getFishPrefixMult,
     aquariumFishWidthPx,
-    applySaveDataFromTrade: applySaveDataFromTradeInternal,
     refreshInventoryAfterCloudSync,
     updateAquariumCapacityHUD,
     addLog,
