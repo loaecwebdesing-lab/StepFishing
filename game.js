@@ -689,15 +689,6 @@ const ZONE_DATA = [
         }
     },
     {
-        id: 'bonta',
-        name: 'Bonta',
-        minLevel: 150,
-        bgDay: 'assets/bonta_day.png',
-        bgDawn: 'assets/bonta_dawn.png',
-        bgNight: 'assets/bonta_night.png',
-        library: { ...BONTA_EXCLUSIVE_FISH }
-    },
-    {
         id: 'fond',
         name: 'Le Fond',
         minLevel: 200,
@@ -705,6 +696,16 @@ const ZONE_DATA = [
         bgDawn: 'assets/lefond.png',
         bgNight: 'assets/lefond.png',
         library: { ...FOND_EXCLUSIVE_FISH }
+    },
+    {
+        id: 'bonta',
+        name: 'Bonta',
+        minLevel: 150,
+        bgDay: 'assets/bonta_day.png',
+        bgDawn: 'assets/bonta_dawn.png',
+        bgNight: 'assets/bonta_night.png',
+        library: { ...BONTA_EXCLUSIVE_FISH },
+        mapSpecial: true
     }
 ];
 
@@ -2769,16 +2770,23 @@ function sellAllFromAllAquariums() {
     addLog(`Vendu ${soldCount} poisson(s) (tous bacs) : ${totalGain.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} $${lockedNote}`, 'epic');
 }
 
+function getBontaMapDofusBadgeHtml() {
+    const img = window.STEPFISH_DOFUS?.byId?.emeraude?.img || 'assets/dofus/Emeraude.png';
+    return `<img src="${img}" class="zone-card-dofus-badge" width="36" height="36" alt="" title="Débloqué avec les 6 Dofus">`;
+}
+
 function renderMap() {
     const mapGrid = document.getElementById('map-zones');
     if(!mapGrid) return;
     mapGrid.innerHTML = '';
     ZONE_DATA.forEach(zone => {
         const unlocked = isZoneUnlocked(zone);
+        const isBonta = zone.id === 'bonta';
         const card = document.createElement('div');
-        card.className = `zone-card${state.currentZone === zone.id && unlocked ? ' active' : ''}${unlocked ? '' : ' zone-card-locked'}`;
+        card.className = `zone-card${isBonta ? ' zone-card-bonta' : ''}${state.currentZone === zone.id && unlocked ? ' active' : ''}${unlocked ? '' : ' zone-card-locked'}`;
+        const dofusBadge = isBonta ? getBontaMapDofusBadgeHtml() : '';
         if (unlocked) {
-            card.innerHTML = `<h3>${zone.name}</h3><p>Découvrez les espèces de cette région</p>`;
+            card.innerHTML = `${dofusBadge}<h3>${escapeHtml(zone.name)}</h3><p>${isBonta ? 'Zone spéciale · 6 Dofus requis' : 'Découvrez les espèces de cette région'}</p>`;
             card.onclick = () => {
                 state.currentZone = zone.id;
                 persistGame();
@@ -2789,7 +2797,7 @@ function renderMap() {
             };
         } else {
             const lockMsg = getZoneLockMessage(zone);
-            card.innerHTML = `<h3>🔒 ${zone.name}</h3><p>${lockMsg}</p>`;
+            card.innerHTML = `${dofusBadge}<h3>🔒 ${escapeHtml(zone.name)}</h3><p>${escapeHtml(lockMsg)}</p>`;
         }
         mapGrid.appendChild(card);
     });
@@ -3699,8 +3707,8 @@ const FISH_INDEX_ZONE_LEGEND = [
     { id: 'lac', label: 'Lac Calme', shortLabel: 'Lac', className: 'zone-lac' },
     { id: 'ocean', label: 'Haute Mer', shortLabel: 'Mer', className: 'zone-ocean' },
     { id: 'abyss', label: 'Abysse', shortLabel: 'Abysse', className: 'zone-abyss' },
-    { id: 'bonta', label: 'Bonta', shortLabel: 'Bonta', className: 'zone-bonta' },
-    { id: 'fond', label: 'Le Fond', shortLabel: 'Fond', className: 'zone-fond' }
+    { id: 'fond', label: 'Le Fond', shortLabel: 'Fond', className: 'zone-fond' },
+    { id: 'bonta', label: 'Bonta', shortLabel: 'Bonta', className: 'zone-bonta' }
 ];
 
 let indexZoneFilter = null;
