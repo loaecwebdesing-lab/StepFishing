@@ -1577,6 +1577,26 @@ function hasDiscoveredAllAbyssCommunToLegendaire() {
     return required.every(path => state.discoveredFishes.includes(path));
 }
 
+/** FishIndex Bonta : toutes les espèces de la zone. */
+function getBontaFishImagePathsForIndex() {
+    return getZoneFishImagePaths('bonta');
+}
+
+function getBontaFishCount() {
+    return getBontaFishImagePathsForIndex().length;
+}
+
+function getDiscoveredBontaCount() {
+    const required = getBontaFishImagePathsForIndex();
+    return required.filter(path => state.discoveredFishes.includes(path)).length;
+}
+
+function hasDiscoveredAllBontaFish() {
+    const required = getBontaFishImagePathsForIndex();
+    if (!required.length) return true;
+    return required.every(path => state.discoveredFishes.includes(path));
+}
+
 function getAllFishImagePathsInGame() {
     const set = new Set();
     ZONE_DATA.forEach(z => {
@@ -3255,6 +3275,10 @@ function catchFish(success) {
             if (hasDiscoveredAllAbyssCommunToLegendaire() && state.level >= 200) {
                 addLog('🕳️ Le Fond débloqué ! Index Abysse (Commun → Légendaire) complet.', 'epic');
             }
+            if (hasDiscoveredAllBontaFish()) {
+                addLog('🏰 FishIndex Bonta complet !', 'epic');
+            }
+            window.StepFishAchievements?.checkAll?.();
         }
     } else {
         state.catchModalFishUid = null;
@@ -4177,6 +4201,9 @@ window.StepFishGameMeta = {
     getAbyssCommunToLegendaireCount: () => getAbyssCommunToLegendaireCount(),
     getDiscoveredAbyssCommunToLegendaireCount: () => getDiscoveredAbyssCommunToLegendaireCount(),
     hasDiscoveredAllFishInGame: () => hasDiscoveredAllFishInGame(),
+    hasDiscoveredAllBontaFish: () => hasDiscoveredAllBontaFish(),
+    getBontaFishCount: () => getBontaFishCount(),
+    getDiscoveredBontaCount: () => getDiscoveredBontaCount(),
     hasAllDofus: () => hasAllDofus(),
     getCollectedDofusCount: () => getCollectedDofusCount(),
     getLacFishCount: () => getLacFishCount(),

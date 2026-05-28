@@ -29,7 +29,8 @@
         title_merchant: { label: 'Marchand', text: '[Marchand Pro]', class: 'ach-title-merchant' },
         title_reflex: { label: 'Réflexe', text: '[Réflexe]', class: 'ach-title-reflex ach-title-blink' },
         title_broker: { label: 'Courtier', text: '[Courtier]', class: 'ach-title-broker' },
-        title_whale: { label: 'Baleine', text: '[Baleine]', class: 'ach-title-whale ach-title-blink' }
+        title_whale: { label: 'Baleine', text: '[Baleine]', class: 'ach-title-whale ach-title-blink' },
+        title_eccumeur: { label: 'Écumeur', text: '[Écumeur]', class: 'ach-title-eccumeur ach-title-blink', pseudoDofus: true }
     };
 
     const COLOR_REWARDS = {
@@ -75,6 +76,7 @@
         { id: 'index_lac', name: 'Index du lac', desc: 'Découvrir toutes les espèces du lac (hors myt./div.).', cat: 'coll', icon: '📖', cond: { type: 'zone_lac' }, rewards: [{ type: 'title', id: 'title_explorer' }] },
         { id: 'index_ocean', name: 'Haute mer complète', desc: 'Découvrir toutes les espèces océan requises.', cat: 'coll', icon: '🌊', cond: { type: 'zone_ocean' }, rewards: [{ type: 'color', id: 'color_cyan' }] },
         { id: 'index_abyss', name: 'Maître de l\'abysse', desc: 'Découvrir toutes les espèces abysse requises.', cat: 'coll', icon: '🌑', cond: { type: 'zone_abyss' }, rewards: [{ type: 'title', id: 'title_abyss' }] },
+        { id: 'index_bonta', name: 'Écumeur de Bonta', desc: 'Compléter à 100 % le FishIndex de Bonta.', cat: 'coll', icon: '🏰', cond: { type: 'zone_bonta' }, rewards: [{ type: 'title', id: 'title_eccumeur' }] },
         { id: 'index_complete', name: 'FishIndex 100 %', desc: 'Découvrir chaque espèce du jeu.', cat: 'coll', icon: '📚', cond: { type: 'all_fish' }, rewards: [{ type: 'title', id: 'title_collector' }, { type: 'color', id: 'color_gold' }] },
         { id: 'rod_promax', name: 'Équipement pro', desc: 'Posséder la Canne ProMax.', cat: 'prog', icon: '🛠️', cond: { type: 'rod', id: 5 }, rewards: [{ type: 'money', n: 10000 }] },
         { id: 'rod_excalibur', name: 'Excalibur', desc: 'Posséder l\'Excalibur des Mers.', cat: 'prog', icon: '⚔️', cond: { type: 'rod', id: 14 }, rewards: [{ type: 'title', id: 'title_champion' }] },
@@ -204,6 +206,13 @@
                 const ok = meta?.hasDiscoveredAllAbyssFish?.();
                 return { cur: ok ? tot : cur, max: tot };
             }
+            case 'zone_bonta': {
+                const meta = window.StepFishGameMeta;
+                const tot = meta?.getBontaFishCount?.() || 1;
+                const cur = meta?.getDiscoveredBontaCount?.() || 0;
+                const ok = meta?.hasDiscoveredAllBontaFish?.();
+                return { cur: ok ? tot : cur, max: tot };
+            }
             case 'all_fish': {
                 const meta = window.StepFishGameMeta;
                 const tot = meta?.getAllFishSpeciesCount?.() || 1;
@@ -294,10 +303,19 @@
         if (any) renderScreen();
     }
 
+    function getEccumeurDofusImg() {
+        return window.STEPFISH_DOFUS?.byId?.emeraude?.img || 'assets/dofus/Emeraude.png';
+    }
+
     function renderTitleHTML(titleId) {
         const t = TITLE_REWARDS[titleId];
         if (!t) return '';
         return `<span class="ach-player-title ${t.class}">${escapeHtml(t.text)}</span>`;
+    }
+
+    function wrapPseudoWithEccumeurDofus(innerHtml) {
+        const img = getEccumeurDofusImg();
+        return `<span class="ach-pseudo-with-dofus">${innerHtml}<img src="${escapeHtml(img)}" class="ach-pseudo-dofus-badge" width="18" height="18" alt="" title="Écumeur de Bonta"></span>`;
     }
 
     function renderPseudoInnerHTML(pseudo, cosmeticId, colorId) {
@@ -313,7 +331,10 @@
 
     function renderPlayerPseudoHTML(pseudo, cosmeticId, titleId, colorId) {
         const titleHtml = titleId ? renderTitleHTML(titleId) : '';
-        const inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId);
+        let inner = renderPseudoInnerHTML(pseudo, cosmeticId, colorId);
+        if (titleId === 'title_eccumeur' && TITLE_REWARDS.title_eccumeur?.pseudoDofus) {
+            inner = wrapPseudoWithEccumeurDofus(inner);
+        }
         return `<span class="player-pseudo-full">${titleHtml}${inner}</span>`;
     }
 

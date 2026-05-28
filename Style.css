@@ -4519,6 +4519,27 @@ button.index-legend-item {
 .ach-title-reflex { color: #ffab91; }
 .ach-title-broker { color: #c5e1a5; }
 .ach-title-whale { color: #81d4fa; }
+.ach-title-eccumeur { color: #aed581; text-shadow: 0 0 8px rgba(124, 179, 66, 0.85); }
+
+.ach-pseudo-with-dofus {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ach-pseudo-dofus-badge {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.9));
+    animation: eccumeurDofusGlow 2s ease-in-out infinite;
+}
+
+@keyframes eccumeurDofusGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.75)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 9px rgba(129, 199, 132, 1)); transform: scale(1.08); }
+}
 
 .ach-title-blink {
     animation: achTitleBlink 1.1s ease-in-out infinite;
