@@ -1426,6 +1426,7 @@ function isZoneUnlocked(zone) {
     if (state.level < getZoneMinLevel(zone)) return false;
     if (zone.id === 'ocean') return hasDiscoveredAllLacFish();
     if (zone.id === 'abyss') return hasDiscoveredAllOceanFish();
+    if (zone.id === 'bonta') return hasDiscoveredAllAbyssFish();
     return true;
 }
 
@@ -1444,6 +1445,11 @@ function getZoneLockMessage(zone) {
         const total = getOceanFishCountForAbyss();
         const found = getDiscoveredOceanCountForAbyss();
         return `Niveau 100 OK · Océan : ${found}/${total} espèces (sans Mythique ni Divin)`;
+    }
+    if (zone.id === 'bonta' && !hasDiscoveredAllAbyssFish()) {
+        const total = getAbyssFishCount();
+        const found = getDiscoveredAbyssCount();
+        return `Niveau 150 requis · Abysse : ${found}/${total} espèces dans le FishIndex`;
     }
     return '';
 }
@@ -2712,12 +2718,12 @@ function triggerCatch() {
     if (possibleFishes && possibleFishes.length > 0) {
         const randomFishFile = possibleFishes[Math.floor(Math.random() * possibleFishes.length)];
         selectedImg = `assets/fish/${rData.folder}/${randomFishFile}`;
-        fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
+        fishSpecies = speciesLabelFromFile(randomFishFile);
     } else {
         const commonFishes = activeZone.library.commun;
         const randomCommon = commonFishes[Math.floor(Math.random() * commonFishes.length)];
         selectedImg = `assets/fish/commun/${randomCommon}`;
-        fishSpecies = randomCommon.replace('.png', '').replace('_', ' ');
+        fishSpecies = speciesLabelFromFile(randomCommon);
         rIdx = 0;
         rData = RARITIES[0];
     }
@@ -2881,6 +2887,9 @@ function catchFish(success) {
             }
             if (hasDiscoveredAllOceanFish() && state.level >= 100) {
                 addLog('🌑 Abysse débloqué ! Toutes les espèces de Haute Mer requises sont dans ton FishIndex.', 'epic');
+            }
+            if (hasDiscoveredAllAbyssFish() && state.level >= 150) {
+                addLog('🏰 Bonta débloquée ! Toutes les espèces de l\'Abysse sont dans ton FishIndex.', 'epic');
             }
         }
     } else {
@@ -3094,7 +3103,7 @@ function createRandomMutatedFish(zoneId = state.currentZone) {
         rData = RARITIES[0];
     }
     const randomFishFile = possibleFishes[Math.floor(Math.random() * possibleFishes.length)];
-    const fishSpecies = randomFishFile.replace('.png', '').replace('_', ' ');
+    const fishSpecies = speciesLabelFromFile(randomFishFile);
     const mutation = rollRandomMutation();
     const weight = rollFishWeight(rIdx);
     const naming = generateProceduralName(rIdx, fishSpecies);
@@ -3350,8 +3359,14 @@ const FISH_INDEX_ZONE_LEGEND = [
 let indexZoneFilter = null;
 let indexRarityFolder = 'commun';
 
+function speciesLabelFromFile(fileName) {
+    return String(fileName || '')
+        .replace(/\.(png|webp|jpe?g)$/i, '')
+        .replace(/_/g, ' ');
+}
+
 function indexSpeciesLabel(fileName) {
-    return fileName.replace(/\.(png|webp)$/i, '').replace(/_/g, ' ');
+    return speciesLabelFromFile(fileName);
 }
 
 function updateIndexZoneFilterButtons() {
