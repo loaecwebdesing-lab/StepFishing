@@ -3140,10 +3140,10 @@ function equipRod(id) {
 
 
 const FISH_INDEX_ZONE_LEGEND = [
-    { id: 'lac', label: 'Lac Calme', className: 'zone-lac' },
-    { id: 'ocean', label: 'Haute Mer', className: 'zone-ocean' },
-    { id: 'abyss', label: 'Abysse', className: 'zone-abyss' },
-    { id: 'bonta', label: 'Bonta', className: 'zone-bonta' }
+    { id: 'lac', label: 'Lac Calme', shortLabel: 'Lac', className: 'zone-lac' },
+    { id: 'ocean', label: 'Haute Mer', shortLabel: 'Mer', className: 'zone-ocean' },
+    { id: 'abyss', label: 'Abysse', shortLabel: 'Abysse', className: 'zone-abyss' },
+    { id: 'bonta', label: 'Bonta', shortLabel: 'Bonta', className: 'zone-bonta' }
 ];
 
 let indexZoneFilter = null;
@@ -3192,7 +3192,7 @@ function setupIndexZoneFilters() {
         btn.className = `index-legend-item ${z.className}`;
         btn.setAttribute('data-index-zone', z.id);
         btn.title = `Afficher uniquement : ${z.label}`;
-        btn.innerHTML = `<i aria-hidden="true"></i>${z.label}`;
+        btn.innerHTML = `<i aria-hidden="true"></i>${z.shortLabel || z.label}`;
         btn.addEventListener('click', () => setIndexZoneFilter(z.id));
         legend.appendChild(btn);
     });
